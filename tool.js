@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    IMAGE UPLOAD
 ═══════════════════════════════════════════ */
-let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '';
+let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3PQ5dhbgJeER';
 
 function initToolUI() {
   updatePremiumUI();
@@ -17,13 +17,6 @@ function initToolUI() {
       state.selectedSize = sizeSelect.value;
       if (state.originalImage) generateLayout();
     });
-  }
-  
-  // Show API key setup if not configured
-  if (!removeBgApiKey) {
-    setTimeout(() => {
-      document.getElementById('apiKeyModal').classList.add('open');
-    }, 500);
   }
 }
 
