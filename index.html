@@ -1,1636 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PhotoPrint Pro — Passport Photos in 1 Click</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
-<style>
-/* ═══════════════════════════════════════════
-   VARIABLES & RESET
-═══════════════════════════════════════════ */
-:root {
-  --bg:       #070B17;
-  --surface:  #0D1526;
-  --card:     #131D36;
-  --border:   #1E2B4A;
-  --blue:     #2B73FF;
-  --blue-dim: #1A4DB3;
-  --orange:   #FF5B1F;
-  --orange-dim:#C43D0E;
-  --green:    #00C98B;
-  --text:     #EEF1FF;
-  --muted:    #6B7A99;
-  --white:    #FFFFFF;
-  --font-h:   'Syne', sans-serif;
-  --font-b:   'DM Sans', sans-serif;
-  --r:        8px;
-  --rL:       14px;
-  --shadow:   0 8px 40px rgba(0,0,0,.45);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-button{cursor:pointer;font-family:var(--font-b)}
-input,select,textarea{font-family:var(--font-b)}
-img{max-width:100%}
-.page{display:none;animation:fadeIn .3s ease}
-.page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* ═══════════════════════════════════════════
-   NAV
-═══════════════════════════════════════════ */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 24px;gap:0}
-.nav-logo{font-family:var(--font-h);font-weight:800;font-size:1.15rem;color:var(--text);margin-right:auto;display:flex;align-items:center;gap:8px}
-.nav-logo span{color:var(--blue)}
-.nav-badge{background:var(--orange);color:#fff;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
-.nav-links{display:flex;align-items:center;gap:4px}
-.nav-links a{padding:6px 14px;border-radius:6px;font-size:.875rem;font-weight:500;color:var(--muted);transition:.2s}
-.nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--card)}
-.nav-cta{background:var(--blue);color:#fff!important;padding:7px 18px!important;border-radius:6px!important;font-weight:600!important;transition:.2s!important}
-.nav-cta:hover{background:var(--blue-dim)!important}
-.premium-badge{display:none;align-items:center;gap:6px;background:rgba(255,91,31,.15);border:1px solid var(--orange);color:var(--orange);font-size:.75rem;font-weight:700;padding:4px 10px;border-radius:20px;margin-left:12px}
-.premium-badge.visible{display:flex}
-
-/* ═══════════════════════════════════════════
-   SHARED UTILITIES
-═══════════════════════════════════════════ */
-.container{max-width:1160px;margin:0 auto;padding:0 24px}
-.section{padding:80px 0}
-.badge{display:inline-block;background:rgba(43,115,255,.15);border:1px solid rgba(43,115,255,.3);color:var(--blue);font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px}
-.badge.orange{background:rgba(255,91,31,.12);border-color:rgba(255,91,31,.3);color:var(--orange)}
-h1,h2,h3{font-family:var(--font-h);font-weight:800;line-height:1.15}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:var(--r);font-weight:600;font-size:.9rem;border:none;transition:.2s;white-space:nowrap}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue-dim);transform:translateY(-1px)}
-.btn-orange{background:var(--orange);color:#fff}
-.btn-orange:hover{background:var(--orange-dim);transform:translateY(-1px)}
-.btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--border)}
-.btn-ghost:hover{border-color:var(--muted);background:var(--card)}
-.btn-green{background:var(--green);color:#fff}
-.btn-green:hover{filter:brightness(1.1)}
-.btn-sm{padding:8px 16px;font-size:.8rem}
-.btn-lg{padding:15px 32px;font-size:1rem}
-.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600}
-.tag-green{background:rgba(0,201,139,.12);color:var(--green)}
-.tag-red{background:rgba(255,80,80,.12);color:#FF5050}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:24px}
-
-/* ═══════════════════════════════════════════
-   HOME PAGE
-═══════════════════════════════════════════ */
-#page-home{padding-top:60px}
-
-/* HERO */
-.hero{padding:80px 0 70px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 60% 30%,rgba(43,115,255,.12) 0%,transparent 70%);pointer-events:none}
-.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.hero-badge{margin-bottom:20px}
-.hero h1{font-size:clamp(2.4rem,5vw,3.5rem);margin-bottom:18px;line-height:1.1}
-.hero h1 em{font-style:normal;color:var(--blue)}
-.hero p{color:var(--muted);font-size:1.05rem;max-width:460px;margin-bottom:32px;line-height:1.7}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
-.hero-visual{position:relative}
-.hero-a4{background:#fff;border-radius:var(--r);box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,.05);width:100%;max-width:360px;margin:0 auto;aspect-ratio:210/297;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:6px;padding:12px;position:relative}
-.hero-photo{border-radius:4px;background:linear-gradient(135deg,#c8d8ef 0%,#b0c4de 50%,#8fa8c8 100%);position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
-.hero-photo::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,#5a7faa 0%,transparent 100%);border-radius:0 0 4px 4px}
-.hero-photo-inner{width:55%;aspect-ratio:1;background:#d4a898;border-radius:50% 50% 40% 40%;position:absolute;top:15%;z-index:1}
-.hero-glow{position:absolute;bottom:-30px;right:-30px;width:200px;height:200px;background:var(--blue);opacity:.08;border-radius:50%;filter:blur(40px);pointer-events:none}
-.hero-stats{display:flex;gap:32px;margin-top:40px;padding-top:40px;border-top:1px solid var(--border)}
-.hero-stat-num{font-family:var(--font-h);font-size:1.8rem;font-weight:800;color:var(--text)}
-.hero-stat-label{font-size:.8rem;color:var(--muted)}
-
-/* PROBLEM */
-.problem{padding:60px 0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px}
-.problem-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px;position:relative;overflow:hidden}
-.problem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FF4040,#FF6060)}
-.problem-icon{font-size:2rem;margin-bottom:16px;display:block}
-.problem-card h3{font-size:1.05rem;margin-bottom:8px}
-.problem-card p{color:var(--muted);font-size:.875rem}
-
-/* SOLUTION */
-.solution{padding:80px 0}
-.solution-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:50px;position:relative}
-.solution-steps::before{content:'';position:absolute;top:36px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--border),var(--border),var(--border),transparent)}
-.step{text-align:center;position:relative}
-.step-num{width:72px;height:72px;border-radius:50%;background:var(--card);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-family:var(--font-h);font-size:1.4rem;font-weight:800;color:var(--blue);position:relative;z-index:1}
-.step h3{font-size:.95rem;margin-bottom:6px}
-.step p{font-size:.82rem;color:var(--muted)}
-.step-icon{font-size:1.5rem;margin-bottom:6px}
-
-/* FEATURES */
-.features{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 0}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:50px}
-.feature-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px;transition:.3s}
-.feature-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4)}
-.feature-icon{width:48px;height:48px;background:rgba(43,115,255,.12);border:1px solid rgba(43,115,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:18px}
-.feature-card h3{font-size:1rem;margin-bottom:8px}
-.feature-card p{color:var(--muted);font-size:.85rem}
-.feature-card.highlight{border-color:rgba(255,91,31,.4);background:rgba(255,91,31,.05)}
-.feature-card.highlight .feature-icon{background:rgba(255,91,31,.12);border-color:rgba(255,91,31,.2)}
-
-/* PRICING PREVIEW */
-.pricing-preview{padding:80px 0}
-.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:740px;margin:50px auto 0}
-.plan-card{border-radius:var(--rL);padding:36px;position:relative;overflow:hidden}
-.plan-starter{background:var(--card);border:1px solid var(--border)}
-.plan-premium{background:linear-gradient(135deg,rgba(43,115,255,.15),rgba(43,115,255,.05));border:1px solid rgba(43,115,255,.4)}
-.plan-label{font-size:.75rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.plan-price{font-family:var(--font-h);font-size:2.8rem;font-weight:800;margin-bottom:6px}
-.plan-price sup{font-size:1.2rem;font-weight:600}
-.plan-desc{color:var(--muted);font-size:.85rem;margin-bottom:24px}
-.plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
-.plan-features li{display:flex;align-items:center;gap:10px;font-size:.875rem}
-.check{color:var(--green);font-size:1.1rem}
-.cross{color:#FF5050;font-size:.9rem}
-.plan-recommended{position:absolute;top:20px;right:20px;background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
-
-/* CTA SECTION */
-.cta-section{padding:80px 0;text-align:center;position:relative;overflow:hidden}
-.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(43,115,255,.1) 0%,transparent 70%);pointer-events:none}
-.cta-section h2{font-size:clamp(2rem,4vw,2.8rem);margin-bottom:16px}
-.cta-section p{color:var(--muted);font-size:1.05rem;margin-bottom:36px}
-.cta-btns{display:flex;gap:16px;justify-content:center}
-
-/* ═══════════════════════════════════════════
-   TOOL PAGE
-═══════════════════════════════════════════ */
-#page-tool{padding-top:60px;min-height:100vh;background:var(--bg)}
-.tool-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.tool-header h2{font-family:var(--font-h);font-size:1rem;font-weight:700}
-.tool-header .muted{color:var(--muted);font-size:.8rem}
-.tool-header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.tool-layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 100px)}
-
-/* LEFT PANEL */
-.tool-panel{background:var(--surface);border-right:1px solid var(--border);padding:20px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:0}
-.panel-section{border-bottom:1px solid var(--border);padding:16px 0}
-.panel-section:first-child{padding-top:0}
-.panel-section:last-child{border-bottom:none}
-.panel-label{font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-.upload-area{border:2px dashed var(--border);border-radius:var(--r);padding:28px 16px;text-align:center;cursor:pointer;transition:.2s;position:relative}
-.upload-area:hover{border-color:var(--blue);background:rgba(43,115,255,.04)}
-.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-icon{font-size:2rem;margin-bottom:8px;display:block}
-.upload-text{font-size:.8rem;color:var(--muted)}
-.upload-text strong{color:var(--text);display:block;font-size:.9rem;margin-bottom:4px}
-.upload-preview{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:var(--r);display:none;border:1px solid var(--border)}
-.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
-.form-label{font-size:.8rem;color:var(--muted)}
-.form-select,.form-input{width:100%;background:var(--card);border:1.5px solid var(--border);color:var(--text);border-radius:var(--r);padding:9px 12px;font-size:.875rem;transition:.2s;appearance:none}
-.form-select:focus,.form-input:focus{outline:none;border-color:var(--blue)}
-.copies-control{display:flex;align-items:center;gap:10px}
-.copies-btn{width:32px;height:32px;border-radius:6px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:.2s}
-.copies-btn:hover{border-color:var(--blue);color:var(--blue)}
-.copies-num{font-family:var(--font-h);font-size:1.2rem;font-weight:700;min-width:32px;text-align:center}
-.bg-colors{display:flex;gap:8px;margin-top:8px}
-.color-btn{width:36px;height:36px;border-radius:8px;border:2.5px solid transparent;cursor:pointer;transition:.2s;position:relative}
-.color-btn:hover,.color-btn.active{border-color:var(--blue);transform:scale(1.1)}
-.color-btn-white{background:#ffffff}
-.color-btn-blue{background:#c3d7ef}
-.color-btn-grey{background:#c8c8c8}
-.color-btn-custom{background:linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff);position:relative;overflow:hidden}
-.color-btn-custom input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.slider-group{display:flex;flex-direction:column;gap:10px}
-.slider-item{display:flex;flex-direction:column;gap:4px}
-.slider-item-row{display:flex;align-items:center;justify-content:space-between}
-.slider-item-label{font-size:.78rem;color:var(--muted)}
-.slider-item-val{font-size:.75rem;color:var(--blue);font-weight:600}
-input[type=range]{width:100%;height:4px;border-radius:2px;background:var(--border);appearance:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);border:2px solid var(--bg)}
-.premium-lock{display:flex;align-items:center;gap:8px;background:rgba(255,91,31,.08);border:1px solid rgba(255,91,31,.25);border-radius:var(--r);padding:10px 12px;margin-bottom:10px}
-.premium-lock-icon{font-size:1rem}
-.premium-lock-text{font-size:.78rem;color:var(--orange)}
-.premium-lock-btn{margin-left:auto;background:var(--orange);color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:.72rem;font-weight:700;white-space:nowrap}
-
-/* CENTER PANEL */
-.tool-center{padding:24px;display:flex;flex-direction:column;align-items:center;gap:20px;background:var(--bg)}
-.a4-container{background:#6B7A99;border-radius:var(--r);padding:12px;box-shadow:var(--shadow);position:relative}
-.a4-sheet{background:#FFFFFF;width:480px;height:679px;position:relative;border-radius:2px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.a4-placeholder{text-align:center;color:#999}
-.a4-placeholder-icon{font-size:3rem;margin-bottom:12px;display:block}
-.a4-placeholder p{font-size:.85rem}
-canvas#a4Canvas{display:block;image-rendering:auto}
-.ad-banner{width:480px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;color:var(--muted);font-size:.8rem;display:none}
-.ad-banner.visible{display:block}
-.ad-banner strong{color:var(--text)}
-.tool-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.print-count-info{font-size:.78rem;color:var(--muted);text-align:center}
-
-/* CROP MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);display:none}
-.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px;width:500px;max-width:95vw}
-.modal h3{font-family:var(--font-h);font-size:1.15rem;margin-bottom:20px}
-.crop-container{position:relative;overflow:hidden;border-radius:var(--r);border:1px solid var(--border);background:#000;width:100%;height:320px;cursor:crosshair}
-#cropCanvas{display:block;width:100%;height:100%}
-.crop-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
-.modal-footer{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:16px}
-
-/* ═══════════════════════════════════════════
-   PREMIUM PAGE
-═══════════════════════════════════════════ */
-#page-premium{padding-top:60px}
-.premium-hero{padding:70px 0 60px;text-align:center;position:relative;overflow:hidden}
-.premium-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 30%,rgba(255,91,31,.1) 0%,transparent 70%);pointer-events:none}
-.premium-hero h1{font-size:clamp(2rem,4vw,3rem);margin-bottom:16px}
-.premium-hero p{color:var(--muted);font-size:1.05rem;max-width:540px;margin:0 auto 40px}
-.plans-container{max-width:780px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:0 24px 60px}
-.plan-card-full{background:var(--card);border:1.5px solid var(--border);border-radius:var(--rL);padding:40px 36px;position:relative}
-.plan-card-full.premium-card{border-color:rgba(43,115,255,.5);background:linear-gradient(160deg,rgba(43,115,255,.1),var(--card) 60%)}
-.plan-card-full.premium-card::before{content:'BEST VALUE';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.5px;padding:4px 14px;border-radius:0 0 8px 8px}
-.plan-name{font-family:var(--font-h);font-size:1.1rem;font-weight:700;margin-bottom:6px}
-.plan-big-price{font-family:var(--font-h);font-size:3rem;font-weight:800;line-height:1;margin-bottom:4px}
-.plan-big-price .currency{font-size:1.3rem;font-weight:600;vertical-align:super}
-.plan-period{color:var(--muted);font-size:.8rem;margin-bottom:20px}
-.plan-sep{height:1px;background:var(--border);margin:20px 0}
-.plan-feature-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
-.plan-feature-list li{display:flex;align-items:center;gap:10px;font-size:.875rem}
-.plan-feature-list li .check{font-size:1rem}
-.plan-feature-list li .cross{font-size:.9rem}
-.plan-feature-list li.locked{color:var(--muted)}
-
-/* ACTIVATION */
-.activation-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 0}
-.activation-box{max-width:500px;margin:0 auto;text-align:center}
-.activation-box h2{font-family:var(--font-h);font-size:1.6rem;margin-bottom:8px}
-.activation-box p{color:var(--muted);font-size:.9rem;margin-bottom:28px}
-.activation-input-row{display:flex;gap:10px}
-#activationCode{flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);border-radius:var(--r);padding:12px 16px;font-size:.95rem;text-transform:uppercase;letter-spacing:2px;text-align:center}
-#activationCode:focus{outline:none;border-color:var(--blue)}
-.activation-status{margin-top:14px;font-size:.875rem;min-height:22px;font-weight:500}
-.status-success{color:var(--green)}
-.status-error{color:#FF5050}
-
-/* VALUE PROP */
-.value-section{padding:60px 0;text-align:center}
-.value-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px}
-.value-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px;text-align:center}
-.value-num{font-family:var(--font-h);font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:6px}
-.value-card p{color:var(--muted);font-size:.85rem}
-
-/* ═══════════════════════════════════════════
-   CONTACT PAGE
-═══════════════════════════════════════════ */
-#page-contact{padding-top:60px}
-.contact-section{padding:80px 0;text-align:center}
-.contact-card{max-width:500px;margin:40px auto 0;background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:40px}
-.whatsapp-btn{display:inline-flex;align-items:center;gap:12px;background:#25D366;color:#fff;border-radius:var(--r);padding:16px 32px;font-size:1.05rem;font-weight:700;font-family:var(--font-h);transition:.2s;margin:20px 0}
-.whatsapp-btn:hover{background:#1ebe57;transform:translateY(-2px)}
-.contact-info{color:var(--muted);font-size:.875rem;margin-top:8px}
-.contact-hours{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:20px;font-size:.85rem}
-.contact-hours strong{color:var(--text)}
-
-/* ═══════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════ */
-footer{background:var(--surface);border-top:1px solid var(--border);padding:30px 24px;text-align:center;color:var(--muted);font-size:.82rem}
-footer a{color:var(--blue)}
-
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.875rem;font-weight:500;z-index:9999;transition:.3s;white-space:nowrap;box-shadow:var(--shadow)}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.toast.success{border-color:var(--green);color:var(--green)}
-.toast.error{border-color:#FF5050;color:#FF5050}
-
-/* ═══════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════ */
-@media(max-width:900px){
-  .hero-grid,.problem-grid,.solution-steps,.features-grid,.plans-container,.pricing-grid,.value-cards{grid-template-columns:1fr}
-  .tool-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  .tool-panel{border-right:none;border-bottom:1px solid var(--border)}
-  .a4-sheet{width:320px;height:453px}
-  canvas#a4Canvas{max-width:320px}
-  .nav-links .nav-link-hide{display:none}
-  .hero h1{font-size:2rem}
-}
-@media print{
-  body>*:not(#print-frame){display:none!important}
-  #print-frame{display:block!important;width:210mm;height:297mm;margin:0;padding:0}
-  #print-frame canvas{width:210mm!important;height:297mm!important}
-  @page{margin:0;size:A4 portrait}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoPrint Pro — Passport Photos in 1 Click</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <!-- ═══════════════ NAV ═══════════════ -->
 <nav>
-  <div class="nav-logo" onclick="navigate('home')" style="cursor:pointer">
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
     <span>📸</span> Photo<span>Print</span> Pro
     <span class="nav-badge">BETA</span>
   </div>
   <div class="nav-links">
-    <a href="#" class="nav-link nav-link-hide" data-page="home">Home</a>
-    <a href="#" class="nav-link nav-link-hide" data-page="tool">Tool</a>
-    <a href="#" class="nav-link nav-link-hide" data-page="premium">Premium</a>
-    <a href="#" class="nav-link nav-link-hide" data-page="contact">Contact</a>
-    <a href="#" class="nav-link nav-cta" data-page="tool">Start Tool →</a>
+    <a href="index.html" class="nav-link active" data-page="home">Home</a>
+    <a href="tool.html" class="nav-link nav-link-hide" data-page="tool">Tool</a>
+    <a href="premium.html" class="nav-link nav-link-hide" data-page="premium">Premium</a>
+    <a href="contact.html" class="nav-link nav-link-hide" data-page="contact">Contact</a>
+    <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
   </div>
   <div class="premium-badge" id="premiumBadge">⭐ Premium Active</div>
 </nav>
 
-<!-- ════════════════════════════════════════════
-     HOME PAGE
-════════════════════════════════════════════ -->
-<div id="page-home" class="page">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="container">
-      <div class="hero-grid">
-        <div class="hero-content">
-          <div class="hero-badge"><span class="badge">🇮🇳 Made for Indian Photo Shops</span></div>
-          <h1>Passport Photos<br>in <em>1 Click</em></h1>
-          <p>No Photoshop. No manual work. No wasted time. Upload your photo, remove background, arrange on A4, and print — done in seconds.</p>
-          <div class="hero-btns">
-            <button class="btn btn-orange btn-lg" onclick="navigate('tool')">🚀 Start Tool Free</button>
-            <button class="btn btn-ghost btn-lg" onclick="navigate('premium')">View Premium ₹500</button>
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge"><span class="badge">🇮🇳 Made for Indian Photo Shops</span></div>
+        <h1>Passport Photos<br>in <em>1 Click</em></h1>
+        <p>No Photoshop. No manual work. No wasted time. Upload your photo, remove background, arrange on A4, and print — done in seconds.</p>
+        <div class="hero-btns">
+          <a href="tool.html" class="btn btn-orange btn-lg">🚀 Start Tool Free</a>
+          <a href="premium.html" class="btn btn-ghost btn-lg">View Premium ₹500</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-num">8–12</div>
+            <div class="hero-stat-label">Photos on one A4</div>
           </div>
-          <div class="hero-stats">
-            <div>
-              <div class="hero-stat-num">8–12</div>
-              <div class="hero-stat-label">Photos on one A4</div>
-            </div>
-            <div>
-              <div class="hero-stat-num">30s</div>
-              <div class="hero-stat-label">Time per job</div>
-            </div>
-            <div>
-              <div class="hero-stat-num">5+</div>
-              <div class="hero-stat-label">ID types supported</div>
-            </div>
+          <div>
+            <div class="hero-stat-num">30s</div>
+            <div class="hero-stat-label">Time per job</div>
           </div>
-        </div>
-        <div class="hero-visual">
-          <div class="hero-a4">
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-            <div class="hero-photo"><div class="hero-photo-inner"></div></div>
-          </div>
-          <div class="hero-glow"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PROBLEM -->
-  <section class="problem">
-    <div class="container">
-      <div class="badge orange">😤 The Problem</div>
-      <h2 style="font-size:1.8rem;margin-bottom:8px">Why shops waste hours on passport photos</h2>
-      <p style="color:var(--muted);font-size:.9rem">Every shop faces these same 3 problems. Every. Single. Day.</p>
-      <div class="problem-grid">
-        <div class="problem-card">
-          <span class="problem-icon">🐌</span>
-          <h3>Photoshop is Slow</h3>
-          <p>Opening layers, masking, resizing — just to print 8 small photos? That takes 15+ minutes for one customer.</p>
-        </div>
-        <div class="problem-card">
-          <span class="problem-icon">📐</span>
-          <h3>Wrong Sizes</h3>
-          <p>Passport, Visa, Aadhaar, PAN — each has a different size. One mistake and the customer comes back angry.</p>
-        </div>
-        <div class="problem-card">
-          <span class="problem-icon">⏰</span>
-          <h3>Time = Money Lost</h3>
-          <p>If passport photo takes 15 minutes, you can only serve 4 customers/hour. That's direct revenue loss.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SOLUTION -->
-  <section class="solution">
-    <div class="container" style="text-align:center">
-      <div class="badge">✅ The Solution</div>
-      <h2 style="font-size:1.8rem;margin-bottom:8px">4 steps. 30 seconds. Done.</h2>
-      <p style="color:var(--muted);font-size:.9rem;max-width:500px;margin:0 auto">This is how PhotoPrint Pro works. No training needed. Even a helper can do it.</p>
-      <div class="solution-steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-icon">📤</div>
-          <h3>Upload Photo</h3>
-          <p>From phone or USB. Any format works.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-icon">✂️</div>
-          <h3>Remove Background</h3>
-          <p>1 click. Auto detects background. Gone.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-icon">🎨</div>
-          <h3>Choose Color</h3>
-          <p>White, light blue, grey — standard colors.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-icon">🖨️</div>
-          <h3>Print on A4</h3>
-          <p>Auto-arranged. No empty space wasted.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section class="features">
-    <div class="container">
-      <div class="badge">⚡ Features</div>
-      <h2 style="font-size:1.8rem;margin-bottom:8px">Everything a photo shop needs</h2>
-      <p style="color:var(--muted);font-size:.9rem">Built specifically for Indian photo studios. Not a generic tool.</p>
-      <div class="features-grid">
-        <div class="feature-card highlight">
-          <div class="feature-icon">✂️</div>
-          <h3>Auto Background Removal</h3>
-          <p>1-click background removal. Works on most passport photos with solid backgrounds. Premium feature.</p>
-        </div>
-        <div class="feature-card highlight">
-          <div class="feature-icon">🎨</div>
-          <h3>Background Color Change</h3>
-          <p>Switch to white, light blue, or grey instantly. All government-approved colors supported.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📐</div>
-          <h3>5 ID Photo Sizes</h3>
-          <p>Passport, Stamp, Aadhaar, PAN, Visa — auto-sized to exact mm specifications.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🗂️</div>
-          <h3>Smart A4 Layout</h3>
-          <p>Auto-fills A4 sheet with maximum photos. No empty space. Best paper economy.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔆</div>
-          <h3>Basic Edits</h3>
-          <p>Brightness, contrast, rotation — fix any photo problem before printing.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🖨️</div>
-          <h3>1-Click Print</h3>
-          <p>Direct to printer. Correct A4 scale. No manual sizing in print dialog.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING PREVIEW -->
-  <section class="pricing-preview">
-    <div class="container" style="text-align:center">
-      <div class="badge">💰 Simple Pricing</div>
-      <h2 style="font-size:1.8rem;margin-bottom:8px">Start free. Upgrade when ready.</h2>
-      <p style="color:var(--muted);font-size:.9rem">Pay once. Use forever. No monthly fees.</p>
-      <div class="pricing-grid">
-        <div class="plan-card plan-starter">
-          <div class="plan-label">Starter</div>
-          <div class="plan-price"><sup>₹</sup>50</div>
-          <div class="plan-desc">Try it, use it for basic jobs</div>
-          <ul class="plan-features">
-            <li><span class="check">✓</span> Basic sizes (Passport, PAN)</li>
-            <li><span class="check">✓</span> A4 layout + print</li>
-            <li><span class="check">✓</span> 10 prints/session</li>
-            <li><span class="cross">✕</span> Background removal</li>
-            <li><span class="cross">✕</span> Color change</li>
-          </ul>
-          <button class="btn btn-ghost" style="width:100%" onclick="navigate('tool')">Try Free First</button>
-        </div>
-        <div class="plan-card plan-premium">
-          <div class="plan-label">Premium</div>
-          <div class="plan-price"><sup>₹</sup>500</div>
-          <div class="plan-desc">Full professional tool. One-time payment.</div>
-          <ul class="plan-features">
-            <li><span class="check">✓</span> All 5 ID sizes</li>
-            <li><span class="check">✓</span> Unlimited prints</li>
-            <li><span class="check">✓</span> Background removal ⭐</li>
-            <li><span class="check">✓</span> Background color change ⭐</li>
-            <li><span class="check">✓</span> No ads</li>
-          </ul>
-          <button class="btn btn-orange" style="width:100%" onclick="navigate('premium')">Get Premium →</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="cta-section">
-    <div class="container">
-      <h2>Ready to speed up your shop?</h2>
-      <p>Thousands of photos, zero Photoshop. Start right now — it's free.</p>
-      <div class="cta-btns">
-        <button class="btn btn-orange btn-lg" onclick="navigate('tool')">🚀 Open the Tool</button>
-        <button class="btn btn-ghost btn-lg" onclick="navigate('contact')">📞 Talk to Support</button>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <p>© 2024 PhotoPrint Pro — Made for Indian Photo Shops &nbsp;|&nbsp; <a href="#" onclick="navigate('contact')">Contact</a> &nbsp;|&nbsp; <a href="#" onclick="navigate('premium')">Get Premium</a></p>
-  </footer>
-</div>
-
-<!-- ════════════════════════════════════════════
-     TOOL PAGE
-════════════════════════════════════════════ -->
-<div id="page-tool" class="page">
-  <div class="tool-header">
-    <h2>📸 PhotoPrint Pro</h2>
-    <span class="muted">— Passport Photo Tool</span>
-    <div class="tool-header-right">
-      <span id="toolPrintCount" class="muted" style="font-size:.78rem"></span>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('premium')" id="upgradeBtn" style="display:none">⭐ Upgrade ₹500</button>
-    </div>
-  </div>
-
-  <div class="tool-layout">
-    <!-- LEFT PANEL -->
-    <div class="tool-panel">
-
-      <!-- UPLOAD -->
-      <div class="panel-section">
-        <div class="panel-label">📤 Upload Photo</div>
-        <div class="upload-area" id="uploadArea">
-          <input type="file" id="photoInput" accept="image/*">
-          <img id="uploadPreview" class="upload-preview" alt="Preview">
-          <div id="uploadPlaceholder">
-            <span class="upload-icon">🖼️</span>
-            <div class="upload-text">
-              <strong>Click to Upload</strong>
-              JPG, PNG, HEIC supported
-            </div>
+          <div>
+            <div class="hero-stat-num">5+</div>
+            <div class="hero-stat-label">ID types supported</div>
           </div>
         </div>
       </div>
-
-      <!-- SIZE & COPIES -->
-      <div class="panel-section">
-        <div class="panel-label">📐 Size & Copies</div>
-        <div class="form-group">
-          <label class="form-label">Photo Size</label>
-          <select class="form-select" id="sizeSelect">
-            <option value="passport">Passport (35×45 mm)</option>
-            <option value="stamp">Stamp Size (25×35 mm)</option>
-            <option value="aadhaar">Aadhaar (35×45 mm)</option>
-            <option value="pan">PAN Card (25×35 mm)</option>
-            <option value="visa">Visa (51×51 mm)</option>
-          </select>
+      <div class="hero-visual">
+        <div class="hero-a4">
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
+          <div class="hero-photo"><div class="hero-photo-inner"></div></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Number of Copies</label>
-          <div class="copies-control">
-            <button class="copies-btn" onclick="adjustCopies(-1)">−</button>
-            <span class="copies-num" id="copiesNum">8</span>
-            <button class="copies-btn" onclick="adjustCopies(1)">+</button>
-            <span style="font-size:.78rem;color:var(--muted);margin-left:4px" id="maxCopiesInfo"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- BG TOOLS -->
-      <div class="panel-section">
-        <div class="panel-label">🎨 Background</div>
-        <div id="bgLock" class="premium-lock">
-          <span class="premium-lock-icon">🔒</span>
-          <span class="premium-lock-text">Premium feature</span>
-          <button class="premium-lock-btn" onclick="navigate('premium')">Unlock ₹500</button>
-        </div>
-        <div id="bgTools" style="display:none">
-          <button class="btn btn-primary" style="width:100%;margin-bottom:10px" id="removeBgBtn" onclick="removeBackground()">✂️ Remove Background</button>
-          <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px" id="restoreBgBtn" onclick="restoreBackground()" disabled>↩ Restore Original</button>
-          <div class="panel-label" style="margin-top:4px">Background Color</div>
-          <div class="bg-colors">
-            <div class="color-btn color-btn-white active" title="White" onclick="setBgColor('#ffffff',this)"></div>
-            <div class="color-btn color-btn-blue" title="Light Blue" onclick="setBgColor('#c3d7ef',this)"></div>
-            <div class="color-btn color-btn-grey" title="Grey" onclick="setBgColor('#c8c8c8',this)"></div>
-            <div class="color-btn color-btn-custom" title="Custom">
-              <input type="color" value="#ffffff" oninput="setBgColorCustom(this.value)" title="Custom Color">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EDIT -->
-      <div class="panel-section">
-        <div class="panel-label">⚙️ Adjust</div>
-        <div class="slider-group">
-          <div class="slider-item">
-            <div class="slider-item-row">
-              <span class="slider-item-label">Brightness</span>
-              <span class="slider-item-val" id="valBright">100%</span>
-            </div>
-            <input type="range" id="slBright" min="50" max="200" value="100" oninput="applyEdits()">
-          </div>
-          <div class="slider-item">
-            <div class="slider-item-row">
-              <span class="slider-item-label">Contrast</span>
-              <span class="slider-item-val" id="valContrast">100%</span>
-            </div>
-            <input type="range" id="slContrast" min="50" max="200" value="100" oninput="applyEdits()">
-          </div>
-          <div class="slider-item">
-            <div class="slider-item-row">
-              <span class="slider-item-label">Rotation</span>
-              <span class="slider-item-val" id="valRotation">0°</span>
-            </div>
-            <input type="range" id="slRotation" min="-15" max="15" value="0" oninput="applyEdits()">
-          </div>
-        </div>
-        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="resetEdits()">↩ Reset Edits</button>
-      </div>
-
-      <!-- CROP -->
-      <div class="panel-section">
-        <div class="panel-label">✂️ Crop</div>
-        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="openCropModal()">Open Crop Tool</button>
-      </div>
-
-    </div>
-
-    <!-- CENTER PANEL -->
-    <div class="tool-center">
-      <!-- AD BANNER (Starter only) -->
-      <div class="ad-banner" id="adBanner">
-        <strong>📢 Advertisement</strong><br>
-        <span style="font-size:.75rem">Upgrade to Premium to remove ads · <a href="#" onclick="navigate('premium')" style="color:var(--orange)">Get Premium ₹500</a></span>
-      </div>
-
-      <!-- A4 PREVIEW -->
-      <div class="a4-container">
-        <div class="a4-sheet" id="a4Sheet">
-          <div class="a4-placeholder" id="a4Placeholder">
-            <span class="a4-placeholder-icon">📄</span>
-            <p>Upload a photo to see your A4 layout preview</p>
-            <p style="font-size:.75rem;color:#bbb;margin-top:6px">Photos will appear here</p>
-          </div>
-          <canvas id="a4Canvas" style="display:none"></canvas>
-        </div>
-      </div>
-
-      <!-- ACTION BUTTONS -->
-      <div class="tool-actions">
-        <button class="btn btn-orange btn-lg" onclick="doPrint()">🖨️ Print Now</button>
-        <button class="btn btn-primary" onclick="generateLayout()">🔄 Generate Layout</button>
-        <button class="btn btn-ghost" onclick="openCropModal()">✂️ Crop</button>
-        <button class="btn btn-ghost" onclick="resetAll()">↺ Reset All</button>
-      </div>
-      <div class="print-count-info" id="printCountInfo"></div>
-    </div>
-  </div>
-
-  <!-- CROP MODAL -->
-  <div class="modal-overlay" id="cropModal">
-    <div class="modal">
-      <h3>✂️ Crop Photo</h3>
-      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Drag to pan · Scroll/slider to zoom</p>
-      <div class="crop-container" id="cropContainer">
-        <canvas id="cropCanvas"></canvas>
-        <div id="cropOverlay" style="position:absolute;inset:0;pointer-events:none"></div>
-      </div>
-      <div style="margin-top:12px">
-        <div class="slider-item-row" style="margin-bottom:6px">
-          <span class="slider-item-label">Zoom</span>
-          <span class="slider-item-val" id="cropZoomVal">100%</span>
-        </div>
-        <input type="range" id="cropZoom" min="50" max="300" value="100" oninput="updateCropZoom(this.value)" style="width:100%">
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
-        <button class="btn btn-orange" onclick="applyCrop()">✓ Apply Crop</button>
+        <div class="hero-glow"></div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ════════════════════════════════════════════
-     PREMIUM PAGE
-════════════════════════════════════════════ -->
-<div id="page-premium" class="page">
-  <div class="premium-hero">
-    <div class="container">
-      <div class="badge orange">💎 Premium</div>
-      <h1>Unlock the Full Tool</h1>
-      <p>One-time payment. No monthly fees. One code unlocks everything on your device forever.</p>
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="container">
+    <div class="badge orange">😤 The Problem</div>
+    <h2 style="font-size:1.8rem;margin-bottom:8px">Why shops waste hours on passport photos</h2>
+    <p style="color:var(--muted);font-size:.9rem">Every shop faces these same 3 problems. Every. Single. Day.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="problem-icon">🐌</span>
+        <h3>Photoshop is Slow</h3>
+        <p>Opening layers, masking, resizing — just to print 8 small photos? That takes 15+ minutes for one customer.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">📐</span>
+        <h3>Wrong Sizes</h3>
+        <p>Passport, Visa, Aadhaar, PAN — each has a different size. One mistake and the customer comes back angry.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">⏰</span>
+        <h3>Time = Money Lost</h3>
+        <p>If passport photo takes 15 minutes, you can only serve 4 customers/hour. That's direct revenue loss.</p>
+      </div>
     </div>
   </div>
+</section>
 
-  <div class="plans-container">
-    <div class="plan-card-full">
-      <div class="plan-name">Starter</div>
-      <div class="plan-big-price"><span class="currency">₹</span>50</div>
-      <div class="plan-period">One-time · Basic use</div>
-      <div class="plan-sep"></div>
-      <ul class="plan-feature-list">
-        <li><span class="check">✓</span> Passport &amp; PAN sizes</li>
-        <li><span class="check">✓</span> A4 layout + print</li>
-        <li><span class="check">✓</span> Basic brightness/contrast</li>
-        <li class="locked"><span class="cross">✕</span> Background removal</li>
-        <li class="locked"><span class="cross">✕</span> Background color change</li>
-        <li class="locked"><span class="cross">✕</span> All 5 ID sizes</li>
-        <li class="locked"><span class="cross">✕</span> 10 print limit/session</li>
-        <li class="locked"><span class="cross">✕</span> Has banner ads</li>
-      </ul>
-      <button class="btn btn-ghost" style="width:100%" onclick="navigate('tool')">Use Free Version</button>
-    </div>
-
-    <div class="plan-card-full premium-card">
-      <div class="plan-name">Premium ⭐</div>
-      <div class="plan-big-price"><span class="currency">₹</span>500</div>
-      <div class="plan-period">One-time payment · Lifetime use</div>
-      <div class="plan-sep"></div>
-      <ul class="plan-feature-list">
-        <li><span class="check">✓</span> All 5 ID sizes (Passport, Stamp, Aadhaar, PAN, Visa)</li>
-        <li><span class="check">✓</span> Unlimited prints</li>
-        <li><span class="check">✓</span> <strong>Background removal</strong> (1-click)</li>
-        <li><span class="check">✓</span> <strong>Background color change</strong></li>
-        <li><span class="check">✓</span> No ads — clean interface</li>
-        <li><span class="check">✓</span> Crop tool</li>
-        <li><span class="check">✓</span> Brightness, contrast, rotation</li>
-        <li><span class="check">✓</span> Future updates included</li>
-      </ul>
-      <button class="btn btn-orange btn-lg" style="width:100%;margin-bottom:12px" onclick="document.getElementById('activationCode').focus();document.getElementById('activationCode').scrollIntoView({behavior:'smooth'})">Get Activation Code →</button>
-      <p style="font-size:.75rem;color:var(--muted);text-align:center">Contact us on WhatsApp to purchase</p>
+<!-- SOLUTION -->
+<section class="solution">
+  <div class="container" style="text-align:center">
+    <div class="badge">✅ The Solution</div>
+    <h2 style="font-size:1.8rem;margin-bottom:8px">4 steps. 30 seconds. Done.</h2>
+    <p style="color:var(--muted);font-size:.9rem;max-width:500px;margin:0 auto">This is how PhotoPrint Pro works. No training needed. Even a helper can do it.</p>
+    <div class="solution-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">📤</div>
+        <h3>Upload Photo</h3>
+        <p>From phone or USB. Any format works.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">✂️</div>
+        <h3>Remove Background</h3>
+        <p>1 click. Auto detects background. Gone.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">🎨</div>
+        <h3>Choose Color</h3>
+        <p>White, light blue, grey — standard colors.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-icon">🖨️</div>
+        <h3>Print on A4</h3>
+        <p>Auto-arranged. No empty space wasted.</p>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- VALUE PROP -->
-  <section class="value-section">
-    <div class="container">
-      <div class="badge orange">📊 ROI Calculator</div>
-      <h2 style="font-size:1.6rem;margin-bottom:8px">"Recover ₹500 in 1 Day"</h2>
-      <p style="color:var(--muted);max-width:500px;margin:0 auto .5rem">Here's the real math for a photo shop:</p>
-      <div class="value-cards">
-        <div class="value-card">
-          <div class="value-num">10×</div>
-          <p><strong style="color:var(--text)">More customers/day</strong><br>30 sec per job vs 15 min with Photoshop</p>
-        </div>
-        <div class="value-card">
-          <div class="value-num">₹30</div>
-          <p><strong style="color:var(--text)">Revenue per A4 sheet</strong><br>At ₹15/photo × 2 cuts per A4 = ₹30</p>
-        </div>
-        <div class="value-card">
-          <div class="value-num">17×</div>
-          <p><strong style="color:var(--text)">Payback speed</strong><br>Serve 17 customers and ₹500 is recovered</p>
-        </div>
+<!-- FEATURES -->
+<section class="features">
+  <div class="container">
+    <div class="badge">⚡ Features</div>
+    <h2 style="font-size:1.8rem;margin-bottom:8px">Everything a photo shop needs</h2>
+    <p style="color:var(--muted);font-size:.9rem">Built specifically for Indian photo studios. Not a generic tool.</p>
+    <div class="features-grid">
+      <div class="feature-card highlight">
+        <div class="feature-icon">✂️</div>
+        <h3>Auto Background Removal</h3>
+        <p>1-click background removal. Works on most passport photos with solid backgrounds. Premium feature.</p>
       </div>
-      <div style="margin-top:32px;padding:24px;background:rgba(255,91,31,.08);border:1px solid rgba(255,91,31,.25);border-radius:var(--rL);max-width:540px;margin-left:auto;margin-right:auto">
-        <p style="font-size:.95rem;font-weight:600;margin-bottom:4px">⚡ Reality Check</p>
-        <p style="color:var(--muted);font-size:.875rem">If you do even 2–3 passport photo jobs per day, this tool pays for itself in the first week. After that, it's pure time savings — every day.</p>
+      <div class="feature-card highlight">
+        <div class="feature-icon">🎨</div>
+        <h3>Background Color Change</h3>
+        <p>Switch to white, light blue, or grey instantly. All government-approved colors supported.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- ACTIVATION -->
-  <section class="activation-section">
-    <div class="container">
-      <div class="activation-box">
-        <h2>🔐 Activate Premium</h2>
-        <p>Already purchased? Enter your activation code below to unlock all premium features on this device.</p>
-        <div class="activation-input-row">
-          <input type="text" id="activationCode" class="form-input" placeholder="ENTER CODE" maxlength="20">
-          <button class="btn btn-orange" onclick="activatePremium()">Activate</button>
-        </div>
-        <div class="activation-status" id="activationStatus"></div>
-        <p style="color:var(--muted);font-size:.8rem;margin-top:16px">Don't have a code? <a href="#" onclick="navigate('contact')" style="color:var(--orange)">Contact us on WhatsApp →</a></p>
-        <div id="deactivateSection" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-          <p style="color:var(--green);font-size:.9rem;margin-bottom:10px">✅ Premium is active on this device</p>
-          <button class="btn btn-ghost btn-sm" onclick="deactivatePremium()">Remove Premium (for transfer)</button>
-        </div>
+      <div class="feature-card">
+        <div class="feature-icon">📐</div>
+        <h3>5 ID Photo Sizes</h3>
+        <p>Passport, Stamp, Aadhaar, PAN, Visa — auto-sized to exact mm specifications.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗂️</div>
+        <h3>Smart A4 Layout</h3>
+        <p>Auto-fills A4 sheet with maximum photos. No empty space. Best paper economy.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔆</div>
+        <h3>Basic Edits</h3>
+        <p>Brightness, contrast, rotation — fix any photo problem before printing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖨️</div>
+        <h3>1-Click Print</h3>
+        <p>Direct to printer. Correct A4 scale. No manual sizing in print dialog.</p>
       </div>
     </div>
-  </section>
-
-  <footer style="margin-top:0">
-    <p>© 2024 PhotoPrint Pro &nbsp;|&nbsp; <a href="#" onclick="navigate('contact')">Need help? Contact us</a></p>
-  </footer>
-</div>
-
-<!-- ════════════════════════════════════════════
-     CONTACT PAGE
-════════════════════════════════════════════ -->
-<div id="page-contact" class="page">
-  <div style="padding-top:60px">
-    <section class="contact-section">
-      <div class="container">
-        <div class="badge">📞 Support</div>
-        <h1 style="font-family:var(--font-h);font-size:2rem;margin-bottom:8px">Need Help?</h1>
-        <p style="color:var(--muted)">We're here to help you set up and start earning faster.</p>
-
-        <div class="contact-card">
-          <div style="font-size:2rem;margin-bottom:12px">👋</div>
-          <h3 style="font-family:var(--font-h);font-size:1.2rem;margin-bottom:6px">Talk to us on WhatsApp</h3>
-          <p style="color:var(--muted);font-size:.875rem;margin-bottom:4px">Fast replies. In Hindi &amp; English.</p>
-          <a href="https://wa.me/919876543210?text=Hello%2C%20I%20need%20help%20with%20PhotoPrint%20Pro" target="_blank" class="whatsapp-btn">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            WhatsApp: +91 98765 43210
-          </a>
-          <div class="contact-info">Click to open WhatsApp directly</div>
-          <div class="contact-hours">
-            <strong>Support Hours</strong><br>
-            Monday – Saturday: 9:00 AM – 7:00 PM<br>
-            <span style="color:var(--muted)">Sunday: 10 AM – 2 PM</span>
-          </div>
-        </div>
-
-        <div style="max-width:500px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div class="card" style="text-align:center">
-            <div style="font-size:1.5rem;margin-bottom:8px">🚀</div>
-            <h4 style="font-size:.9rem;margin-bottom:6px">Setup Help</h4>
-            <p style="color:var(--muted);font-size:.8rem">We help you set up the tool in your shop — for free.</p>
-          </div>
-          <div class="card" style="text-align:center">
-            <div style="font-size:1.5rem;margin-bottom:8px">💰</div>
-            <h4 style="font-size:.9rem;margin-bottom:6px">Buy Premium</h4>
-            <p style="color:var(--muted);font-size:.8rem">Pay on WhatsApp. Get your code in 5 minutes.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-    <footer>
-      <p>© 2024 PhotoPrint Pro — <a href="#" onclick="navigate('home')">Home</a> &nbsp;|&nbsp; <a href="#" onclick="navigate('tool')">Tool</a> &nbsp;|&nbsp; <a href="#" onclick="navigate('premium')">Premium</a></p>
-    </footer>
   </div>
-</div>
+</section>
+
+<!-- PRICING PREVIEW -->
+<section class="pricing-preview">
+  <div class="container" style="text-align:center">
+    <div class="badge">💰 Simple Pricing</div>
+    <h2 style="font-size:1.8rem;margin-bottom:8px">Start free. Upgrade when ready.</h2>
+    <p style="color:var(--muted);font-size:.9rem">Pay once. Use forever. No monthly fees.</p>
+    <div class="pricing-grid">
+      <div class="plan-card plan-starter">
+        <div class="plan-label">Starter</div>
+        <div class="plan-price"><sup>₹</sup>50</div>
+        <div class="plan-desc">Try it, use it for basic jobs</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Basic sizes (Passport, PAN)</li>
+          <li><span class="check">✓</span> A4 layout + print</li>
+          <li><span class="check">✓</span> 10 prints/session</li>
+          <li><span class="cross">✕</span> Background removal</li>
+          <li><span class="cross">✕</span> Color change</li>
+        </ul>
+        <a href="tool.html" class="btn btn-ghost" style="width:100%">Try Free First</a>
+      </div>
+      <div class="plan-card plan-premium">
+        <div class="plan-label">Premium</div>
+        <div class="plan-price"><sup>₹</sup>500</div>
+        <div class="plan-desc">Full professional tool. One-time payment.</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> All 5 ID sizes</li>
+          <li><span class="check">✓</span> Unlimited prints</li>
+          <li><span class="check">✓</span> Background removal ⭐</li>
+          <li><span class="check">✓</span> Background color change ⭐</li>
+          <li><span class="check">✓</span> No ads</li>
+        </ul>
+        <a href="premium.html" class="btn btn-orange" style="width:100%">Get Premium →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Ready to speed up your shop?</h2>
+    <p>Thousands of photos, zero Photoshop. Start right now — it's free.</p>
+    <div class="cta-btns">
+      <a href="tool.html" class="btn btn-orange btn-lg">🚀 Open the Tool</a>
+      <a href="contact.html" class="btn btn-ghost btn-lg">📞 Talk to Support</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2024 PhotoPrint Pro — Made for Indian Photo Shops &nbsp;|&nbsp; <a href="contact.html">Contact</a> &nbsp;|&nbsp; <a href="premium.html">Get Premium</a></p>
+</footer>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- HIDDEN PRINT FRAME -->
-<div id="print-frame" style="display:none"></div>
-
+<script src="shared.js"></script>
 <script>
-/* ═══════════════════════════════════════════
-   CONFIGURATION (edit these!)
-═══════════════════════════════════════════ */
-const CONFIG = {
-  whatsapp: '919876543210', // Your WhatsApp number (with country code, no +)
-  shopName: 'PhotoPrint Pro',
-  activationCodes: ['PHOTO500', 'SHOP500', 'PREMIUM2024', 'PHOTOPRO', 'UNLOCK500'],
-  starterPrintLimit: 10, // prints per session for starter
-};
-
-/* ═══════════════════════════════════════════
-   PHOTO SIZES (in mm)
-═══════════════════════════════════════════ */
-const SIZES = {
-  passport: { name: 'Passport', w: 35,  h: 45  },
-  stamp:    { name: 'Stamp',    w: 25,  h: 35  },
-  aadhaar:  { name: 'Aadhaar',  w: 35,  h: 45  },
-  pan:      { name: 'PAN Card', w: 25,  h: 35  },
-  visa:     { name: 'Visa',     w: 51,  h: 51  },
-};
-const A4 = { w: 210, h: 297 }; // mm
-
-/* ═══════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════ */
-const state = {
-  isPremium: false,
-  originalImage: null,      // original Image element
-  processedCanvas: null,    // canvas after bg removal
-  bgRemoved: false,
-  currentBgColor: '#ffffff',
-  selectedSize: 'passport',
-  copies: 8,
-  brightness: 100,
-  contrast: 100,
-  rotation: 0,
-  printCount: 0,
-  cropOffsetX: 0,
-  cropOffsetY: 0,
-  cropScale: 1,
-  cropDragging: false,
-  cropStartX: 0,
-  cropStartY: 0,
-};
-
-/* ═══════════════════════════════════════════
-   ROUTER
-═══════════════════════════════════════════ */
-function navigate(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(l => {
-    l.classList.toggle('active', l.dataset.page === page);
-  });
-  window.scrollTo(0, 0);
-  if (page === 'tool') initToolUI();
-  if (page === 'premium') updateActivationUI();
-}
-
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', e => { e.preventDefault(); navigate(link.dataset.page); });
-});
-
-/* ═══════════════════════════════════════════
-   PREMIUM SYSTEM
-═══════════════════════════════════════════ */
-function checkPremium() {
-  const saved = localStorage.getItem('ppp_premium');
-  if (saved && CONFIG.activationCodes.includes(saved)) {
-    state.isPremium = true;
-  }
-  updatePremiumUI();
-}
-
-function activatePremium() {
-  const code = document.getElementById('activationCode').value.trim().toUpperCase();
-  const status = document.getElementById('activationStatus');
-  if (CONFIG.activationCodes.includes(code)) {
-    localStorage.setItem('ppp_premium', code);
-    state.isPremium = true;
-    updatePremiumUI();
-    updateActivationUI();
-    status.textContent = '✅ Premium activated! All features unlocked.';
-    status.className = 'activation-status status-success';
-    showToast('⭐ Premium Activated!', 'success');
-    setTimeout(() => navigate('tool'), 1500);
-  } else {
-    status.textContent = '❌ Invalid code. Contact support on WhatsApp.';
-    status.className = 'activation-status status-error';
-    showToast('Invalid activation code', 'error');
-  }
-}
-
-function deactivatePremium() {
-  localStorage.removeItem('ppp_premium');
-  state.isPremium = false;
-  updatePremiumUI();
-  updateActivationUI();
-  showToast('Premium removed from this device');
-}
-
-function updatePremiumUI() {
-  const badge = document.getElementById('premiumBadge');
-  const bgLock = document.getElementById('bgLock');
-  const bgTools = document.getElementById('bgTools');
-  const adBanner = document.getElementById('adBanner');
-  const upgradeBtn = document.getElementById('upgradeBtn');
-
-  if (state.isPremium) {
-    badge.classList.add('visible');
-    if (bgLock) bgLock.style.display = 'none';
-    if (bgTools) bgTools.style.display = 'block';
-    if (adBanner) adBanner.classList.remove('visible');
-    if (upgradeBtn) upgradeBtn.style.display = 'none';
-  } else {
-    badge.classList.remove('visible');
-    if (bgLock) bgLock.style.display = 'flex';
-    if (bgTools) bgTools.style.display = 'none';
-    if (adBanner) adBanner.classList.add('visible');
-    if (upgradeBtn) upgradeBtn.style.display = 'inline-flex';
-  }
-  updatePrintCountUI();
-}
-
-function updateActivationUI() {
-  const sec = document.getElementById('deactivateSection');
-  const code = document.getElementById('activationCode');
-  if (state.isPremium) {
-    if (sec) sec.style.display = 'block';
-    if (code) code.value = '';
-  } else {
-    if (sec) sec.style.display = 'none';
-  }
-}
-
-function updatePrintCountUI() {
-  const el = document.getElementById('printCountInfo');
-  const cnt = document.getElementById('toolPrintCount');
-  if (!state.isPremium) {
-    const rem = CONFIG.starterPrintLimit - state.printCount;
-    const msg = `Starter: ${rem} print${rem !== 1 ? 's' : ''} remaining · <a href="#" onclick="navigate('premium')" style="color:var(--orange)">Upgrade for unlimited</a>`;
-    if (el) el.innerHTML = msg;
-    if (cnt) cnt.textContent = `${rem} prints left`;
-  } else {
-    if (el) el.textContent = '';
-    if (cnt) cnt.textContent = 'Premium · Unlimited prints';
-  }
-}
-
-/* ═══════════════════════════════════════════
-   IMAGE UPLOAD
-═══════════════════════════════════════════ */
-function initToolUI() {
-  updatePremiumUI();
-  const input = document.getElementById('photoInput');
-  if (input && !input._bound) {
-    input._bound = true;
-    input.addEventListener('change', handleUpload);
-  }
-  const sizeSelect = document.getElementById('sizeSelect');
-  if (sizeSelect && !sizeSelect._bound) {
-    sizeSelect._bound = true;
-    sizeSelect.addEventListener('change', () => {
-      state.selectedSize = sizeSelect.value;
-      if (state.originalImage) generateLayout();
-    });
-  }
-}
-
-function handleUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      state.originalImage = img;
-      state.processedCanvas = null;
-      state.bgRemoved = false;
-      showUploadPreview(img.src);
-      generateLayout();
-      showToast('Photo uploaded!', 'success');
-      document.getElementById('restoreBgBtn').disabled = false;
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function showUploadPreview(src) {
-  const prev = document.getElementById('uploadPreview');
-  const placeholder = document.getElementById('uploadPlaceholder');
-  prev.src = src;
-  prev.style.display = 'block';
-  placeholder.style.display = 'none';
-}
-
-/* ═══════════════════════════════════════════
-   COPIES CONTROL
-═══════════════════════════════════════════ */
-function adjustCopies(delta) {
-  const size = SIZES[state.selectedSize];
-  const maxFit = calcMaxFit(size);
-  state.copies = Math.max(1, Math.min(maxFit, state.copies + delta));
-  document.getElementById('copiesNum').textContent = state.copies;
-  document.getElementById('maxCopiesInfo').textContent = `/ ${maxFit} max`;
-  if (state.originalImage) generateLayout();
-}
-
-function calcMaxFit(size) {
-  const margin = 5, gap = 2;
-  const cols = Math.floor((A4.w - 2 * margin + gap) / (size.w + gap));
-  const rows = Math.floor((A4.h - 2 * margin + gap) / (size.h + gap));
-  return Math.max(1, cols * rows);
-}
-
-/* ═══════════════════════════════════════════
-   BACKGROUND REMOVAL (Flood Fill)
-═══════════════════════════════════════════ */
-function removeBackground() {
-  if (!state.originalImage) { showToast('Upload a photo first', 'error'); return; }
-  if (!state.isPremium) { navigate('premium'); return; }
-
-  const btn = document.getElementById('removeBgBtn');
-  btn.textContent = '⏳ Processing...';
-  btn.disabled = true;
-
-  setTimeout(() => {
-    try {
-      const src = state.originalImage;
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = src.naturalWidth;
-      tmpCanvas.height = src.naturalHeight;
-      const ctx = tmpCanvas.getContext('2d');
-
-      // Apply current edits
-      const b = state.brightness / 100;
-      const c = ((state.contrast / 100 - 1) * 127 + 128);
-      ctx.filter = `brightness(${b}) contrast(${state.contrast / 100})`;
-      ctx.save();
-      if (state.rotation !== 0) {
-        ctx.translate(tmpCanvas.width/2, tmpCanvas.height/2);
-        ctx.rotate(state.rotation * Math.PI / 180);
-        ctx.translate(-tmpCanvas.width/2, -tmpCanvas.height/2);
-      }
-      ctx.drawImage(src, 0, 0);
-      ctx.restore();
-
-      const imgData = ctx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
-      const result = floodFillRemoveBg(imgData, 35);
-
-      // Create result canvas
-      const resultCanvas = document.createElement('canvas');
-      resultCanvas.width = tmpCanvas.width;
-      resultCanvas.height = tmpCanvas.height;
-      const rCtx = resultCanvas.getContext('2d');
-
-      // Fill with chosen bg color
-      rCtx.fillStyle = state.currentBgColor;
-      rCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
-
-      // Draw removed-bg image
-      const newImgData = new ImageData(result, tmpCanvas.width, tmpCanvas.height);
-      const tmpCanvas2 = document.createElement('canvas');
-      tmpCanvas2.width = tmpCanvas.width;
-      tmpCanvas2.height = tmpCanvas.height;
-      tmpCanvas2.getContext('2d').putImageData(newImgData, 0, 0);
-      rCtx.drawImage(tmpCanvas2, 0, 0);
-
-      state.processedCanvas = resultCanvas;
-      state.bgRemoved = true;
-      generateLayout();
-      showToast('Background removed!', 'success');
-    } catch(e) {
-      showToast('Error processing image', 'error');
-    }
-    btn.textContent = '✂️ Remove Background';
-    btn.disabled = false;
-  }, 50);
-}
-
-function floodFillRemoveBg(imageData, tolerance) {
-  const { data, width, height } = imageData;
-  const result = new Uint8ClampedArray(data);
-  const visited = new Uint8Array(width * height);
-
-  function getPixel(x, y) {
-    const i = (y * width + x) * 4;
-    return { r: data[i], g: data[i+1], b: data[i+2] };
-  }
-
-  function colorDist(a, b) {
-    return Math.sqrt((a.r-b.r)**2 + (a.g-b.g)**2 + (a.b-b.b)**2);
-  }
-
-  // Sample edges to determine bg color
-  const samples = [];
-  const step = 4;
-  for (let x = 0; x < width; x += step) {
-    samples.push(getPixel(x, 0));
-    samples.push(getPixel(x, height - 1));
-  }
-  for (let y = 0; y < height; y += step) {
-    samples.push(getPixel(0, y));
-    samples.push(getPixel(width - 1, y));
-  }
-  const bgColor = {
-    r: samples.reduce((s, c) => s + c.r, 0) / samples.length,
-    g: samples.reduce((s, c) => s + c.g, 0) / samples.length,
-    b: samples.reduce((s, c) => s + c.b, 0) / samples.length,
-  };
-
-  const queue = [];
-  function tryAdd(x, y) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
-    const idx = y * width + x;
-    if (visited[idx]) return;
-    if (colorDist(getPixel(x, y), bgColor) <= tolerance) {
-      visited[idx] = 1;
-      queue.push(y * width + x);
-    }
-  }
-
-  // Seed from all edges
-  for (let x = 0; x < width; x++) { tryAdd(x, 0); tryAdd(x, height-1); }
-  for (let y = 0; y < height; y++) { tryAdd(0, y); tryAdd(width-1, y); }
-
-  while (queue.length > 0) {
-    const pos = queue.pop();
-    const x = pos % width;
-    const y = Math.floor(pos / width);
-    const i = pos * 4;
-    result[i + 3] = 0; // transparent
-    tryAdd(x-1, y); tryAdd(x+1, y); tryAdd(x, y-1); tryAdd(x, y+1);
-  }
-
-  return result;
-}
-
-function restoreBackground() {
-  state.processedCanvas = null;
-  state.bgRemoved = false;
-  generateLayout();
-  showToast('Restored original');
-}
-
-/* ═══════════════════════════════════════════
-   BACKGROUND COLOR
-═══════════════════════════════════════════ */
-function setBgColor(color, el) {
-  state.currentBgColor = color;
-  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-  if (el) el.classList.add('active');
-  if (state.bgRemoved && state.originalImage) removeBackground();
-  else if (state.originalImage) generateLayout();
-}
-
-function setBgColorCustom(color) {
-  state.currentBgColor = color;
-  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-  if (state.bgRemoved && state.originalImage) removeBackground();
-  else if (state.originalImage) generateLayout();
-}
-
-/* ═══════════════════════════════════════════
-   EDITS
-═══════════════════════════════════════════ */
-function applyEdits() {
-  const b = document.getElementById('slBright').value;
-  const c = document.getElementById('slContrast').value;
-  const r = document.getElementById('slRotation').value;
-  state.brightness = parseInt(b);
-  state.contrast = parseInt(c);
-  state.rotation = parseInt(r);
-  document.getElementById('valBright').textContent = b + '%';
-  document.getElementById('valContrast').textContent = c + '%';
-  document.getElementById('valRotation').textContent = r + '°';
-  if (state.originalImage) generateLayout();
-}
-
-function resetEdits() {
-  state.brightness = 100; state.contrast = 100; state.rotation = 0;
-  document.getElementById('slBright').value = 100;
-  document.getElementById('slContrast').value = 100;
-  document.getElementById('slRotation').value = 0;
-  applyEdits();
-}
-
-/* ═══════════════════════════════════════════
-   A4 LAYOUT GENERATION
-═══════════════════════════════════════════ */
-function generateLayout() {
-  if (!state.originalImage) return;
-
-  const size = SIZES[state.selectedSize];
-  const DPI = 96; // screen pixels per inch
-  const MM2PX = DPI / 25.4;
-
-  // A4 at screen DPI
-  const a4W = Math.round(A4.w * MM2PX);
-  const a4H = Math.round(A4.h * MM2PX);
-  const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
-  const photoW = Math.round(size.w * MM2PX);
-  const photoH = Math.round(size.h * MM2PX);
-
-  const cols = Math.floor((a4W - 2 * margin + gap) / (photoW + gap));
-  const rows = Math.floor((a4H - 2 * margin + gap) / (photoH + gap));
-  const maxFit = cols * rows;
-  const count = Math.min(state.copies, maxFit);
-
-  // Update max info
-  document.getElementById('copiesNum').textContent = state.copies;
-  document.getElementById('maxCopiesInfo').textContent = `/ ${maxFit} max`;
-
-  // Display canvas
-  const canvas = document.getElementById('a4Canvas');
-  const ctx = canvas.getContext('2d');
-
-  // Scale to fit the 480x679px display area
-  const displayW = 480, displayH = 679;
-  const scale = Math.min(displayW / a4W, displayH / a4H);
-  canvas.width = Math.round(a4W * scale);
-  canvas.height = Math.round(a4H * scale);
-
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Get source canvas (original or processed)
-  const srcCanvas = getSourceCanvas();
-
-  const m = margin * scale;
-  const g = gap * scale;
-  const pw = photoW * scale;
-  const ph = photoH * scale;
-
-  for (let i = 0; i < count; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = m + col * (pw + g);
-    const y = m + row * (ph + g);
-    ctx.drawImage(srcCanvas, x, y, pw, ph);
-  }
-
-  // Show canvas, hide placeholder
-  document.getElementById('a4Placeholder').style.display = 'none';
-  canvas.style.display = 'block';
-}
-
-function getSourceCanvas() {
-  // If we have a processed canvas (bg removed), use it
-  if (state.processedCanvas) {
-    // Apply edits on top
-    const tmp = document.createElement('canvas');
-    tmp.width = state.processedCanvas.width;
-    tmp.height = state.processedCanvas.height;
-    const ctx = tmp.getContext('2d');
-    ctx.filter = `brightness(${state.brightness/100}) contrast(${state.contrast/100})`;
-    ctx.save();
-    if (state.rotation !== 0) {
-      ctx.translate(tmp.width/2, tmp.height/2);
-      ctx.rotate(state.rotation * Math.PI/180);
-      ctx.translate(-tmp.width/2, -tmp.height/2);
-    }
-    ctx.drawImage(state.processedCanvas, 0, 0);
-    ctx.restore();
-    return tmp;
-  }
-
-  // Otherwise use original image with edits
-  const img = state.originalImage;
-  const tmp = document.createElement('canvas');
-  tmp.width = img.naturalWidth;
-  tmp.height = img.naturalHeight;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = state.currentBgColor;
-  ctx.fillRect(0, 0, tmp.width, tmp.height);
-  ctx.filter = `brightness(${state.brightness/100}) contrast(${state.contrast/100})`;
-  ctx.save();
-  if (state.rotation !== 0) {
-    ctx.translate(tmp.width/2, tmp.height/2);
-    ctx.rotate(state.rotation * Math.PI/180);
-    ctx.translate(-tmp.width/2, -tmp.height/2);
-  }
-  ctx.drawImage(img, 0, 0);
-  ctx.restore();
-  return tmp;
-}
-
-/* ═══════════════════════════════════════════
-   PRINT
-═══════════════════════════════════════════ */
-function doPrint() {
-  if (!state.originalImage) { showToast('Upload a photo first', 'error'); return; }
-  if (!state.isPremium && state.printCount >= CONFIG.starterPrintLimit) {
-    showToast('Print limit reached. Upgrade to Premium!', 'error');
-    navigate('premium');
-    return;
-  }
-
-  // Generate high-quality print canvas
-  const size = SIZES[state.selectedSize];
-  const DPI = 300;
-  const MM2PX = DPI / 25.4;
-  const a4W = Math.round(A4.w * MM2PX);
-  const a4H = Math.round(A4.h * MM2PX);
-  const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
-  const photoW = Math.round(size.w * MM2PX);
-  const photoH = Math.round(size.h * MM2PX);
-  const cols = Math.floor((a4W - 2*margin + gap) / (photoW + gap));
-  const rows = Math.floor((a4H - 2*margin + gap) / (photoH + gap));
-  const count = Math.min(state.copies, cols * rows);
-
-  const printCanvas = document.createElement('canvas');
-  printCanvas.width = a4W;
-  printCanvas.height = a4H;
-  const ctx = printCanvas.getContext('2d');
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, a4W, a4H);
-
-  const srcCanvas = getSourceCanvas();
-  for (let i = 0; i < count; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = margin + col * (photoW + gap);
-    const y = margin + row * (photoH + gap);
-    ctx.drawImage(srcCanvas, x, y, photoW, photoH);
-  }
-
-  // Print via image in iframe
-  const dataURL = printCanvas.toDataURL('image/jpeg', 0.95);
-  const printWin = window.open('', '_blank', 'width=800,height=900');
-  printWin.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Print - ${state.selectedSize} photos</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        @page { margin: 0; size: A4 portrait; }
-        body { margin: 0; padding: 0; }
-        img { width: 210mm; height: 297mm; display: block; }
-      </style>
-    </head>
-    <body>
-      <img src="${dataURL}" onload="window.print();setTimeout(()=>window.close(),500)">
-    </body>
-    </html>
-  `);
-  printWin.document.close();
-
-  if (!state.isPremium) {
-    state.printCount++;
-    updatePrintCountUI();
-  }
-  showToast('Print dialog opened!', 'success');
-}
-
-/* ═══════════════════════════════════════════
-   CROP TOOL
-═══════════════════════════════════════════ */
-let cropImg = null;
-let cropCanvas, cropCtx;
-
-function openCropModal() {
-  if (!state.originalImage) { showToast('Upload a photo first', 'error'); return; }
-  state.cropOffsetX = 0;
-  state.cropOffsetY = 0;
-  state.cropScale = 1;
-  document.getElementById('cropZoom').value = 100;
-  document.getElementById('cropZoomVal').textContent = '100%';
-
-  document.getElementById('cropModal').classList.add('open');
-
-  cropCanvas = document.getElementById('cropCanvas');
-  cropCtx = cropCanvas.getContext('2d');
-  const container = document.getElementById('cropContainer');
-  cropCanvas.width = container.clientWidth;
-  cropCanvas.height = container.clientHeight;
-
-  cropImg = state.processedCanvas || state.originalImage;
-  drawCrop();
-  setupCropDrag();
-}
-
-function drawCrop() {
-  if (!cropCtx) return;
-  const W = cropCanvas.width, H = cropCanvas.height;
-  cropCtx.clearRect(0, 0, W, H);
-  cropCtx.fillStyle = '#1a1a2e';
-  cropCtx.fillRect(0, 0, W, H);
-
-  // Draw image centered with scale and offset
-  const size = SIZES[state.selectedSize];
-  const aspect = size.w / size.h;
-  const drawH = H * state.cropScale;
-  const drawW = drawH * (cropImg.naturalWidth || cropImg.width) / (cropImg.naturalHeight || cropImg.height);
-
-  const x = (W - drawW) / 2 + state.cropOffsetX;
-  const y = (H - drawH) / 2 + state.cropOffsetY;
-
-  cropCtx.drawImage(cropImg, x, y, drawW, drawH);
-
-  // Draw crop overlay
-  const cropW = Math.min(W * 0.7, H * 0.7 * aspect);
-  const cropH = cropW / aspect;
-  const cx = (W - cropW) / 2, cy = (H - cropH) / 2;
-
-  cropCtx.fillStyle = 'rgba(0,0,0,0.5)';
-  cropCtx.fillRect(0, 0, W, cy);
-  cropCtx.fillRect(0, cy + cropH, W, H - cy - cropH);
-  cropCtx.fillRect(0, cy, cx, cropH);
-  cropCtx.fillRect(cx + cropW, cy, W - cx - cropW, cropH);
-
-  cropCtx.strokeStyle = '#2B73FF';
-  cropCtx.lineWidth = 2;
-  cropCtx.strokeRect(cx, cy, cropW, cropH);
-
-  // Grid lines
-  cropCtx.strokeStyle = 'rgba(43,115,255,0.4)';
-  cropCtx.lineWidth = 0.5;
-  cropCtx.beginPath();
-  cropCtx.moveTo(cx + cropW/3, cy); cropCtx.lineTo(cx + cropW/3, cy + cropH);
-  cropCtx.moveTo(cx + cropW*2/3, cy); cropCtx.lineTo(cx + cropW*2/3, cy + cropH);
-  cropCtx.moveTo(cx, cy + cropH/3); cropCtx.lineTo(cx + cropW, cy + cropH/3);
-  cropCtx.moveTo(cx, cy + cropH*2/3); cropCtx.lineTo(cx + cropW, cy + cropH*2/3);
-  cropCtx.stroke();
-}
-
-function updateCropZoom(val) {
-  state.cropScale = val / 100;
-  document.getElementById('cropZoomVal').textContent = val + '%';
-  drawCrop();
-}
-
-function setupCropDrag() {
-  if (cropCanvas._cropBound) return;
-  cropCanvas._cropBound = true;
-
-  cropCanvas.addEventListener('mousedown', e => {
-    state.cropDragging = true;
-    state.cropStartX = e.clientX - state.cropOffsetX;
-    state.cropStartY = e.clientY - state.cropOffsetY;
-  });
-  cropCanvas.addEventListener('mousemove', e => {
-    if (!state.cropDragging) return;
-    state.cropOffsetX = e.clientX - state.cropStartX;
-    state.cropOffsetY = e.clientY - state.cropStartY;
-    drawCrop();
-  });
-  cropCanvas.addEventListener('mouseup', () => state.cropDragging = false);
-  cropCanvas.addEventListener('mouseleave', () => state.cropDragging = false);
-
-  // Touch
-  cropCanvas.addEventListener('touchstart', e => {
-    state.cropDragging = true;
-    state.cropStartX = e.touches[0].clientX - state.cropOffsetX;
-    state.cropStartY = e.touches[0].clientY - state.cropOffsetY;
-  });
-  cropCanvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!state.cropDragging) return;
-    state.cropOffsetX = e.touches[0].clientX - state.cropStartX;
-    state.cropOffsetY = e.touches[0].clientY - state.cropStartY;
-    drawCrop();
-  }, { passive: false });
-  cropCanvas.addEventListener('touchend', () => state.cropDragging = false);
-}
-
-function applyCrop() {
-  if (!cropCtx) return;
-  const W = cropCanvas.width, H = cropCanvas.height;
-  const size = SIZES[state.selectedSize];
-  const aspect = size.w / size.h;
-  const cropW = Math.min(W * 0.7, H * 0.7 * aspect);
-  const cropH = cropW / aspect;
-  const cx = (W - cropW) / 2, cy = (H - cropH) / 2;
-
-  const outputCanvas = document.createElement('canvas');
-  const outW = Math.round(size.w * 10), outH = Math.round(size.h * 10);
-  outputCanvas.width = outW;
-  outputCanvas.height = outH;
-  const oCtx = outputCanvas.getContext('2d');
-  oCtx.fillStyle = state.currentBgColor;
-  oCtx.fillRect(0, 0, outW, outH);
-  oCtx.drawImage(cropCanvas, cx, cy, cropW, cropH, 0, 0, outW, outH);
-
-  state.processedCanvas = outputCanvas;
-
-  // Create fake image for preview
-  const previewSrc = outputCanvas.toDataURL();
-  document.getElementById('uploadPreview').src = previewSrc;
-
-  closeCropModal();
-  generateLayout();
-  showToast('Crop applied!', 'success');
-}
-
-function closeCropModal() {
-  document.getElementById('cropModal').classList.remove('open');
-}
-
-/* ═══════════════════════════════════════════
-   RESET
-═══════════════════════════════════════════ */
-function resetAll() {
-  state.originalImage = null;
-  state.processedCanvas = null;
-  state.bgRemoved = false;
-  state.brightness = 100;
-  state.contrast = 100;
-  state.rotation = 0;
-  state.copies = 8;
-
-  document.getElementById('uploadPreview').style.display = 'none';
-  document.getElementById('uploadPlaceholder').style.display = 'block';
-  document.getElementById('photoInput').value = '';
-  document.getElementById('a4Canvas').style.display = 'none';
-  document.getElementById('a4Placeholder').style.display = 'flex';
-  document.getElementById('slBright').value = 100;
-  document.getElementById('slContrast').value = 100;
-  document.getElementById('slRotation').value = 0;
-  document.getElementById('valBright').textContent = '100%';
-  document.getElementById('valContrast').textContent = '100%';
-  document.getElementById('valRotation').textContent = '0°';
-  document.getElementById('copiesNum').textContent = 8;
-  document.getElementById('restoreBgBtn').disabled = true;
-
-  showToast('Reset done');
-}
-
-/* ═══════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════ */
-let toastTimer;
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (type || '');
-  setTimeout(() => t.classList.add('show'), 10);
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-/* ═══════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════ */
-checkPremium();
-navigate('home');
-
-// Close crop modal on overlay click
-document.getElementById('cropModal').addEventListener('click', function(e) {
-  if (e.target === this) closeCropModal();
-});
+  setActiveNav('home');
 </script>
+
 </body>
 </html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoPrint Pro — Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+    <span>📸</span> Photo<span>Print</span> Pro
+    <span class="nav-badge">BETA</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link" data-page="home">Home</a>
+    <a href="tool.html" class="nav-link nav-link-hide" data-page="tool">Tool</a>
+    <a href="premium.html" class="nav-link active nav-link-hide" data-page="premium">Premium</a>
+    <a href="contact.html" class="nav-link nav-link-hide" data-page="contact">Contact</a>
+    <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
+  </div>
+  <div class="premium-badge" id="premiumBadge">⭐ Premium Active</div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     PREMIUM PAGE
+════════════════════════════════════════════ -->
+<div id="page-premium">
+  <div class="premium-hero">
+    <div class="container">
+      <div class="badge orange">💎 Premium</div>
+      <h1>Unlock the Full Tool</h1>
+      <p>One-time payment. No monthly fees. One code unlocks everything on your device forever.</p>
+    </div>
+  </div>
+
+  <div class="plans-container">
+    <div class="plan-card-full">
+      <div class="plan-name">Starter</div>
+      <div class="plan-big-price"><span class="currency">₹</span>50</div>
+      <div class="plan-period">One-time · Basic use</div>
+      <div class="plan-sep"></div>
+      <ul class="plan-feature-list">
+        <li><span class="check">✓</span> Passport &amp; PAN sizes</li>
+        <li><span class="check">✓</span> A4 layout + print</li>
+        <li><span class="check">✓</span> Basic brightness/contrast</li>
+        <li class="locked"><span class="cross">✕</span> Background removal</li>
+        <li class="locked"><span class="cross">✕</span> Background color change</li>
+        <li class="locked"><span class="cross">✕</span> All 5 ID sizes</li>
+        <li class="locked"><span class="cross">✕</span> 10 print limit/session</li>
+        <li class="locked"><span class="cross">✕</span> Has banner ads</li>
+      </ul>
+      <a href="tool.html" class="btn btn-ghost" style="width:100%">Use Free Version</a>
+    </div>
+
+    <div class="plan-card-full premium-card">
+      <div class="plan-name">Premium ⭐</div>
+      <div class="plan-big-price"><span class="currency">₹</span>500</div>
+      <div class="plan-period">One-time payment · Lifetime use</div>
+      <div class="plan-sep"></div>
+      <ul class="plan-feature-list">
+        <li><span class="check">✓</span> All 5 ID sizes (Passport, Stamp, Aadhaar, PAN, Visa)</li>
+        <li><span class="check">✓</span> Unlimited prints</li>
+        <li><span class="check">✓</span> <strong>Background removal</strong> (1-click)</li>
+        <li><span class="check">✓</span> <strong>Background color change</strong></li>
+        <li><span class="check">✓</span> No ads — clean interface</li>
+        <li><span class="check">✓</span> Crop tool</li>
+        <li><span class="check">✓</span> Brightness, contrast, rotation</li>
+        <li><span class="check">✓</span> Future updates included</li>
+      </ul>
+      <button class="btn btn-orange btn-lg" style="width:100%;margin-bottom:12px" onclick="document.getElementById('activationCode').focus();document.getElementById('activationCode').scrollIntoView({behavior:'smooth'})">Get Activation Code →</button>
+      <p style="font-size:.75rem;color:var(--muted);text-align:center">Contact us on WhatsApp to purchase</p>
+    </div>
+  </div>
+
+  <!-- VALUE PROP -->
+  <section class="value-section">
+    <div class="container">
+      <div class="badge orange">📊 ROI Calculator</div>
+      <h2 style="font-size:1.6rem;margin-bottom:8px">"Recover ₹500 in 1 Day"</h2>
+      <p style="color:var(--muted);max-width:500px;margin:0 auto .5rem">Here's the real math for a photo shop:</p>
+      <div class="value-cards">
+        <div class="value-card">
+          <div class="value-num">10×</div>
+          <p><strong style="color:var(--text)">More customers/day</strong><br>30 sec per job vs 15 min with Photoshop</p>
+        </div>
+        <div class="value-card">
+          <div class="value-num">₹30</div>
+          <p><strong style="color:var(--text)">Revenue per A4 sheet</strong><br>At ₹15/photo × 2 cuts per A4 = ₹30</p>
+        </div>
+        <div class="value-card">
+          <div class="value-num">17×</div>
+          <p><strong style="color:var(--text)">Payback speed</strong><br>Serve 17 customers and ₹500 is recovered</p>
+        </div>
+      </div>
+      <div style="margin-top:32px;padding:24px;background:rgba(255,91,31,.08);border:1px solid rgba(255,91,31,.25);border-radius:var(--rL);max-width:540px;margin-left:auto;margin-right:auto">
+        <p style="font-size:.95rem;font-weight:600;margin-bottom:4px">⚡ Reality Check</p>
+        <p style="color:var(--muted);font-size:.875rem">If you do even 2–3 passport photo jobs per day, this tool pays for itself in the first week. After that, it's pure time savings — every day.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVATION -->
+  <section class="activation-section">
+    <div class="container">
+      <div class="activation-box">
+        <h2>🔐 Activate Premium</h2>
+        <p>Already purchased? Enter your activation code below to unlock all premium features on this device.</p>
+        <div class="activation-input-row">
+          <input type="text" id="activationCode" class="form-input" placeholder="ENTER CODE" maxlength="20">
+          <button class="btn btn-orange" onclick="activatePremium()">Activate</button>
+        </div>
+        <div class="activation-status" id="activationStatus"></div>
+        <p style="color:var(--muted);font-size:.8rem;margin-top:16px">Don't have a code? <a href="contact.html" style="color:var(--orange)">Contact us on WhatsApp →</a></p>
+        <div id="deactivateSection" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+          <p style="color:var(--green);font-size:.9rem;margin-bottom:10px">✅ Premium is active on this device</p>
+          <button class="btn btn-ghost btn-sm" onclick="deactivatePremium()">Remove Premium (for transfer)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top:0">
+    <p>© 2024 PhotoPrint Pro &nbsp;|&nbsp; <a href="contact.html">Need help? Contact us</a></p>
+  </footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="shared.js"></script>
+<script>
+  setActiveNav('premium');
+  function updateActivationUI() {
+    const sec = document.getElementById('deactivateSection');
+    const code = document.getElementById('activationCode');
+    if (state.isPremium) {
+      if (sec) sec.style.display = 'block';
+      if (code) code.value = '';
+    } else {
+      if (sec) sec.style.display = 'none';
+    }
+  }
+  window.addEventListener('DOMContentLoaded', updateActivationUI);
+</script>
+
+</body>
+</html>

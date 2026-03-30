@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoPrint Pro — Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+    <span>📸</span> Photo<span>Print</span> Pro
+    <span class="nav-badge">BETA</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link" data-page="home">Home</a>
+    <a href="tool.html" class="nav-link active nav-link-hide" data-page="tool">Tool</a>
+    <a href="premium.html" class="nav-link nav-link-hide" data-page="premium">Premium</a>
+    <a href="contact.html" class="nav-link nav-link-hide" data-page="contact">Contact</a>
+    <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
+  </div>
+  <div class="premium-badge" id="premiumBadge">⭐ Premium Active</div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     TOOL PAGE
+════════════════════════════════════════════ -->
+<div id="page-tool">
+  <div class="tool-header">
+    <h2>📸 PhotoPrint Pro</h2>
+    <span class="muted">— Passport Photo Tool</span>
+    <div class="tool-header-right">
+      <span id="toolPrintCount" class="muted" style="font-size:.78rem"></span>
+      <a href="premium.html" class="btn btn-ghost btn-sm" id="upgradeBtn" style="display:none">⭐ Upgrade ₹500</a>
+    </div>
+  </div>
+
+  <div class="tool-layout">
+    <!-- LEFT PANEL -->
+    <div class="tool-panel">
+
+      <!-- UPLOAD -->
+      <div class="panel-section">
+        <div class="panel-label">📤 Upload Photo</div>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="photoInput" accept="image/*">
+          <img id="uploadPreview" class="upload-preview" alt="Preview">
+          <div id="uploadPlaceholder">
+            <span class="upload-icon">🖼️</span>
+            <div class="upload-text">
+              <strong>Click to Upload</strong>
+              JPG, PNG, HEIC supported
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIZE & COPIES -->
+      <div class="panel-section">
+        <div class="panel-label">📐 Size & Copies</div>
+        <div class="form-group">
+          <label class="form-label">Photo Size</label>
+          <select class="form-select" id="sizeSelect">
+            <option value="passport">Passport (35×45 mm)</option>
+            <option value="stamp">Stamp Size (25×35 mm)</option>
+            <option value="aadhaar">Aadhaar (35×45 mm)</option>
+            <option value="pan">PAN Card (25×35 mm)</option>
+            <option value="visa">Visa (51×51 mm)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number of Copies</label>
+          <div class="copies-control">
+            <button class="copies-btn" onclick="adjustCopies(-1)">−</button>
+            <span class="copies-num" id="copiesNum">8</span>
+            <button class="copies-btn" onclick="adjustCopies(1)">+</button>
+            <span style="font-size:.78rem;color:var(--muted);margin-left:4px" id="maxCopiesInfo"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BG TOOLS -->
+      <div class="panel-section">
+        <div class="panel-label">🎨 Background</div>
+        <div id="bgLock" class="premium-lock">
+          <span class="premium-lock-icon">🔒</span>
+          <span class="premium-lock-text">Premium feature</span>
+          <a href="premium.html" class="premium-lock-btn">Unlock ₹500</a>
+        </div>
+        <div id="bgTools" style="display:none">
+          <button class="btn btn-primary" style="width:100%;margin-bottom:10px" id="removeBgBtn" onclick="removeBackground()">✂️ Remove Background</button>
+          <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px" id="restoreBgBtn" onclick="restoreBackground()" disabled>↩ Restore Original</button>
+          <div class="panel-label" style="margin-top:4px">Background Color</div>
+          <div class="bg-colors">
+            <div class="color-btn color-btn-white active" title="White" onclick="setBgColor('#ffffff',this)"></div>
+            <div class="color-btn color-btn-blue" title="Light Blue" onclick="setBgColor('#c3d7ef',this)"></div>
+            <div class="color-btn color-btn-grey" title="Grey" onclick="setBgColor('#c8c8c8',this)"></div>
+            <div class="color-btn color-btn-custom" title="Custom">
+              <input type="color" value="#ffffff" oninput="setBgColorCustom(this.value)" title="Custom Color">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDIT -->
+      <div class="panel-section">
+        <div class="panel-label">⚙️ Adjust</div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Brightness</span>
+              <span class="slider-item-val" id="valBright">100%</span>
+            </div>
+            <input type="range" id="slBright" min="50" max="200" value="100" oninput="applyEdits()">
+          </div>
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Contrast</span>
+              <span class="slider-item-val" id="valContrast">100%</span>
+            </div>
+            <input type="range" id="slContrast" min="50" max="200" value="100" oninput="applyEdits()">
+          </div>
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Rotation</span>
+              <span class="slider-item-val" id="valRotation">0°</span>
+            </div>
+            <input type="range" id="slRotation" min="-15" max="15" value="0" oninput="applyEdits()">
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="resetEdits()">↩ Reset Edits</button>
+      </div>
+
+      <!-- CROP -->
+      <div class="panel-section">
+        <div class="panel-label">✂️ Crop</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="openCropModal()">Open Crop Tool</button>
+      </div>
+
+    </div>
+
+    <!-- CENTER PANEL -->
+    <div class="tool-center">
+      <!-- AD BANNER (Starter only) -->
+      <div class="ad-banner" id="adBanner">
+        <strong>📢 Advertisement</strong><br>
+        <span style="font-size:.75rem">Upgrade to Premium to remove ads · <a href="premium.html" style="color:var(--orange)">Get Premium ₹500</a></span>
+      </div>
+
+      <!-- A4 PREVIEW -->
+      <div class="a4-container">
+        <div class="a4-sheet" id="a4Sheet">
+          <div class="a4-placeholder" id="a4Placeholder">
+            <span class="a4-placeholder-icon">📄</span>
+            <p>Upload a photo to see your A4 layout preview</p>
+            <p style="font-size:.75rem;color:#bbb;margin-top:6px">Photos will appear here</p>
+          </div>
+          <canvas id="a4Canvas" style="display:none"></canvas>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="tool-actions">
+        <button class="btn btn-orange btn-lg" onclick="doPrint()">🖨️ Print Now</button>
+        <button class="btn btn-primary" onclick="generateLayout()">🔄 Generate Layout</button>
+        <button class="btn btn-ghost" onclick="openCropModal()">✂️ Crop</button>
+        <button class="btn btn-ghost" onclick="resetAll()">↺ Reset All</button>
+      </div>
+      <div class="print-count-info" id="printCountInfo"></div>
+    </div>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div class="modal-overlay" id="cropModal">
+    <div class="modal">
+      <h3>✂️ Crop Photo</h3>
+      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Drag to pan · Scroll/slider to zoom</p>
+      <div class="crop-container" id="cropContainer">
+        <canvas id="cropCanvas"></canvas>
+        <div id="cropOverlay" style="position:absolute;inset:0;pointer-events:none"></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="slider-item-row" style="margin-bottom:6px">
+          <span class="slider-item-label">Zoom</span>
+          <span class="slider-item-val" id="cropZoomVal">100%</span>
+        </div>
+        <input type="range" id="cropZoom" min="50" max="300" value="100" oninput="updateCropZoom(this.value)" style="width:100%">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
+        <button class="btn btn-orange" onclick="applyCrop()">✓ Apply Crop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HIDDEN PRINT FRAME -->
+<div id="print-frame" style="display:none"></div>
+
+<script src="shared.js"></script>
+<script src="tool.js"></script>
+
+</body>
+</html>
