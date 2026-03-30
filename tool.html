@@ -86,22 +86,15 @@
       <!-- BG TOOLS -->
       <div class="panel-section">
         <div class="panel-label">🎨 Background</div>
-        <div id="bgLock" class="premium-lock">
-          <span class="premium-lock-icon">🔒</span>
-          <span class="premium-lock-text">Premium feature</span>
-          <a href="premium.html" class="premium-lock-btn">Unlock ₹500</a>
-        </div>
-        <div id="bgTools" style="display:none">
-          <button class="btn btn-primary" style="width:100%;margin-bottom:10px" id="removeBgBtn" onclick="removeBackground()">✂️ Remove Background</button>
-          <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px" id="restoreBgBtn" onclick="restoreBackground()" disabled>↩ Restore Original</button>
-          <div class="panel-label" style="margin-top:4px">Background Color</div>
-          <div class="bg-colors">
-            <div class="color-btn color-btn-white active" title="White" onclick="setBgColor('#ffffff',this)"></div>
-            <div class="color-btn color-btn-blue" title="Light Blue" onclick="setBgColor('#c3d7ef',this)"></div>
-            <div class="color-btn color-btn-grey" title="Grey" onclick="setBgColor('#c8c8c8',this)"></div>
-            <div class="color-btn color-btn-custom" title="Custom">
-              <input type="color" value="#ffffff" oninput="setBgColorCustom(this.value)" title="Custom Color">
-            </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:10px" id="removeBgBtn" onclick="removeBackground()">✂️ Remove Background</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px" id="restoreBgBtn" onclick="restoreBackground()" disabled>↩ Restore Original</button>
+        <div class="panel-label" style="margin-top:4px">Background Color</div>
+        <div class="bg-colors">
+          <div class="color-btn color-btn-white active" title="White" onclick="setBgColor('#ffffff',this)"></div>
+          <div class="color-btn color-btn-blue" title="Light Blue" onclick="setBgColor('#c3d7ef',this)"></div>
+          <div class="color-btn color-btn-grey" title="Grey" onclick="setBgColor('#c8c8c8',this)"></div>
+          <div class="color-btn color-btn-custom" title="Custom">
+            <input type="color" value="#ffffff" oninput="setBgColorCustom(this.value)" title="Custom Color">
           </div>
         </div>
       </div>
@@ -193,6 +186,22 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
         <button class="btn btn-orange" onclick="applyCrop()">✓ Apply Crop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API KEY SETUP MODAL -->
+  <div class="modal-overlay" id="apiKeyModal">
+    <div class="modal">
+      <h3>🔑 Setup remove.bg API</h3>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">To use background removal, get a free API key from <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue)">remove.bg/api</a></p>
+      <div class="form-group">
+        <label class="form-label">remove.bg API Key</label>
+        <input type="password" id="apiKeyInput" class="form-input" placeholder="Paste your API key here">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="skipApiKeySetup()">Skip for now</button>
+        <button class="btn btn-orange" onclick="saveApiKey()">✓ Save Key</button>
       </div>
     </div>
   </div>

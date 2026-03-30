@@ -1,6 +1,8 @@
 /* ═══════════════════════════════════════════
    IMAGE UPLOAD
 ═══════════════════════════════════════════ */
+let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '';
+
 function initToolUI() {
   updatePremiumUI();
   const input = document.getElementById('photoInput');
@@ -15,6 +17,13 @@ function initToolUI() {
       state.selectedSize = sizeSelect.value;
       if (state.originalImage) generateLayout();
     });
+  }
+  
+  // Show API key setup if not configured
+  if (!removeBgApiKey) {
+    setTimeout(() => {
+      document.getElementById('apiKeyModal').classList.add('open');
+    }, 500);
   }
 }
 
@@ -66,120 +75,120 @@ function calcMaxFit(size) {
 }
 
 /* ═══════════════════════════════════════════
-   BACKGROUND REMOVAL
+   BACKGROUND REMOVAL (remove.bg API)
 ═══════════════════════════════════════════ */
 function removeBackground() {
   if (!state.originalImage) { showToast('Upload a photo first', 'error'); return; }
-  if (!state.isPremium) { window.location.href = 'premium.html'; return; }
+  
+  if (!removeBgApiKey) {
+    showToast('Please set up your remove.bg API key', 'error');
+    document.getElementById('apiKeyModal').classList.add('open');
+    return;
+  }
 
   const btn = document.getElementById('removeBgBtn');
   btn.textContent = '⏳ Processing...';
   btn.disabled = true;
 
-  setTimeout(() => {
-    try {
-      const src = state.originalImage;
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = src.naturalWidth;
-      tmpCanvas.height = src.naturalHeight;
-      const ctx = tmpCanvas.getContext('2d');
+  try {
+    const src = state.originalImage;
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = src.naturalWidth;
+    tmpCanvas.height = src.naturalHeight;
+    const ctx = tmpCanvas.getContext('2d');
 
-      const b = state.brightness / 100;
-      const c = ((state.contrast / 100 - 1) * 127 + 128);
-      ctx.filter = `brightness(${b}) contrast(${state.contrast / 100})`;
-      ctx.save();
-      if (state.rotation !== 0) {
-        ctx.translate(tmpCanvas.width/2, tmpCanvas.height/2);
-        ctx.rotate(state.rotation * Math.PI / 180);
-        ctx.translate(-tmpCanvas.width/2, -tmpCanvas.height/2);
-      }
-      ctx.drawImage(src, 0, 0);
-      ctx.restore();
-
-      const imgData = ctx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
-      const result = floodFillRemoveBg(imgData, 35);
-
-      const resultCanvas = document.createElement('canvas');
-      resultCanvas.width = tmpCanvas.width;
-      resultCanvas.height = tmpCanvas.height;
-      const rCtx = resultCanvas.getContext('2d');
-
-      rCtx.fillStyle = state.currentBgColor;
-      rCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
-
-      const newImgData = new ImageData(result, tmpCanvas.width, tmpCanvas.height);
-      const tmpCanvas2 = document.createElement('canvas');
-      tmpCanvas2.width = tmpCanvas.width;
-      tmpCanvas2.height = tmpCanvas.height;
-      tmpCanvas2.getContext('2d').putImageData(newImgData, 0, 0);
-      rCtx.drawImage(tmpCanvas2, 0, 0);
-
-      state.processedCanvas = resultCanvas;
-      state.bgRemoved = true;
-      generateLayout();
-      showToast('Background removed!', 'success');
-    } catch(e) {
-      showToast('Error processing image', 'error');
+    const b = state.brightness / 100;
+    ctx.filter = `brightness(${b}) contrast(${state.contrast / 100})`;
+    ctx.save();
+    if (state.rotation !== 0) {
+      ctx.translate(tmpCanvas.width/2, tmpCanvas.height/2);
+      ctx.rotate(state.rotation * Math.PI / 180);
+      ctx.translate(-tmpCanvas.width/2, -tmpCanvas.height/2);
     }
+    ctx.drawImage(src, 0, 0);
+    ctx.restore();
+
+    const imageData = tmpCanvas.toDataURL('image/png');
+    
+    const formData = new FormData();
+    fetch(imageData)
+      .then(res => res.blob())
+      .then(blob => {
+        formData.append('image_file', blob);
+        return fetch('https://api.remove.bg/v1.0/removebg', {
+          method: 'POST',
+          headers: {
+            'X-API-Key': removeBgApiKey
+          },
+          body: formData
+        });
+      })
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 403 || res.status === 401) {
+            throw new Error('Invalid API key. Please enter a valid remove.bg API key.');
+          }
+          throw new Error('API Error: ' + res.statusText);
+        }
+        return res.blob();
+      })
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const resultImg = new Image();
+          resultImg.onload = () => {
+            const resultCanvas = document.createElement('canvas');
+            resultCanvas.width = resultImg.width;
+            resultCanvas.height = resultImg.height;
+            const rCtx = resultCanvas.getContext('2d');
+
+            rCtx.fillStyle = state.currentBgColor;
+            rCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+            rCtx.drawImage(resultImg, 0, 0);
+
+            state.processedCanvas = resultCanvas;
+            state.bgRemoved = true;
+            generateLayout();
+            showToast('Background removed!', 'success');
+            btn.textContent = '✂️ Remove Background';
+            btn.disabled = false;
+          };
+          resultImg.src = e.target.result;
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('Error: ' + err.message, 'error');
+        btn.textContent = '✂️ Remove Background';
+        btn.disabled = false;
+      });
+  } catch(e) {
+    console.error(e);
+    showToast('Error processing image: ' + e.message, 'error');
     btn.textContent = '✂️ Remove Background';
     btn.disabled = false;
-  }, 50);
+  }
 }
 
-function floodFillRemoveBg(imageData, tolerance) {
-  const { data, width, height } = imageData;
-  const result = new Uint8ClampedArray(data);
-  const visited = new Uint8Array(width * height);
-
-  function getPixel(x, y) {
-    const i = (y * width + x) * 4;
-    return { r: data[i], g: data[i+1], b: data[i+2] };
+/* ═══════════════════════════════════════════
+   API KEY SETUP
+═══════════════════════════════════════════ */
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) {
+    showToast('Please enter an API key', 'error');
+    return;
   }
+  removeBgApiKey = key;
+  localStorage.setItem('ppp_removebg_key', key);
+  document.getElementById('apiKeyModal').classList.remove('open');
+  showToast('API key saved!', 'success');
+}
 
-  function colorDist(a, b) {
-    return Math.sqrt((a.r-b.r)**2 + (a.g-b.g)**2 + (a.b-b.b)**2);
-  }
-
-  const samples = [];
-  const step = 4;
-  for (let x = 0; x < width; x += step) {
-    samples.push(getPixel(x, 0));
-    samples.push(getPixel(x, height - 1));
-  }
-  for (let y = 0; y < height; y += step) {
-    samples.push(getPixel(0, y));
-    samples.push(getPixel(width - 1, y));
-  }
-  const bgColor = {
-    r: samples.reduce((s, c) => s + c.r, 0) / samples.length,
-    g: samples.reduce((s, c) => s + c.g, 0) / samples.length,
-    b: samples.reduce((s, c) => s + c.b, 0) / samples.length,
-  };
-
-  const queue = [];
-  function tryAdd(x, y) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return;
-    const idx = y * width + x;
-    if (visited[idx]) return;
-    if (colorDist(getPixel(x, y), bgColor) <= tolerance) {
-      visited[idx] = 1;
-      queue.push(y * width + x);
-    }
-  }
-
-  for (let x = 0; x < width; x++) { tryAdd(x, 0); tryAdd(x, height-1); }
-  for (let y = 0; y < height; y++) { tryAdd(0, y); tryAdd(width-1, y); }
-
-  while (queue.length > 0) {
-    const pos = queue.pop();
-    const x = pos % width;
-    const y = Math.floor(pos / width);
-    const i = pos * 4;
-    result[i + 3] = 0;
-    tryAdd(x-1, y); tryAdd(x+1, y); tryAdd(x, y-1); tryAdd(x, y+1);
-  }
-
-  return result;
+function skipApiKeySetup() {
+  document.getElementById('apiKeyModal').classList.remove('open');
+  showToast('Background removal requires an API key', '');
 }
 
 function restoreBackground() {
@@ -563,10 +572,16 @@ function resetAll() {
 window.addEventListener('DOMContentLoaded', () => {
   initToolUI();
   setActiveNav('tool');
-  const modal = document.getElementById('cropModal');
-  if (modal) {
-    modal.addEventListener('click', function(e) {
+  const cropModal = document.getElementById('cropModal');
+  if (cropModal) {
+    cropModal.addEventListener('click', function(e) {
       if (e.target === this) closeCropModal();
+    });
+  }
+  const apiKeyModal = document.getElementById('apiKeyModal');
+  if (apiKeyModal) {
+    apiKeyModal.addEventListener('click', function(e) {
+      if (e.target === this) skipApiKeySetup();
     });
   }
 });

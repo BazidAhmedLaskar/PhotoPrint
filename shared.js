@@ -86,21 +86,15 @@ function deactivatePremium() {
 
 function updatePremiumUI() {
   const badge = document.getElementById('premiumBadge');
-  const bgLock = document.getElementById('bgLock');
-  const bgTools = document.getElementById('bgTools');
   const adBanner = document.getElementById('adBanner');
   const upgradeBtn = document.getElementById('upgradeBtn');
 
   if (state.isPremium) {
     if (badge) badge.classList.add('visible');
-    if (bgLock) bgLock.style.display = 'none';
-    if (bgTools) bgTools.style.display = 'block';
     if (adBanner) adBanner.classList.remove('visible');
     if (upgradeBtn) upgradeBtn.style.display = 'none';
   } else {
     if (badge) badge.classList.remove('visible');
-    if (bgLock) bgLock.style.display = 'flex';
-    if (bgTools) bgTools.style.display = 'none';
     if (adBanner) adBanner.classList.add('visible');
     if (upgradeBtn) upgradeBtn.style.display = 'inline-flex';
   }
