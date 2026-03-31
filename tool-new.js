@@ -32,6 +32,10 @@ function calculateTotalCapacity() {
   return { used: totalUsed, max: maxCapacity, percent: Math.min(100, Math.round((totalUsed / maxCapacity) * 100)) };
 }
 
+function updateCapacity() {
+  updateCapacityDisplay();
+}
+
 function updateCapacityDisplay() {
   const cap = calculateTotalCapacity();
   document.getElementById('capacityUsed').textContent = cap.used;
@@ -576,25 +580,14 @@ function getImageCanvas(imgObj) {
   
   // Apply crop if it exists
   if (imgObj.cropX !== 0 || imgObj.cropY !== 0 || (imgObj.cropScale && imgObj.cropScale !== 1.0)) {
-      Math.min(img.naturalWidth, tmp.width / cropScale),
-      Math.min(img.naturalHeight, tmp.height / cropScale),
-      0, 0, tmp.width, tmp.height
-    );
+    const cropScale = imgObj.cropScale || 1.0;
+    const cropW = img.naturalWidth / cropScale;
+    const cropH = img.naturalHeight / cropScale;
+    ctx.drawImage(img, imgObj.cropX, imgObj.cropY, cropW, cropH, 0, 0, tmp.width, tmp.height);
   } else {
     ctx.drawImage(img, 0, 0);
   }
   
-  ctx.restore();
-
-  return tmp;
-}
-  ctx.save();
-  if (toolState.rotation !== 0) {
-    ctx.translate(tmp.width / 2, tmp.height / 2);
-    ctx.rotate(toolState.rotation * Math.PI / 180);
-    ctx.translate(-tmp.width / 2, -tmp.height / 2);
-  }
-  ctx.drawImage(img, 0, 0);
   ctx.restore();
 
   return tmp;
@@ -609,18 +602,12 @@ function doPrint() {
     return;
   }
 
-  const size = SIZES[toolState.selectedSize];
   const DPI = 300;
   const MM2PX = DPI / 25.4;
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
   const gap = Math.round(2 * MM2PX);
-  const photoW = Math.round(size.w * MM2PX);
-  const photoH = Math.round(size.h * MM2PX);
-  const cols = Math.floor((a4W - 2 * margin + gap) / (photoW + gap));
-  const rows = Math.floor((a4H - 2 * margin + gap) / (photoH + gap));
-  const capacity = cols * rows;
 
   const printCanvas = document.createElement('canvas');
   printCanvas.width = a4W;
@@ -629,21 +616,38 @@ function doPrint() {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, a4W, a4H);
 
-  let count = 0;
-  let imageIndex = 0;
-  for (let i = 0; i < capacity && imageIndex < toolState.images.length; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = margin + col * (photoW + gap);
-    const y = margin + row * (photoH + gap);
+  // Layout images on A4
+  let currentX = margin;
+  let currentY = margin;
+  let rowHeight = 0;
+  let totalCount = 0;
 
-    const srcCanvas = getImageCanvas(toolState.images[imageIndex]);
-    ctx.drawImage(srcCanvas, x, y, photoW, photoH);
-    count++;
+  for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
+    const imgObj = toolState.images[imgIdx];
+    const size = SIZES[imgObj.size];
+    const photoW = Math.round(size.w * MM2PX);
+    const photoH = Math.round(size.h * MM2PX);
 
-    imageIndex++;
-    if (imageIndex >= toolState.images.length) {
-      imageIndex = 0;
+    // Draw copies of this image
+    for (let copy = 0; copy < imgObj.copies; copy++) {
+      if (currentX + photoW + margin > a4W) {
+        // Move to next row
+        currentX = margin;
+        currentY += rowHeight + gap;
+        rowHeight = 0;
+      }
+
+      if (currentY + photoH + margin > a4H) {
+        // Out of space on A4
+        break;
+      }
+
+      const srcCanvas = getImageCanvas(imgObj);
+      ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      totalCount++;
+
+      currentX += photoW + gap;
+      rowHeight = Math.max(rowHeight, photoH);
     }
   }
 
@@ -759,7 +763,9 @@ function drawCrop() {
   cropCtx.fillStyle = '#1a1a2e';
   cropCtx.fillRect(0, 0, W, H);
 
-  const size = SIZES[toolState.selectedSize];
+  // Get current image's size
+  const currentImg = toolState.images[toolState.cropCurrentImageIndex];
+  const size = SIZES[currentImg.size];
   const aspect = size.w / size.h;
   const drawH = H * toolState.cropScale;
   const drawW = drawH * (cropImg.naturalWidth || cropImg.width) / (cropImg.naturalHeight || cropImg.height);
@@ -806,6 +812,19 @@ function updateCropZoom(val) {
   drawCrop();
 }
 
+function applyCrop() {
+  saveCropForCurrentImage();
+  generatePreview();
+  showImagePreview(toolState.images[toolState.cropCurrentImageIndex]);
+  closeCropModal();
+  showToast('Crop applied!', 'success');
+}
+
+function closeCropModal() {
+  document.getElementById('cropModal').classList.remove('open');
+  toolState.cropCurrentImageIndex = null;
+}
+
 function setupCropDrag() {
   if (cropCanvas._cropBound) return;
   cropCanvas._cropBound = true;
@@ -815,17 +834,6 @@ function setupCropDrag() {
     toolState.cropStartX = e.clientX - toolState.cropOffsetX;
     toolState.cropStartY = e.clientY - toolState.cropOffsetY;
   });
-  cropCanvas.addEventListener('mousemove', e => {
-    if (!toolState.cropDragging) return;
-    toolState.cropOffsetX = e.clientX - toolState.cropStartX;
-    toolState.cropOffsetY = e.clientY - toolState.cropStartY;
-    drawCrop();
-  });
-  cropCanvas.addEventListener('mouseup', () => (toolState.cropDragging = false));
-  cropCanvas.addEventListener('mouseleave', () => (toolState.cropDragging = false));
-}
-
-function applyCrop() {
   
   cropCanvas.addEventListener('mousemove', e => {
     if (!toolState.cropDragging) return;
@@ -844,7 +852,7 @@ function applyCrop() {
     const newScale = Math.max(0.5, Math.min(3.0, toolState.cropScale + delta));
     document.getElementById('cropZoom').value = Math.round(newScale * 100);
     updateCropZoom(Math.round(newScale * 100));
-  }, { passive: false }
+  }, { passive: false });
 }
 
 /* ═══════════════════════════════════════════
