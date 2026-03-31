@@ -595,11 +595,30 @@ function getImageCanvas(imgObj) {
   }
   
   // Apply crop if it exists
-  if (imgObj.cropX !== 0 || imgObj.cropY !== 0 || (imgObj.cropScale && imgObj.cropScale !== 1.0)) {
-    const cropScale = imgObj.cropScale || 1.0;
-    const cropW = img.naturalWidth / cropScale;
-    const cropH = img.naturalHeight / cropScale;
-    ctx.drawImage(img, imgObj.cropX, imgObj.cropY, cropW, cropH, 0, 0, tmp.width, tmp.height);
+  if (imgObj.cropScale && imgObj.cropScale !== 1.0) {
+    // cropScale is zoom level (0.5-3.0)
+    // cropOffsetX/Y are pixel offsets in the crop canvas
+    // We need to convert visual crop coordinates back to source image coordinates
+    
+    const cropScale = imgObj.cropScale;
+    const zoomWidth = img.naturalWidth * cropScale;
+    const zoomHeight = img.naturalHeight * cropScale;
+    
+    // The visible area in the crop canvas is roughly centered
+    // The offset tells us where the zoomed image is positioned
+    // Convert offset from canvas coordinates to source image coordinates
+    const srcCropX = -imgObj.cropX / cropScale;
+    const srcCropY = -imgObj.cropY / cropScale;
+    const srcCropW = tmp.width / cropScale;
+    const srcCropH = tmp.height / cropScale;
+    
+    // Clamp to image bounds
+    const clampX = Math.max(0, Math.min(srcCropX, img.naturalWidth - srcCropW));
+    const clampY = Math.max(0, Math.min(srcCropY, img.naturalHeight - srcCropH));
+    const clampW = Math.min(srcCropW, img.naturalWidth - clampX);
+    const clampH = Math.min(srcCropH, img.naturalHeight - clampY);
+    
+    ctx.drawImage(img, clampX, clampY, clampW, clampH, 0, 0, tmp.width, tmp.height);
   } else {
     ctx.drawImage(img, 0, 0);
   }
