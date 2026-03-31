@@ -43,6 +43,15 @@
     <!-- LEFT PANEL -->
     <div class="tool-panel">
 
+      <!-- MODE TOGGLE -->
+      <div class="panel-section">
+        <div class="panel-label">🔄 Mode</div>
+        <div class="mode-toggle">
+          <button class="mode-btn mode-btn-active" onclick="switchMode('simple', this)" title="Single size, multiple copies">📋 Simple</button>
+          <button class="mode-btn" onclick="switchMode('mixtape', this)" title="Mix different formats on one A4">🎨 Mix & Match</button>
+        </div>
+      </div>
+
       <!-- UPLOAD -->
       <div class="panel-section">
         <div class="panel-label">📤 Upload Photo</div>
@@ -57,6 +66,26 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- MIX & MATCH TEMPLATE SELECTOR (Hidden by default) -->
+      <div class="panel-section" id="mixtapeTemplateSection" style="display:none">
+        <div class="panel-label">🎨 Layout Template</div>
+        <select class="form-select" id="mixtapeTemplateSelect" onchange="selectMixtapeTemplate(this.value)">
+          <option value="4 Passports + 4 Stamps">4 Passports + 4 Stamps (Paper Saver)</option>
+          <option value="8 Passports">8 Passports (All Same)</option>
+          <option value="8 Stamps">8 Stamps (All Same)</option>
+          <option value="Custom Mix">Custom Mix (Build Your Own)</option>
+        </select>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:6px">Select format or upload 1–8 images to fill slots</div>
+      </div>
+
+      <!-- MIX & MATCH IMAGE SLOTS (Hidden by default) -->
+      <div class="panel-section" id="mixtapeImageSlots" style="display:none">
+        <div class="panel-label">📸 Image Slots</div>
+        <div id="mixtapeSlotsList" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px"></div>
+        <input type="file" id="mixtapePhotoInput" accept="image/*" multiple style="display:none">
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px" onclick="document.getElementById('mixtapePhotoInput').click()">+ Add Images</button>
       </div>
 
       <!-- SIZE & COPIES -->
@@ -159,8 +188,8 @@
       <!-- ACTION BUTTONS -->
       <div class="tool-actions">
         <button class="btn btn-orange btn-lg" onclick="doPrint()">🖨️ Print Now</button>
-        <button class="btn btn-primary" onclick="generateLayout()">🔄 Generate Layout</button>
-        <button class="btn btn-ghost" onclick="openCropModal()">✂️ Crop</button>
+        <button class="btn btn-primary" id="genLayoutBtn" onclick="state.mixTapeMode ? generateMixtapeLayout() : generateLayout()">🔄 Generate Layout</button>
+        <button class="btn btn-ghost" id="cropBtn" onclick="openCropModal()">✂️ Crop</button>
         <button class="btn btn-ghost" onclick="resetAll()">↺ Reset All</button>
       </div>
       <div class="print-count-info" id="printCountInfo"></div>

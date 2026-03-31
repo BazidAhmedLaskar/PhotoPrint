@@ -18,6 +18,12 @@ function initToolUI() {
       if (state.originalImage) generateLayout();
     });
   }
+  // Mix & Match input
+  const mixtapeInput = document.getElementById('mixtapePhotoInput');
+  if (mixtapeInput && !mixtapeInput._bound) {
+    mixtapeInput._bound = true;
+    mixtapeInput.addEventListener('change', handleMixtapeUpload);
+  }
 }
 
 function handleUpload(e) {
@@ -329,6 +335,11 @@ function getSourceCanvas() {
    PRINT
 ═══════════════════════════════════════════ */
 function doPrint() {
+  if (state.mixTapeMode) {
+    doPrintMixtape();
+    return;
+  }
+  
   if (!state.originalImage) { showToast('Upload a photo first', 'error'); return; }
   if (!state.isPremium && state.printCount >= CONFIG.starterPrintLimit) {
     showToast('Print limit reached. Upgrade to Premium!', 'error');
@@ -543,10 +554,13 @@ function resetAll() {
   state.contrast = 100;
   state.rotation = 0;
   state.copies = 8;
+  state.uploadedImages = [];
+  state.layoutSlots = [];
 
   document.getElementById('uploadPreview').style.display = 'none';
   document.getElementById('uploadPlaceholder').style.display = 'block';
   document.getElementById('photoInput').value = '';
+  document.getElementById('mixtapePhotoInput').value = '';
   document.getElementById('a4Canvas').style.display = 'none';
   document.getElementById('a4Placeholder').style.display = 'flex';
   document.getElementById('slBright').value = 100;
@@ -557,8 +571,308 @@ function resetAll() {
   document.getElementById('valRotation').textContent = '0°';
   document.getElementById('copiesNum').textContent = 8;
   document.getElementById('restoreBgBtn').disabled = true;
+  
+  if (state.mixTapeMode) {
+    renderMixtapeSlots();
+  }
 
   showToast('Reset done');
+}
+
+/* ═══════════════════════════════════════════
+   MIX & MATCH MODE
+═══════════════════════════════════════════ */
+function switchMode(mode, btn) {
+  state.mixTapeMode = (mode === 'mixtape');
+  
+  // Update button states
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('mode-btn-active'));
+  btn.classList.add('mode-btn-active');
+  
+  // Show/hide UI sections
+  const simpleVisible = !state.mixTapeMode;
+  document.getElementById('sizeSelect').parentElement.parentElement.style.display = simpleVisible ? 'block' : 'none';
+  document.querySelector('.copies-control').parentElement.parentElement.style.display = simpleVisible ? 'block' : 'none';
+  document.getElementById('mixtapeTemplateSection').style.display = state.mixTapeMode ? 'block' : 'none';
+  document.getElementById('mixtapeImageSlots').style.display = state.mixTapeMode ? 'block' : 'none';
+  document.getElementById('cropBtn').style.display = simpleVisible ? 'inline-flex' : 'none';
+  
+  if (state.mixTapeMode) {
+    state.uploadedImages = [];
+    state.layoutSlots = [];
+    selectMixtapeTemplate(state.selectedTemplate);
+  } else {
+    state.originalImage = null;
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('uploadPreview').style.display = 'none';
+  }
+  
+  showToast(`Switched to ${mode === 'simple' ? 'Simple' : 'Mix & Match'} mode`);
+}
+
+function selectMixtapeTemplate(templateName) {
+  state.selectedTemplate = templateName;
+  state.uploadedImages = [];
+  state.layoutSlots = [];
+  
+  const templateDef = MIXTAPE_TEMPLATES[templateName];
+  if (!templateDef) return;
+  
+  // Generate layout slots based on template
+  let slotId = 0;
+  templateDef.forEach(item => {
+    for (let i = 0; i < item.qty; i++) {
+      state.layoutSlots.push({
+        slotId: slotId,
+        imageId: null,
+        format: item.format
+      });
+      slotId++;
+    }
+  });
+  
+  renderMixtapeSlots();
+  showToast(`Template: ${templateName} (${state.layoutSlots.length} slots)`);
+}
+
+function renderMixtapeSlots() {
+  const container = document.getElementById('mixtapeSlotsList');
+  container.innerHTML = '';
+  
+  state.layoutSlots.forEach(slot => {
+    const slotDiv = document.createElement('div');
+    slotDiv.className = 'mixtape-slot';
+    slotDiv.title = `${SIZES[slot.format].name} (${SIZES[slot.format].w}×${SIZES[slot.format].h}mm)`;
+    
+    if (slot.imageId !== null) {
+      const img = state.uploadedImages.find(u => u.id === slot.imageId);
+      if (img) {
+        slotDiv.style.backgroundImage = `url(${img.canvas.toDataURL()})`;
+        slotDiv.style.backgroundSize = 'cover';
+        slotDiv.style.backgroundPosition = 'center';
+      }
+    }
+    
+    slotDiv.onclick = () => {
+      // Allow reordering: click slot to pick which uploaded image to use
+      if (state.uploadedImages.length === 0) {
+        showToast('Upload images first', 'error');
+        document.getElementById('mixtapePhotoInput').click();
+      } else if (state.uploadedImages.length === 1) {
+        slot.imageId = state.uploadedImages[0].id;
+        renderMixtapeSlots();
+        generateMixtapeLayout();
+      } else {
+        // Multi-image: show picker or cycle
+        const currentIdx = state.uploadedImages.findIndex(u => u.id === slot.imageId);
+        const nextIdx = (currentIdx + 1) % state.uploadedImages.length;
+        slot.imageId = state.uploadedImages[nextIdx].id;
+        renderMixtapeSlots();
+        generateMixtapeLayout();
+      }
+    };
+    
+    container.appendChild(slotDiv);
+  });
+}
+
+function handleMixtapeUpload(e) {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        // Convert image to canvas for processing
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = state.currentBgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        state.uploadedImages.push({
+          id: Date.now() + Math.random(),
+          canvas: canvas
+        });
+        
+        loaded++;
+        if (loaded === files.length) {
+          // All images loaded
+          if (state.uploadedImages.length === 1) {
+            // Single image: auto-replicate to all slots
+            state.layoutSlots.forEach(slot => slot.imageId = state.uploadedImages[0].id);
+          } else {
+            // Multiple images: shuffle into slots (round-robin)
+            state.layoutSlots.forEach((slot, idx) => {
+              slot.imageId = state.uploadedImages[idx % state.uploadedImages.length].id;
+            });
+          }
+          renderMixtapeSlots();
+          generateMixtapeLayout();
+          showToast(`Loaded ${state.uploadedImages.length} image(s)`, 'success');
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function generateMixtapeLayout() {
+  if (state.layoutSlots.length === 0 || state.uploadedImages.length === 0) {
+    document.getElementById('a4Placeholder').style.display = 'flex';
+    document.getElementById('a4Canvas').style.display = 'none';
+    return;
+  }
+  
+  const DPI = 96;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+  
+  const canvas = document.getElementById('a4Canvas');
+  const ctx = canvas.getContext('2d');
+  
+  const displayW = 480, displayH = 679;
+  const scale = Math.min(displayW / a4W, displayH / a4H);
+  canvas.width = Math.round(a4W * scale);
+  canvas.height = Math.round(a4H * scale);
+  
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  const m = margin * scale;
+  const g = gap * scale;
+  
+  // Calculate grid layout, trying to fit all slots
+  // Simple approach: arrange sequentially, stacking by format type
+  let xPos = m, yPos = m, maxRowHeight = 0;
+  
+  state.layoutSlots.forEach((slot, idx) => {
+    const size = SIZES[slot.format];
+    const photoW = Math.round(size.w * MM2PX * scale);
+    const photoH = Math.round(size.h * MM2PX * scale);
+    
+    // Check if we need to wrap to next row
+    if (xPos + photoW + m > canvas.width && idx > 0) {
+      xPos = m;
+      yPos += maxRowHeight + g;
+      maxRowHeight = 0;
+    }
+    
+    // Draw the image in this slot
+    if (slot.imageId !== null) {
+      const srcImg = state.uploadedImages.find(u => u.id === slot.imageId);
+      if (srcImg) {
+        ctx.drawImage(srcImg.canvas, xPos, yPos, photoW, photoH);
+      }
+    } else {
+      // Empty slot: draw dashed border
+      ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(xPos, yPos, photoW, photoH);
+      ctx.setLineDash([]);
+    }
+    
+    xPos += photoW + g;
+    maxRowHeight = Math.max(maxRowHeight, photoH);
+    
+    // Break if we've exceeded A4 height
+    if (yPos + maxRowHeight + m > canvas.height) {
+      return; // Stop rendering further slots
+    }
+  });
+  
+  document.getElementById('a4Placeholder').style.display = 'none';
+  canvas.style.display = 'block';
+}
+
+function doPrintMixtape() {
+  if (state.layoutSlots.length === 0 || state.uploadedImages.length === 0) {
+    showToast('Set up your layout first', 'error');
+    return;
+  }
+  
+  if (!state.isPremium && state.printCount >= CONFIG.starterPrintLimit) {
+    showToast('Print limit reached. Upgrade to Premium!', 'error');
+    window.location.href = 'premium.html';
+    return;
+  }
+  
+  const DPI = 300;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = a4W;
+  canvas.height = a4H;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, a4W, a4H);
+  
+  let xPos = margin, yPos = margin, maxRowHeight = 0;
+  
+  state.layoutSlots.forEach((slot, idx) => {
+    const size = SIZES[slot.format];
+    const photoW = Math.round(size.w * MM2PX);
+    const photoH = Math.round(size.h * MM2PX);
+    
+    if (xPos + photoW + margin > a4W && idx > 0) {
+      xPos = margin;
+      yPos += maxRowHeight + gap;
+      maxRowHeight = 0;
+    }
+    
+    if (slot.imageId !== null) {
+      const srcImg = state.uploadedImages.find(u => u.id === slot.imageId);
+      if (srcImg) {
+        ctx.drawImage(srcImg.canvas, xPos, yPos, photoW, photoH);
+      }
+    }
+    
+    xPos += photoW + gap;
+    maxRowHeight = Math.max(maxRowHeight, photoH);
+    
+    if (yPos + maxRowHeight + margin > a4H) return;
+  });
+  
+  const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+  const printWin = window.open('', '_blank', 'width=800,height=900');
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Print - Mix & Match</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; }
+        img { width: 210mm; height: 297mm; display: block; }
+      </style>
+    </head>
+    <body>
+      <img src="${dataURL}" onload="window.print();setTimeout(()=>window.close(),500)">
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+  
+  if (!state.isPremium) {
+    state.printCount++;
+    updatePrintCountUI();
+  }
+  showToast('Print dialog opened!', 'success');
 }
 
 // Init on page load
