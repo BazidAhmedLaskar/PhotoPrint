@@ -61,12 +61,22 @@ function handleMultiImageUpload(e) {
   const files = e.target.files;
   if (!files) return;
 
+  let filesProcessed = 0;
+  const totalFiles = files.length;
+
   Array.from(files).forEach((file, idx) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
+      img.onerror = () => {
+        console.warn('Failed to load image:', file.name);
+        filesProcessed++;
+      };
       img.onload = () => {
-        const id = Date.now() + '_' + idx;
+        // Use unique ID: currentTime + unique index per batch
+        const id = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const wasFirst = toolState.images.length === 0;
+        
         toolState.images.push({
           id,
           src: ev.target.result,
@@ -82,15 +92,21 @@ function handleMultiImageUpload(e) {
           cropScale: 1.0, // Full image by default
         });
         
-        // Auto-select first image
-        if (toolState.images.length === 1) {
+        // Auto-select first image only
+        if (wasFirst) {
           toolState.selectedImageId = id;
+          selectImage(id);
         }
         
-        renderImagesList();
-        updateCapacityDisplay();
-        generatePreview();
-        showToast(`Added image ${toolState.images.length}`, 'success');
+        filesProcessed++;
+        
+        // Update UI after all files are loaded
+        if (filesProcessed === totalFiles) {
+          renderImagesList();
+          updateCapacityDisplay();
+          generatePreview();
+          showToast(`Added ${totalFiles} image${totalFiles > 1 ? 's' : ''}`, 'success');
+        }
       };
       img.src = ev.target.result;
     };
