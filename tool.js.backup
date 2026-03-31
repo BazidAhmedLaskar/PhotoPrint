@@ -1,4 +1,30 @@
 /* ═══════════════════════════════════════════
+   MIX & MATCH TEMPLATES
+═══════════════════════════════════════════ */
+const MIXTAPE_TEMPLATES = {
+  "4 Passports + 4 Stamps": [
+    { name: "Passport", format: "passport", qty: 4 },
+    { name: "Stamp", format: "stamp", qty: 4 }
+  ],
+  "8 Passports": [
+    { name: "Passport", format: "passport", qty: 8 }
+  ],
+  "8 Stamps": [
+    { name: "Stamp", format: "stamp", qty: 8 }
+  ],
+  "Custom Mix": [
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 },
+    { name: "Passport", format: "passport", qty: 1 }
+  ]
+};
+
+/* ═══════════════════════════════════════════
    IMAGE UPLOAD
 ═══════════════════════════════════════════ */
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3PQ5dhbgJeER';
@@ -889,6 +915,271 @@ function doPrintMixtape() {
     state.printCount++;
     updatePrintCountUI();
   }
+  showToast('Print dialog opened!', 'success');
+}
+
+/* ═══════════════════════════════════════════
+   MIX & MATCH MODE
+═══════════════════════════════════════════ */
+function switchMode(mode, btn) {
+  state.mixTapeMode = (mode === 'mixtape');
+  
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('mode-btn-active'));
+  btn.classList.add('mode-btn-active');
+  
+  const simpleVisible = !state.mixTapeMode;
+  document.getElementById('sizeSelect').parentElement.parentElement.style.display = simpleVisible ? 'block' : 'none';
+  document.querySelector('.copies-control').parentElement.parentElement.style.display = simpleVisible ? 'block' : 'none';
+  document.getElementById('mixtapeTemplateSection').style.display = state.mixTapeMode ? 'block' : 'none';
+  document.getElementById('mixtapeImageSlots').style.display = state.mixTapeMode ? 'block' : 'none';
+  
+  if (state.mixTapeMode) {
+    state.uploadedImages = [];
+    state.layoutSlots = [];
+    selectMixtapeTemplate(state.selectedTemplate);
+    const dropdown = document.getElementById('mixtapeTemplateSelect');
+    if (dropdown) dropdown.value = state.selectedTemplate;
+    renderMixtapeSlots();
+  } else {
+    state.originalImage = null;
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('uploadPreview').style.display = 'none';
+  }
+  
+  showToast(`Switched to ${mode === 'simple' ? 'Simple' : 'Mix & Match'} mode`);
+}
+
+function selectMixtapeTemplate(templateName) {
+  state.selectedTemplate = templateName;
+  state.uploadedImages = [];
+  state.layoutSlots = [];
+  
+  const templateDef = MIXTAPE_TEMPLATES[templateName];
+  if (!templateDef) return;
+  
+  let slotId = 0;
+  templateDef.forEach(item => {
+    for (let i = 0; i < item.qty; i++) {
+      state.layoutSlots.push({
+        slotId: slotId,
+        imageId: null,
+        format: item.format
+      });
+      slotId++;
+    }
+  });
+  
+  const dropdown = document.getElementById('mixtapeTemplateSelect');
+  if (dropdown && dropdown.value !== templateName) {
+    dropdown.value = templateName;
+  }
+  
+  renderMixtapeSlots();
+  generateMixtapeLayout();
+}
+
+function renderMixtapeSlots() {
+  const slotsList = document.getElementById('mixtapeSlotsList');
+  if (!slotsList) return;
+  
+  slotsList.innerHTML = '';
+  
+  state.layoutSlots.forEach((slot, idx) => {
+    const slotEl = document.createElement('div');
+    const format = SIZES[slot.format] || SIZES.passport;
+    const img = state.uploadedImages.find(img => img.id === slot.imageId);
+    
+    slotEl.style.cssText = `
+      aspect-ratio: ${format.w}/${format.h};
+      background: ${img ? 'no-repeat center/cover' : 'var(--surface)'};
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    `;
+    
+    if (img && img.canvas) {
+      slotEl.style.backgroundImage = `url(${img.canvas.toDataURL()})`;
+    }
+    
+    slotEl.innerHTML = `
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);text-align:center;padding:4px;background:${img ? 'transparent' : 'rgba(0,0,0,0.3)'}">
+        ${img ? '' : `<span>${SIZES[slot.format]?.name || slot.format}<br><small>Click to upload</small></span>`}
+      </div>
+    `;
+    
+    slotEl.addEventListener('click', () => {
+      document.getElementById('mixtapePhotoInput').click();
+      window._currentSlotIdx = idx;
+    });
+    
+    slotsList.appendChild(slotEl);
+  });
+}
+
+function handleMixtapeUpload(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  
+  let loaded = 0;
+  files.forEach((file, fileIdx) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const imgId = Date.now() + fileIdx;
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        state.uploadedImages.push({ id: imgId, canvas, format: null });
+        
+        // Auto-assign to next empty slot or to clicked slot
+        const currentSlot = window._currentSlotIdx !== undefined ? state.layoutSlots[window._currentSlotIdx] : null;
+        if (currentSlot && !currentSlot.imageId) {
+          currentSlot.imageId = imgId;
+          window._currentSlotIdx = undefined;
+        } else {
+          for (let slot of state.layoutSlots) {
+            if (!slot.imageId) {
+              slot.imageId = imgId;
+              break;
+            }
+          }
+        }
+        
+        loaded++;
+        if (loaded === files.length) {
+          renderMixtapeSlots();
+          generateMixtapeLayout();
+          showToast(`${files.length} image(s) uploaded!`, 'success');
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function generateMixtapeLayout() {
+  const canvas = document.getElementById('a4Canvas');
+  if (!canvas) return;
+  
+  const DPI = 96;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+  
+  const displayW = 480, displayH = 679;
+  const scale = Math.min(displayW / a4W, displayH / a4H);
+  canvas.width = Math.round(a4W * scale);
+  canvas.height = Math.round(a4H * scale);
+  
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw all slots
+  let x = margin * scale, y = margin * scale;
+  let colCount = 0;
+  const maxCols = 4;
+  
+  state.layoutSlots.forEach(slot => {
+    const format = SIZES[slot.format] || SIZES.passport;
+    const photoW = Math.round(format.w * MM2PX) * scale;
+    const photoH = Math.round(format.h * MM2PX) * scale;
+    
+    if (colCount >= maxCols) {
+      colCount = 0;
+      y += photoH + gap * scale;
+      x = margin * scale;
+    }
+    
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillRect(x, y, photoW, photoH);
+    
+    const img = state.uploadedImages.find(img => img.id === slot.imageId);
+    if (img && img.canvas) {
+      ctx.drawImage(img.canvas, x, y, photoW, photoH);
+    }
+    
+    x += photoW + gap * scale;
+    colCount++;
+  });
+  
+  document.getElementById('a4Placeholder').style.display = 'none';
+  canvas.style.display = 'block';
+}
+
+function doPrintMixtape() {
+  if (!state.layoutSlots.length || !state.uploadedImages.length) {
+    showToast('Upload images first', 'error');
+    return;
+  }
+  
+  const DPI = 300;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+  
+  const printCanvas = document.createElement('canvas');
+  printCanvas.width = a4W;
+  printCanvas.height = a4H;
+  const ctx = printCanvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, a4W, a4H);
+  
+  let x = margin, y = margin;
+  let colCount = 0;
+  const maxCols = 4;
+  
+  state.layoutSlots.forEach(slot => {
+    const format = SIZES[slot.format] || SIZES.passport;
+    const photoW = Math.round(format.w * MM2PX);
+    const photoH = Math.round(format.h * MM2PX);
+    
+    if (colCount >= maxCols) {
+      colCount = 0;
+      y += photoH + gap;
+      x = margin;
+    }
+    
+    const img = state.uploadedImages.find(img => img.id === slot.imageId);
+    if (img && img.canvas) {
+      ctx.drawImage(img.canvas, x, y, photoW, photoH);
+    }
+    
+    x += photoW + gap;
+    colCount++;
+  });
+  
+  const dataURL = printCanvas.toDataURL('image/jpeg', 0.95);
+  const printWin = window.open('', '_blank', 'width=800,height=900');
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Print - Mix & Match</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; }
+        img { width: 210mm; height: 297mm; display: block; }
+      </style>
+    </head>
+    <body>
+      <img src="${dataURL}" onload="window.print();setTimeout(()=>window.close(),500)">
+    </body>
+    </html>
+  `);
+  printWin.document.close();
   showToast('Print dialog opened!', 'success');
 }
 

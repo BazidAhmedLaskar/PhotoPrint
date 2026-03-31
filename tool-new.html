@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoPrint Pro — Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .images-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .image-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--surface);transition:.2s;position:relative}
+    .image-slot:hover{border-color:var(--blue);background:rgba(43,115,255,.05)}
+    .image-slot img{width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)}
+    .image-slot-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;cursor:pointer;opacity:0;transition:.2s}
+    .image-slot:hover .image-slot-remove{opacity:1}
+    .capacity-info{background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin:12px 0;font-size:.85rem;color:var(--text)}
+    .capacity-num{font-family:var(--font-h);font-weight:700;color:var(--blue);font-size:1.2rem}
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+    <span>📸</span> Photo<span>Print</span> Pro
+    <span class="nav-badge">BETA</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link" data-page="home">Home</a>
+    <a href="tool.html" class="nav-link active nav-link-hide" data-page="tool">Tool</a>
+    <a href="premium.html" class="nav-link nav-link-hide" data-page="premium">Premium</a>
+    <a href="contact.html" class="nav-link nav-link-hide" data-page="contact">Contact</a>
+    <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
+  </div>
+  <div class="premium-badge" id="premiumBadge">⭐ Premium Active</div>
+</nav>
+
+<div id="page-tool">
+  <div class="tool-header">
+    <h2>📸 PhotoPrint Pro</h2>
+    <span class="muted">— Multi-Photo Editor</span>
+    <div class="tool-header-right">
+      <span id="toolPrintCount" class="muted" style="font-size:.78rem"></span>
+    </div>
+  </div>
+
+  <div class="tool-layout">
+    <!-- LEFT PANEL -->
+    <div class="tool-panel">
+
+      <!-- STEP 1: PHOTO SIZE -->
+      <div class="panel-section">
+        <div class="panel-label">📐 Step 1: Select Photo Size</div>
+        <select class="form-select" id="sizeSelect" onchange="updateCapacity()">
+          <option value="passport">Passport (35×45 mm)</option>
+          <option value="stamp">Stamp Size (25×35 mm)</option>
+          <option value="aadhaar">Aadhaar (35×45 mm)</option>
+          <option value="pan">PAN Card (25×35 mm)</option>
+          <option value="visa">Visa (51×51 mm)</option>
+        </select>
+      </div>
+
+      <!-- STEP 2: ADD IMAGES -->
+      <div class="panel-section">
+        <div class="panel-label">📸 Step 2: Add Images</div>
+        <div class="capacity-info">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>💾 Used: <span class="capacity-num" id="capacityUsed">0</span> / <span id="capacityTotal">30</span></div>
+            <span id="capacityPercent" style="font-size:.75rem;color:var(--muted)">0%</span>
+          </div>
+          <div id="capacityBar" style="width:100%;height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden">
+            <div id="capacityFill" style="height:100%;width:0%;background:var(--blue);border-radius:2px;transition:.3s"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="document.getElementById('photoInput').click()">➕ Add Image</button>
+        <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handleMultiImageUpload(event)">
+        <div style="border:1px solid var(--border);border-radius:var(--r);padding:8px;max-height:200px;overflow-y:auto" id="imagesList"></div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:8px">📌 Each image: select size & copies below</div>
+      </div>
+
+      <!-- STEP 3: BACKGROUND REMOVAL & COLOR -->
+      <div class="panel-section">
+        <div class="panel-label">🎨 Step 3: Edit Background</div>
+        <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px" id="removeBgBtn" onclick="removeBackground()">✂️ Remove Background</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px" id="restoreBgBtn" onclick="restoreBackground()" disabled>↩ Restore</button>
+        <div class="panel-label" style="margin-top:8px;margin-bottom:6px">Background Color</div>
+        <div class="bg-colors">
+          <div class="color-btn color-btn-white active" title="White" onclick="setBgColor('#ffffff',this)"></div>
+          <div class="color-btn color-btn-blue" title="Light Blue" onclick="setBgColor('#c3d7ef',this)"></div>
+          <div class="color-btn color-btn-grey" title="Grey" onclick="setBgColor('#c8c8c8',this)"></div>
+          <div class="color-btn color-btn-custom" title="Custom">
+            <input type="color" value="#ffffff" oninput="setBgColorCustom(this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: IMAGE ADJUSTMENTS -->
+      <div class="panel-section">
+        <div class="panel-label">⚙️ Step 4: Adjust Image</div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Brightness</span>
+              <span class="slider-item-val" id="valBright">100%</span>
+            </div>
+            <input type="range" id="slBright" min="50" max="200" value="100" oninput="applyEdits()">
+          </div>
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Contrast</span>
+              <span class="slider-item-val" id="valContrast">100%</span>
+            </div>
+            <input type="range" id="slContrast" min="50" max="200" value="100" oninput="applyEdits()">
+          </div>
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Rotation</span>
+              <span class="slider-item-val" id="valRotation">0°</span>
+            </div>
+            <input type="range" id="slRotation" min="-15" max="15" value="0" oninput="applyEdits()">
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="resetEdits()">↩ Reset</button>
+      </div>
+
+      <!-- STEP 5: CROP & PRINT -->
+      <div class="panel-section">
+        <div class="panel-label">✂️ Step 5: Crop & Print</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px" onclick="openCropModal()">✂️ Crop Tool</button>
+        <button class="btn btn-orange btn-lg" style="width:100%" onclick="doPrint()">🖨️ Print Now</button>
+      </div>
+
+    </div>
+
+    <!-- CENTER PANEL - A4 PREVIEW & IMAGE PREVIEW -->
+    <div class="tool-center">
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;height:100%">
+        <!-- A4 PREVIEW -->
+        <div>
+          <div class="a4-container">
+            <div class="a4-sheet" id="a4Sheet">
+              <div class="a4-placeholder" id="a4Placeholder">
+                <span class="a4-placeholder-icon">📄</span>
+                <p>Add photos above to see preview</p>
+                <p style="font-size:.75rem;color:#bbb;margin-top:6px">All images appear here before printing</p>
+              </div>
+              <canvas id="a4Canvas" style="display:none"></canvas>
+            </div>
+          </div>
+          
+          <div style="margin-top:16px;padding:16px;background:var(--surface);border-radius:var(--r);text-align:center;font-size:.85rem;color:var(--muted)">
+            <div id="previewInfo">Upload images to start</div>
+          </div>
+        </div>
+
+        <!-- IMAGE PREVIEW PANEL -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;height:100%;overflow:hidden">
+          <div style="font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">📷 Image Preview</div>
+          <div id="imagePreviewContainer" style="flex:1;background:var(--card);border-radius:var(--r);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+            <div id="previewPlaceholder" style="text-align:center;color:var(--muted);font-size:.8rem">
+              <div style="font-size:2rem;margin-bottom:8px">🖼️</div>
+              <div>Select an image<br>to preview</div>
+            </div>
+            <canvas id="previewCanvas" style="display:none;max-width:100%;max-height:100%;object-fit:contain"></canvas>
+            <img id="previewImage" style="display:none;max-width:100%;max-height:100%;object-fit:contain" alt="Preview">
+          </div>
+          <div style="margin-top:12px;padding:12px;background:var(--card);border-radius:var(--r);font-size:.75rem;color:var(--muted)">
+            <div id="previewStats">No image selected</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div class="modal-overlay" id="cropModal">
+    <div class="modal">
+      <h3>✂️ Crop & Frame Check</h3>
+      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Position image in the blue frame. Drag to pan · Scroll to zoom</p>
+      
+      <!-- Image Navigation -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <button class="btn btn-ghost btn-sm" id="cropPrevBtn" onclick="prevCropImage()">← Prev</button>
+        <span id="cropNavInfo" style="font-size:.8rem;color:var(--muted);font-weight:600">Image 1 of 1</span>
+        <button class="btn btn-ghost btn-sm" id="cropNextBtn" onclick="nextCropImage()">Next →</button>
+      </div>
+      
+      <div class="crop-container" id="cropContainer">
+        <canvas id="cropCanvas"></canvas>
+      </div>
+      <div style="margin-top:12px">
+        <div class="slider-item-row" style="margin-bottom:6px">
+          <span class="slider-item-label">Zoom</span>
+          <span class="slider-item-val" id="cropZoomVal">100%</span>
+        </div>
+        <input type="range" id="cropZoom" min="50" max="300" value="100" oninput="updateCropZoom(this.value)" style="width:100%">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
+        <button class="btn btn-orange" onclick="applyCrop()">✓ Apply Crop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API KEY SETUP MODAL -->
+  <div class="modal-overlay" id="apiKeyModal">
+    <div class="modal">
+      <h3>🔑 Setup remove.bg API</h3>
+      <p style="color:var(--muted);font-size:.875rem;margin-bottom:14px">To use background removal, get a free API key from <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue)">remove.bg/api</a></p>
+      <div class="form-group">
+        <label class="form-label">remove.bg API Key</label>
+        <input type="password" id="apiKeyInput" class="form-input" placeholder="Paste your API key here">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="skipApiKeySetup()">Skip for now</button>
+        <button class="btn btn-orange" onclick="saveApiKey()">✓ Save Key</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="shared.js"></script>
+<script src="tool-new.js"></script>
+
+</body>
+</html>
