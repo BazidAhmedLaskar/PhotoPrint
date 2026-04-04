@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  
   <style>
     .images-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
     .image-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--surface);transition:.2s;position:relative}
@@ -162,6 +163,7 @@
           <div style="margin-top:16px;padding:16px;background:var(--surface);border-radius:var(--r);text-align:center;font-size:.85rem;color:var(--muted)">
             <div id="previewInfo">Upload images to start</div>
           </div>
+          
         </div>
 
       </div>
@@ -226,6 +228,44 @@
 
 <script src="shared.js"></script>
 <script src="tool-new.js"></script>
+<!-- 728x90 Banner Ad - Desktop Only -->
+<div id="desktop-banner-ad" style="display: none; justify-content: center; margin: 20px auto; padding: 10px 0;">
+ <script>
+  atOptions = {
+    'key' : 'c597a48c559d9efafc0cd54c47595877',
+    'format' : 'iframe',
+    'height' : 90,
+    'width' : 728,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/c597a48c559d9efafc0cd54c47595877/invoke.js"></script><script>
+  atOptions = {
+    'key' : 'c597a48c559d9efafc0cd54c47595877',
+    'format' : 'iframe',
+    'height' : 90,
+    'width' : 728,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/c597a48c559d9efafc0cd54c47595877/invoke.js"></script></div>
 
+<script>
+// Show banner only on desktop (screens wider than 768px)
+function showDesktopBanner() {
+    const banner = document.getElementById('desktop-banner-ad');
+    if (window.innerWidth >= 769) {
+        banner.style.display = 'flex';
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
+// Run on page load
+window.addEventListener('load', showDesktopBanner);
+
+// Re-check when user resizes the window
+window.addEventListener('resize', showDesktopBanner);
+</script>
 </body>
 </html>
