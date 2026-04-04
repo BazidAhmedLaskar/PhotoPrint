@@ -64,8 +64,6 @@ const state = {
   replicateMode: true // true = 1 image replicates; false = shuffle multiple images
 };
 
-}
-
 /* ═══════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════ */
