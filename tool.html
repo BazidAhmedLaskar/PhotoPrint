@@ -104,21 +104,33 @@
               <span class="slider-item-label">Brightness</span>
               <span class="slider-item-val" id="valBright">100%</span>
             </div>
-            <input type="range" id="slBright" min="50" max="200" value="100" oninput="applyEdits()">
+            <div class="slider-controls">
+              <button class="slider-btn" onclick="adjustSlider('slBright', -5)">−</button>
+              <input type="range" id="slBright" min="50" max="200" value="100" oninput="applyEdits()">
+              <button class="slider-btn" onclick="adjustSlider('slBright', 5)">+</button>
+            </div>
           </div>
           <div class="slider-item">
             <div class="slider-item-row">
               <span class="slider-item-label">Contrast</span>
               <span class="slider-item-val" id="valContrast">100%</span>
             </div>
-            <input type="range" id="slContrast" min="50" max="200" value="100" oninput="applyEdits()">
+            <div class="slider-controls">
+              <button class="slider-btn" onclick="adjustSlider('slContrast', -5)">−</button>
+              <input type="range" id="slContrast" min="50" max="200" value="100" oninput="applyEdits()">
+              <button class="slider-btn" onclick="adjustSlider('slContrast', 5)">+</button>
+            </div>
           </div>
           <div class="slider-item">
             <div class="slider-item-row">
               <span class="slider-item-label">Rotation</span>
               <span class="slider-item-val" id="valRotation">0°</span>
             </div>
-            <input type="range" id="slRotation" min="-15" max="15" value="0" oninput="applyEdits()">
+            <div class="slider-controls">
+              <button class="slider-btn" onclick="adjustSlider('slRotation', -5)">−</button>
+              <input type="range" id="slRotation" min="-15" max="15" value="0" oninput="applyEdits()">
+              <button class="slider-btn" onclick="adjustSlider('slRotation', 5)">+</button>
+            </div>
           </div>
         </div>
         <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="resetEdits()">↩ Reset</button>
@@ -222,6 +234,11 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- TEMP EDIT PREVIEW (MOBILE ONLY) -->
+<div id="tempEditPreview" style="display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:rgba(0,0,0,0.9);border-radius:8px;z-index:1000;align-items:center;justify-content:center;border:2px solid #fff;">
+  <img id="tempPreviewImg" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;" alt="Editing Preview">
+</div>
 
 <script src="shared.js"></script>
 <script src="tool-new.js"></script>

@@ -18,6 +18,7 @@ const toolState = {
 };
 
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3PQ5dhbgJeER';
+let tempPreviewTimeout = null;
 
 /* ═══════════════════════════════════════════
    CAPACITY CALCULATION
@@ -439,6 +440,11 @@ function applyEdits() {
   
   generatePreview();
   showImagePreview(img);
+  
+  // Show temp preview on mobile
+  if (window.innerWidth <= 900) {
+    showTempPreview(img);
+  }
 }
 
 function resetEdits() {
@@ -456,6 +462,50 @@ function resetEdits() {
   document.getElementById('slRotation').value = 0;
   
   applyEdits();
+}
+
+function adjustSlider(id, delta) {
+  const slider = document.getElementById(id);
+  let newVal = parseInt(slider.value) + delta;
+  newVal = Math.max(slider.min, Math.min(slider.max, newVal));
+  slider.value = newVal;
+  applyEdits();
+}
+
+function showTempPreview(imgObj) {
+  // Clear previous timeout
+  if (tempPreviewTimeout) clearTimeout(tempPreviewTimeout);
+  
+  // Generate preview with current edits
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = imgObj.img.naturalWidth;
+  tmpCanvas.height = imgObj.img.naturalHeight;
+  const ctx = tmpCanvas.getContext('2d');
+
+  // Apply edits
+  const b = imgObj.brightness / 100;
+  const c = imgObj.contrast / 100;
+  ctx.filter = `brightness(${b}) contrast(${c})`;
+  ctx.save();
+  if (imgObj.rotation !== 0) {
+    ctx.translate(tmpCanvas.width / 2, tmpCanvas.height / 2);
+    ctx.rotate(imgObj.rotation * Math.PI / 180);
+    ctx.translate(-tmpCanvas.width / 2, -tmpCanvas.height / 2);
+  }
+  ctx.drawImage(imgObj.img, 0, 0);
+  ctx.restore();
+
+  // Show the temp preview
+  const tempDiv = document.getElementById('tempEditPreview');
+  const tempImg = document.getElementById('tempPreviewImg');
+  tempImg.src = tmpCanvas.toDataURL();
+  tempDiv.style.display = 'flex';
+
+  // Hide after 1 second
+  tempPreviewTimeout = setTimeout(() => {
+    tempDiv.style.display = 'none';
+    tempPreviewTimeout = null;
+  }, 1000);
 }
 
 /* ═══════════════════════════════════════════

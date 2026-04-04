@@ -237,6 +237,14 @@ function applyEdits() {
   if (state.originalImage) generateLayout();
 }
 
+function adjustSlider(id, delta) {
+  const slider = document.getElementById(id);
+  let newVal = parseInt(slider.value) + delta;
+  newVal = Math.max(slider.min, Math.min(slider.max, newVal));
+  slider.value = newVal;
+  applyEdits();
+}
+
 function resetEdits() {
   state.brightness = 100; state.contrast = 100; state.rotation = 0;
   document.getElementById('slBright').value = 100;
