@@ -166,6 +166,29 @@ function showToast(msg, type = '') {
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
+
+/* Mobile Navigation Toggle */
+function toggleNavMenu() {
+  const navLinks = document.getElementById('navLinks');
+  const toggle = document.getElementById('navMenuToggle');
+  navLinks.classList.toggle('active');
+  toggle.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
+}
+
+/* Close menu when clicking a link */
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.getElementById('navLinks');
+  if (navLinks) {
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        const toggle = document.getElementById('navMenuToggle');
+        if (toggle) toggle.textContent = '☰';
+      });
+    });
+  }
+});
+
 checkPremium();
 
 // Setup active nav link

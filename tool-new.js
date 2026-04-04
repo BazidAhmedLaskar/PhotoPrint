@@ -186,6 +186,12 @@ function selectImage(id) {
     document.getElementById('slRotation').value = img.rotation;
     document.getElementById('valRotation').textContent = img.rotation + '°';
     
+    // Update global size selector to match this image's size
+    const sizeSelect = document.getElementById('sizeSelect');
+    if (sizeSelect) {
+      sizeSelect.value = img.size;
+    }
+    
     showTempPreview(img);
     renderImagesList();
   }
@@ -966,6 +972,26 @@ function skipApiKeySetup() {
 window.addEventListener('DOMContentLoaded', () => {
   updateCapacity();
   setActiveNav('tool');
+
+  // Handle global size selector - applies to currently selected image
+  const sizeSelect = document.getElementById('sizeSelect');
+  if (sizeSelect) {
+    sizeSelect.addEventListener('change', (e) => {
+      if (toolState.selectedImageId) {
+        const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+        if (img) {
+          img.size = e.target.value;
+          updateCapacityDisplay();
+          generatePreview();
+          renderImagesList();
+          showToast(`Size changed to ${SIZES[img.size].name}`, 'success');
+        }
+      } else {
+        showToast('Please select an image first', 'error');
+        sizeSelect.value = 'passport';
+      }
+    });
+  }
 
   document.getElementById('cropModal').addEventListener('click', function (e) {
     if (e.target === this) closeCropModal();
