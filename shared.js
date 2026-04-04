@@ -2,9 +2,8 @@
    CONFIGURATION
 ═══════════════════════════════════════════ */
 const CONFIG = {
-  whatsapp: '919876543210',
+  whatsapp: '918471960713',
   shopName: 'PhotoPrint Pro',
-  activationCodes: ['PHOTO500', 'SHOP500', 'PREMIUM2024', 'PHOTOPRO', 'UNLOCK500'],
   starterPrintLimit: 10,
 };
 
@@ -41,7 +40,6 @@ const MIXTAPE_TEMPLATES = {
    STATE
 ═══════════════════════════════════════════ */
 const state = {
-  isPremium: false,
   originalImage: null,
   processedCanvas: null,
   bgRemoved: false,
@@ -66,87 +64,6 @@ const state = {
   replicateMode: true // true = 1 image replicates; false = shuffle multiple images
 };
 
-/* ═══════════════════════════════════════════
-   PREMIUM SYSTEM
-═══════════════════════════════════════════ */
-function checkPremium() {
-  const saved = localStorage.getItem('ppp_premium');
-  if (saved && CONFIG.activationCodes.includes(saved)) {
-    state.isPremium = true;
-  }
-  updatePremiumUI();
-}
-
-function activatePremium() {
-  const code = document.getElementById('activationCode')?.value.trim().toUpperCase();
-  const status = document.getElementById('activationStatus');
-  if (!code || !CONFIG.activationCodes.includes(code)) {
-    if (status) {
-      status.textContent = '❌ Invalid code. Contact support on WhatsApp.';
-      status.className = 'activation-status status-error';
-    }
-    showToast('Invalid activation code', 'error');
-    return;
-  }
-  localStorage.setItem('ppp_premium', code);
-  state.isPremium = true;
-  updatePremiumUI();
-  updateActivationUI();
-  if (status) {
-    status.textContent = '✅ Premium activated! All features unlocked.';
-    status.className = 'activation-status status-success';
-  }
-  showToast('⭐ Premium Activated!', 'success');
-}
-
-function deactivatePremium() {
-  localStorage.removeItem('ppp_premium');
-  state.isPremium = false;
-  updatePremiumUI();
-  updateActivationUI();
-  showToast('Premium removed from this device');
-}
-
-function updatePremiumUI() {
-  const badge = document.getElementById('premiumBadge');
-  const adBanner = document.getElementById('adBanner');
-  const upgradeBtn = document.getElementById('upgradeBtn');
-
-  if (state.isPremium) {
-    if (badge) badge.classList.add('visible');
-    if (adBanner) adBanner.classList.remove('visible');
-    if (upgradeBtn) upgradeBtn.style.display = 'none';
-  } else {
-    if (badge) badge.classList.remove('visible');
-    if (adBanner) adBanner.classList.add('visible');
-    if (upgradeBtn) upgradeBtn.style.display = 'inline-flex';
-  }
-  updatePrintCountUI();
-}
-
-function updateActivationUI() {
-  const sec = document.getElementById('deactivateSection');
-  const code = document.getElementById('activationCode');
-  if (state.isPremium) {
-    if (sec) sec.style.display = 'block';
-    if (code) code.value = '';
-  } else {
-    if (sec) sec.style.display = 'none';
-  }
-}
-
-function updatePrintCountUI() {
-  const el = document.getElementById('printCountInfo');
-  const cnt = document.getElementById('toolPrintCount');
-  if (!state.isPremium) {
-    const rem = CONFIG.starterPrintLimit - state.printCount;
-    const msg = `Starter: ${rem} print${rem !== 1 ? 's' : ''} remaining · <a href="premium.html" style="color:var(--orange)">Upgrade for unlimited</a>`;
-    if (el) el.innerHTML = msg;
-    if (cnt) cnt.textContent = `${rem} prints left`;
-  } else {
-    if (el) el.textContent = '';
-    if (cnt) cnt.textContent = 'Premium · Unlimited prints';
-  }
 }
 
 /* ═══════════════════════════════════════════

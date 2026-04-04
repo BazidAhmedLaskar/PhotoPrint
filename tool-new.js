@@ -1129,5 +1129,4 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.target === this) skipApiKeySetup();
   });
 
-  checkPremium();
 });
