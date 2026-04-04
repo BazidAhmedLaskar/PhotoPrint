@@ -747,21 +747,21 @@ function doPrint() {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Print - Photos</title>
+      <title>PhotoPrint Output - Ready to Print</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         @page { margin: 0; size: A4 portrait; }
-        body { margin: 0; padding: 0; }
-        img { width: 210mm; height: 297mm; display: block; }
+        body { margin: 0; padding: 0; background: #fff; }
+        img { width: 210mm; height: 297mm; display: block; margin: 0 auto; }
       </style>
     </head>
     <body>
-      <img src="${dataURL}" onload="window.print();setTimeout(()=>window.close(),500)">
+      <img src="${dataURL}" alt="PhotoPrint Output">
     </body>
     </html>
   `);
   printWin.document.close();
-  showToast('Print dialog opened!', 'success');
+  showToast('✓ Ready to print! Use mobile share to print', 'success');
 }
 
 /* ═══════════════════════════════════════════

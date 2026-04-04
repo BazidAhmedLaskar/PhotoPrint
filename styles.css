@@ -71,6 +71,8 @@ h1,h2,h3{font-family:var(--font-h);font-weight:800;line-height:1.15}
 .btn-ghost:hover{border-color:var(--muted);background:var(--card)}
 .btn-green{background:var(--green);color:#fff}
 .btn-green:hover{filter:brightness(1.1)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{background:var(--blue-dim);transform:translateY(-1px)}
 .btn-sm{padding:8px 16px;font-size:.8rem}
 .btn-lg{padding:15px 32px;font-size:1rem}
 .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600}
