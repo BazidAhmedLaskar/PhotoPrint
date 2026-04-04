@@ -742,17 +742,89 @@ function doPrint() {
   }
 
   const dataURL = printCanvas.toDataURL('image/jpeg', 0.95);
-  const printWin = window.open('', '_blank', 'width=800,height=900');
+  const printWin = window.open('', '_blank', 'width=900,height=1000');
   printWin.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>PhotoPrint Output - Ready to Print</title>
+      <title>PhotoPrint Output - Print</title>
       <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; }
         @page { margin: 0; size: A4 portrait; }
-        body { margin: 0; padding: 0; background: #fff; }
-        img { width: 210mm; height: 297mm; display: block; margin: 0 auto; }
+        body { margin: 0; padding: 0; }
+        img { width: 210mm; height: 297mm; display: block; }
+      </style>
+    </head>
+    <body>
+      <img src="${dataURL}" alt="PhotoPrint Output" onload="window.print();setTimeout(()=>window.close(),500)">
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+  showToast('✓ Print dialog opening...', 'success');
+}
+
+function openNewPage() {
+  if (toolState.images.length === 0) {
+    showToast('Add images first', 'error');
+    return;
+  }
+
+  const DPI = 300;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+
+  const pageCanvas = document.createElement('canvas');
+  pageCanvas.width = a4W;
+  pageCanvas.height = a4H;
+  const ctx = pageCanvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, a4W, a4H);
+
+  // Layout images on A4
+  let currentX = margin;
+  let currentY = margin;
+  let rowHeight = 0;
+
+  for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
+    const imgObj = toolState.images[imgIdx];
+    const size = SIZES[imgObj.size];
+    const photoW = Math.round(size.w * MM2PX);
+    const photoH = Math.round(size.h * MM2PX);
+
+    for (let copy = 0; copy < imgObj.copies; copy++) {
+      if (currentX + photoW + margin > a4W) {
+        currentX = margin;
+        currentY += rowHeight + gap;
+        rowHeight = 0;
+      }
+
+      if (currentY + photoH + margin > a4H) {
+        break;
+      }
+
+      const srcCanvas = getImageCanvas(imgObj);
+      ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      currentX += photoW + gap;
+      rowHeight = Math.max(rowHeight, photoH);
+    }
+  }
+
+  const dataURL = pageCanvas.toDataURL('image/jpeg', 0.95);
+  const newTab = window.open('', '_blank');
+  newTab.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>PhotoPrint - New Page</title>
+      <style>
+        * { margin: 0; padding: 0; }
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; }
+        img { width: 210mm; height: 297mm; display: block; }
       </style>
     </head>
     <body>
@@ -760,8 +832,66 @@ function doPrint() {
     </body>
     </html>
   `);
-  printWin.document.close();
-  showToast('✓ Ready to print! Use mobile share to print', 'success');
+  newTab.document.close();
+  showToast('✓ New page opened', 'success');
+}
+
+function downloadImage() {
+  if (toolState.images.length === 0) {
+    showToast('Add images first', 'error');
+    return;
+  }
+
+  const DPI = 300;
+  const MM2PX = DPI / 25.4;
+  const a4W = Math.round(A4.w * MM2PX);
+  const a4H = Math.round(A4.h * MM2PX);
+  const margin = Math.round(5 * MM2PX);
+  const gap = Math.round(2 * MM2PX);
+
+  const dlCanvas = document.createElement('canvas');
+  dlCanvas.width = a4W;
+  dlCanvas.height = a4H;
+  const ctx = dlCanvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, a4W, a4H);
+
+  // Layout images on A4
+  let currentX = margin;
+  let currentY = margin;
+  let rowHeight = 0;
+
+  for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
+    const imgObj = toolState.images[imgIdx];
+    const size = SIZES[imgObj.size];
+    const photoW = Math.round(size.w * MM2PX);
+    const photoH = Math.round(size.h * MM2PX);
+
+    for (let copy = 0; copy < imgObj.copies; copy++) {
+      if (currentX + photoW + margin > a4W) {
+        currentX = margin;
+        currentY += rowHeight + gap;
+        rowHeight = 0;
+      }
+
+      if (currentY + photoH + margin > a4H) {
+        break;
+      }
+
+      const srcCanvas = getImageCanvas(imgObj);
+      ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      currentX += photoW + gap;
+      rowHeight = Math.max(rowHeight, photoH);
+    }
+  }
+
+  const link = document.createElement('a');
+  link.href = dlCanvas.toDataURL('image/jpeg', 0.95);
+  link.download = 'PhotoPrint_' + new Date().getTime() + '.jpg';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('⬇️ Downloaded!', 'success');
 }
 
 /* ═══════════════════════════════════════════
