@@ -236,9 +236,7 @@ function removeImage(id) {
   generatePreview();
   if (toolState.selectedImageId) {
     const img = toolState.images.find(i => i.id === toolState.selectedImageId);
-    if (img) showImagePreview(img);
-  } else {
-    clearImagePreview();
+    if (img) showTempPreview(img);
   }
   showToast('Image removed', '');
 }
@@ -907,7 +905,7 @@ function updateCropZoom(val) {
 function applyCrop() {
   saveCropForCurrentImage();
   generatePreview();
-  showImagePreview(toolState.images[toolState.cropCurrentImageIndex]);
+  showTempPreview(toolState.images[toolState.cropCurrentImageIndex]);
   closeCropModal();
   showToast('Crop applied!', 'success');
 }
