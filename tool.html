@@ -24,7 +24,7 @@
 <nav>
   <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
     <span>📸</span> Photo<span>Print</span> Pro
-    <span class="nav-badge">BETA</span>
+   
   </div>
   <div class="nav-links">
     <a href="index.html" class="nav-link" data-page="home">Home</a>
@@ -37,13 +37,6 @@
 </nav>
 
 <div id="page-tool">
-  <div class="tool-header">
-    <h2>📸 PhotoPrint Pro</h2>
-    <span class="muted">— Multi-Photo Editor</span>
-    <div class="tool-header-right">
-      <span id="toolPrintCount" class="muted" style="font-size:.78rem"></span>
-    </div>
-  </div>
 
   <div class="tool-layout">
     <!-- LEFT PANEL -->
@@ -147,7 +140,7 @@
 
     <!-- CENTER PANEL - A4 PREVIEW & IMAGE PREVIEW -->
     <div class="tool-center">
-      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;height:100%">
+      <div style="display:grid;grid-template-columns:1fr;gap:16px;height:100%">
         <!-- A4 PREVIEW -->
         <div>
           <div class="a4-container">
@@ -166,21 +159,6 @@
           </div>
         </div>
 
-        <!-- IMAGE PREVIEW PANEL -->
-        <div id="imagePreviewPanel" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;height:100%;overflow:hidden">
-          <div style="font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">📷 Image Preview</div>
-          <div id="imagePreviewContainer" style="flex:1;background:var(--card);border-radius:var(--r);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
-            <div id="previewPlaceholder" style="text-align:center;color:var(--muted);font-size:.8rem">
-              <div style="font-size:2rem;margin-bottom:8px">🖼️</div>
-              <div>Select an image<br>to preview</div>
-            </div>
-            <canvas id="previewCanvas" style="display:none;max-width:100%;max-height:100%;object-fit:contain"></canvas>
-            <img id="previewImage" style="display:none;max-width:100%;max-height:100%;object-fit:contain" alt="Preview">
-          </div>
-          <div style="margin-top:12px;padding:12px;background:var(--card);border-radius:var(--r);font-size:.75rem;color:var(--muted)">
-            <div id="previewStats">No image selected</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -238,6 +216,7 @@
 <!-- TEMP EDIT PREVIEW (MOBILE ONLY) -->
 <div id="tempEditPreview" style="display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:rgba(0,0,0,0.9);border-radius:8px;z-index:1000;align-items:center;justify-content:center;border:2px solid #fff;">
   <img id="tempPreviewImg" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;" alt="Editing Preview">
+  <div id="tempPreviewStats" style="position:absolute;bottom:8px;left:8px;right:8px;font-size:10px;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.8);"></div>
 </div>
 
 <script src="shared.js"></script>

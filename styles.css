@@ -147,10 +147,6 @@ h1,h2,h3{font-family:var(--font-h);font-weight:800;line-height:1.15}
    TOOL PAGE
 ═══════════════════════════════════════════ */
 #page-tool{padding-top:60px;min-height:100vh;background:var(--bg)}
-.tool-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.tool-header h2{font-family:var(--font-h);font-size:1rem;font-weight:700}
-.tool-header .muted{color:var(--muted);font-size:.8rem}
-.tool-header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
 .tool-layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 100px)}
 
 /* LEFT PANEL */
@@ -321,17 +317,17 @@ footer a{color:var(--blue);text-decoration:none}
 ═══════════════════════════════════════════ */
 @media(max-width:900px){
   .hero-grid,.problem-grid,.solution-steps,.features-grid,.plans-container,.pricing-grid,.value-cards{grid-template-columns:1fr}
-  .tool-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  .tool-panel{border-right:none;border-bottom:1px solid var(--border)}
-  .tool-center{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .tool-layout{grid-template-columns:1fr;min-height:auto}
+  .tool-panel{border-right:none;border-bottom:1px solid var(--border);overflow-y:visible;max-height:none}
+  .tool-center{grid-template-columns:1fr}
+  #page-tool{min-height:auto}
   .a4-sheet{width:280px;height:396px;margin:0 auto}
   canvas#a4Canvas{max-width:280px}
   .nav-links .nav-link-hide{display:none}
   .hero h1{font-size:2rem}
-  #imagePreviewPanel{display:none}
 }
 @media(max-width:600px){
-  .tool-panel{max-height:50vh;overflow-y:auto}
+  .tool-panel{max-height:none;overflow-y:visible}
   .a4-sheet{width:240px;height:340px}
   canvas#a4Canvas{max-width:240px}
   .slider-controls{gap:4px}
@@ -342,4 +338,10 @@ footer a{color:var(--blue);text-decoration:none}
   #print-frame{display:block!important;width:210mm;height:297mm;margin:0;padding:0}
   #print-frame canvas{width:210mm!important;height:297mm!important}
   @page{margin:0;size:A4 portrait}
+}
+
+/* TEMP EDIT PREVIEW */
+#tempEditPreview img{max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;}
+@media(min-width:901px){
+  #tempEditPreview{ width:400px !important; height:300px !important; top:20px !important; left:auto !important; right:20px !important; transform:none !important; }
 }

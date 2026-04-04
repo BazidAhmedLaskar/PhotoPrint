@@ -186,7 +186,7 @@ function selectImage(id) {
     document.getElementById('slRotation').value = img.rotation;
     document.getElementById('valRotation').textContent = img.rotation + '°';
     
-    showImagePreview(img);
+    showTempPreview(img);
     renderImagesList();
   }
 }
@@ -439,12 +439,9 @@ function applyEdits() {
   document.getElementById('valRotation').textContent = r + '°';
   
   generatePreview();
-  showImagePreview(img);
   
-  // Show temp preview on mobile
-  if (window.innerWidth <= 900) {
-    showTempPreview(img);
-  }
+  // Show temp preview
+  showTempPreview(img);
 }
 
 function resetEdits() {
@@ -498,7 +495,11 @@ function showTempPreview(imgObj) {
   // Show the temp preview
   const tempDiv = document.getElementById('tempEditPreview');
   const tempImg = document.getElementById('tempPreviewImg');
+  const tempStats = document.getElementById('tempPreviewStats');
   tempImg.src = tmpCanvas.toDataURL();
+  const sizeInfo = SIZES[imgObj.size];
+  const hasCrop = imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
+  tempStats.innerHTML = `${sizeInfo.name} • ${imgObj.copies}× ${hasCrop ? '✂️' : ''}`;
   tempDiv.style.display = 'flex';
 
   // Hide after 1 second
