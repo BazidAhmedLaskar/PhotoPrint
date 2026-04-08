@@ -11,11 +11,12 @@ const CONFIG = {
    PHOTO SIZES (in mm)
 ═══════════════════════════════════════════ */
 const SIZES = {
-  passport: { name: 'Passport', w: 35,  h: 45  },
+  passport: { name: 'Passport', w: 30,  h: 40  },
   stamp:    { name: 'Stamp',    w: 25,  h: 35  },
   aadhaar:  { name: 'Aadhaar',  w: 35,  h: 45  },
   pan:      { name: 'PAN Card', w: 25,  h: 35  },
   visa:     { name: 'Visa',     w: 51,  h: 51  },
+  custom:   { name: 'Custom',   w: 35,  h: 45  },
 };
 const A4 = { w: 210, h: 297 };
 

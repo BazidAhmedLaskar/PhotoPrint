@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    IMAGE UPLOAD
 ═══════════════════════════════════════════ */
-let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3PQ5dhbgJeER';
+let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || 'kQZuGtDVbCj2tV5jENR1Uetg';
 
 function initToolUI() {
   updatePremiumUI();
@@ -73,9 +73,9 @@ function adjustCopies(delta) {
 }
 
 function calcMaxFit(size) {
-  const margin = 5, gap = 2;
-  const cols = Math.floor((A4.w - 2 * margin + gap) / (size.w + gap));
-  const rows = Math.floor((A4.h - 2 * margin + gap) / (size.h + gap));
+  const margin = 5, gap = 30;
+  const cols = Math.floor((A4.w - 2 * margin - gap) / (size.w + gap));
+  const rows = Math.floor((A4.h - 2 * margin - gap) / (size.h + gap));
   return Math.max(1, cols * rows);
 }
 
@@ -266,12 +266,12 @@ function generateLayout() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = Math.round(30 * MM2PX);
   const photoW = Math.round(size.w * MM2PX);
   const photoH = Math.round(size.h * MM2PX);
 
-  const cols = Math.floor((a4W - 2 * margin + gap) / (photoW + gap));
-  const rows = Math.floor((a4H - 2 * margin + gap) / (photoH + gap));
+  const cols = Math.floor((a4W - 2 * margin - gap) / (photoW + gap));
+  const rows = Math.floor((a4H - 2 * margin - gap) / (photoH + gap));
   const maxFit = cols * rows;
   const count = Math.min(state.copies, maxFit);
 
@@ -301,7 +301,17 @@ function generateLayout() {
     const row = Math.floor(i / cols);
     const x = m + col * (pw + g);
     const y = m + row * (ph + g);
+    
+    // Draw image with subtle background
+    ctx.fillStyle = 'rgba(240, 240, 240, 0.1)';
+    ctx.fillRect(x, y, pw, ph);
+    
     ctx.drawImage(srcCanvas, x, y, pw, ph);
+    
+    // Add border to show spacing
+    ctx.strokeStyle = '#CCCCCC';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, pw, ph);
   }
 
   document.getElementById('a4Placeholder').style.display = 'none';
@@ -367,11 +377,11 @@ function doPrint() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = Math.round(30 * MM2PX);
   const photoW = Math.round(size.w * MM2PX);
   const photoH = Math.round(size.h * MM2PX);
-  const cols = Math.floor((a4W - 2*margin + gap) / (photoW + gap));
-  const rows = Math.floor((a4H - 2*margin + gap) / (photoH + gap));
+  const cols = Math.floor((a4W - 2*margin - gap) / (photoW + gap));
+  const rows = Math.floor((a4H - 2*margin - gap) / (photoH + gap));
   const count = Math.min(state.copies, cols * rows);
 
   const printCanvas = document.createElement('canvas');
@@ -760,7 +770,7 @@ function generateMixtapeLayout() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = Math.round(30 * MM2PX);
   
   const canvas = document.getElementById('a4Canvas');
   const ctx = canvas.getContext('2d');
@@ -777,7 +787,7 @@ function generateMixtapeLayout() {
   const g = gap * scale;
   
   // Calculate grid layout, trying to fit all slots
-  // Simple approach: arrange sequentially, stacking by format type
+  // Organize images in a proper grid with spacing
   let xPos = m, yPos = m, maxRowHeight = 0;
   
   state.layoutSlots.forEach((slot, idx) => {
@@ -786,7 +796,7 @@ function generateMixtapeLayout() {
     const photoH = Math.round(size.h * MM2PX * scale);
     
     // Check if we need to wrap to next row
-    if (xPos + photoW + m > canvas.width && idx > 0) {
+    if (xPos + photoW + g + m > canvas.width && idx > 0) {
       xPos = m;
       yPos += maxRowHeight + g;
       maxRowHeight = 0;
@@ -797,6 +807,10 @@ function generateMixtapeLayout() {
       const srcImg = state.uploadedImages.find(u => u.id === slot.imageId);
       if (srcImg) {
         ctx.drawImage(srcImg.canvas, xPos, yPos, photoW, photoH);
+        // Add border to visualize gap
+        ctx.strokeStyle = '#CCCCCC';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(xPos, yPos, photoW, photoH);
       }
     } else {
       // Empty slot: draw dashed border
@@ -836,7 +850,7 @@ function doPrintMixtape() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = Math.round(30 * MM2PX);
   
   const canvas = document.createElement('canvas');
   canvas.width = a4W;

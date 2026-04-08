@@ -8,6 +8,8 @@ const toolState = {
   brightness: 100,
   contrast: 100,
   rotation: 0,
+  borderThickness: 0,
+  borderColor: '#000000',
   cropOffsetX: 0,
   cropOffsetY: 0,
   cropScale: 1,
@@ -19,6 +21,7 @@ const toolState = {
 
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3PQ5dhbgJeER';
 let tempPreviewTimeout = null;
+let autoAdjustAspect = false;
 
 /* ═══════════════════════════════════════════
    CAPACITY CALCULATION
@@ -29,7 +32,7 @@ function calculateTotalCapacity() {
     totalUsed += img.copies;
   });
 
-  const maxCapacity = 30; // Max photos on A4
+  const maxCapacity = 40; // Max photos on A4
   return { used: totalUsed, max: maxCapacity, percent: Math.min(100, Math.round((totalUsed / maxCapacity) * 100)) };
 }
 
@@ -190,6 +193,26 @@ function selectImage(id) {
     const sizeSelect = document.getElementById('sizeSelect');
     if (sizeSelect) {
       sizeSelect.value = img.size;
+      // Trigger change to show/hide custom inputs
+      sizeSelect.dispatchEvent(new Event('change'));
+      
+      // If custom, set input values
+      if (img.size === 'custom') {
+        const mmToPx = 300 / 25.4;
+        const widthPx = Math.round(SIZES.custom.w * mmToPx);
+        const heightPx = Math.round(SIZES.custom.h * mmToPx);
+        document.getElementById('customWidth').value = widthPx;
+        document.getElementById('customHeight').value = heightPx;
+        
+        // If auto-adjust is on, update based on this image's aspect ratio
+        if (autoAdjustAspect) {
+          const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
+          const newHeight = Math.round(widthPx / aspectRatio);
+          document.getElementById('customHeight').value = newHeight;
+          // Update SIZES with new height
+          updateCustomSize();
+        }
+      }
     }
     
     showTempPreview(img);
@@ -201,6 +224,14 @@ function updateImageSize(id, size) {
   const img = toolState.images.find(i => i.id === id);
   if (img) {
     img.size = size;
+    // If this is the selected image, update global selector
+    if (id === toolState.selectedImageId) {
+      const sizeSelect = document.getElementById('sizeSelect');
+      if (sizeSelect) {
+        sizeSelect.value = size;
+        sizeSelect.dispatchEvent(new Event('change'));
+      }
+    }
     updateCapacityDisplay();
     generatePreview();
     renderImagesList();
@@ -496,6 +527,13 @@ function showTempPreview(imgObj) {
   ctx.drawImage(imgObj.img, 0, 0);
   ctx.restore();
 
+  // Draw border if any
+  if (toolState.borderThickness > 0) {
+    ctx.strokeStyle = toolState.borderColor;
+    ctx.lineWidth = toolState.borderThickness;
+    ctx.strokeRect(toolState.borderThickness / 2, toolState.borderThickness / 2, tmpCanvas.width - toolState.borderThickness, tmpCanvas.height - toolState.borderThickness);
+  }
+
   // Show the temp preview
   const tempDiv = document.getElementById('tempEditPreview');
   const tempImg = document.getElementById('tempPreviewImg');
@@ -530,7 +568,7 @@ function generatePreview() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = 0; // No gap for maximum fit
 
   // Display preview
   const displayW = 480, displayH = 679;
@@ -546,8 +584,8 @@ function generatePreview() {
   // Calculate layout with per-image sizes
   let totalUsed = 0;
   let positions = [];
-  let currentY = margin;
-  let currentX = margin;
+  let currentY = 0; // Start from top edge for maximum fit
+  let currentX = 0; // Start from left edge
   let rowHeight = 0;
   let maxInRow = 0;
 
@@ -559,9 +597,9 @@ function generatePreview() {
 
     // Try to fit copies of this image
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW + margin > a4W) {
+      if (currentX + photoW > a4W) {
         // Move to next row
-        currentX = margin;
+        currentX = 0;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
@@ -611,6 +649,19 @@ function generatePreview() {
     const sh = pos.h * scale;
     ctx.drawImage(srcCanvas, sx, sy, sw, sh);
   });
+
+  // Draw borders
+  if (toolState.borderThickness > 0) {
+    positions.forEach(pos => {
+      const sx = pos.x * scale;
+      const sy = pos.y * scale;
+      const sw = pos.w * scale;
+      const sh = pos.h * scale;
+      ctx.strokeStyle = toolState.borderColor;
+      ctx.lineWidth = toolState.borderThickness * scale;
+      ctx.strokeRect(sx + toolState.borderThickness * scale / 2, sy + toolState.borderThickness * scale / 2, sw - toolState.borderThickness * scale, sh - toolState.borderThickness * scale);
+    });
+  }
 
   document.getElementById('a4Placeholder').style.display = 'none';
   canvas.style.display = 'block';
@@ -697,7 +748,7 @@ function doPrint() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = 0; // No gap for maximum fit
 
   const printCanvas = document.createElement('canvas');
   printCanvas.width = a4W;
@@ -707,8 +758,8 @@ function doPrint() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = margin;
-  let currentY = margin;
+  let currentX = 0; // Start from left edge
+  let currentY = 0; // Start from top edge
   let rowHeight = 0;
   let totalCount = 0;
 
@@ -720,20 +771,28 @@ function doPrint() {
 
     // Draw copies of this image
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW + margin > a4W) {
+      if (currentX + photoW > a4W) {
         // Move to next row
-        currentX = margin;
+        currentX = 0;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH + margin > a4H) {
+      if (currentY + photoH > a4H) {
         // Out of space on A4
         break;
       }
 
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      
+      // Draw border if any
+      if (toolState.borderThickness > 0) {
+        ctx.strokeStyle = toolState.borderColor;
+        ctx.lineWidth = toolState.borderThickness;
+        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+      }
+      
       totalCount++;
 
       currentX += photoW + gap;
@@ -775,7 +834,7 @@ function openNewPage() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = 0; // No gap for maximum fit
 
   const pageCanvas = document.createElement('canvas');
   pageCanvas.width = a4W;
@@ -785,8 +844,8 @@ function openNewPage() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = margin;
-  let currentY = margin;
+  let currentX = 0; // Start from left edge
+  let currentY = 0; // Start from top edge
   let rowHeight = 0;
 
   for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
@@ -796,18 +855,26 @@ function openNewPage() {
     const photoH = Math.round(size.h * MM2PX);
 
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW + margin > a4W) {
-        currentX = margin;
+      if (currentX + photoW > a4W) {
+        currentX = 0;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH + margin > a4H) {
+      if (currentY + photoH > a4H) {
         break;
       }
 
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      
+      // Draw border if any
+      if (toolState.borderThickness > 0) {
+        ctx.strokeStyle = toolState.borderColor;
+        ctx.lineWidth = toolState.borderThickness;
+        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+      }
+      
       currentX += photoW + gap;
       rowHeight = Math.max(rowHeight, photoH);
     }
@@ -847,7 +914,7 @@ function downloadImage() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX);
+  const gap = 0; // No gap for maximum fit
 
   const dlCanvas = document.createElement('canvas');
   dlCanvas.width = a4W;
@@ -857,8 +924,8 @@ function downloadImage() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = margin;
-  let currentY = margin;
+  let currentX = 0; // Start from left edge
+  let currentY = 0; // Start from top edge
   let rowHeight = 0;
 
   for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
@@ -868,18 +935,26 @@ function downloadImage() {
     const photoH = Math.round(size.h * MM2PX);
 
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW + margin > a4W) {
-        currentX = margin;
+      if (currentX + photoW > a4W) {
+        currentX = 0;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH + margin > a4H) {
+      if (currentY + photoH > a4H) {
         break;
       }
 
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
+      
+      // Draw border if any
+      if (toolState.borderThickness > 0) {
+        ctx.strokeStyle = toolState.borderColor;
+        ctx.lineWidth = toolState.borderThickness;
+        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+      }
+      
       currentX += photoW + gap;
       rowHeight = Math.max(rowHeight, photoH);
     }
@@ -1105,6 +1180,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const sizeSelect = document.getElementById('sizeSelect');
   if (sizeSelect) {
     sizeSelect.addEventListener('change', (e) => {
+      const customInputs = document.getElementById('customSizeInputs');
+      if (e.target.value === 'custom') {
+        customInputs.style.display = 'block';
+      } else {
+        customInputs.style.display = 'none';
+      }
       if (toolState.selectedImageId) {
         const img = toolState.images.find(i => i.id === toolState.selectedImageId);
         if (img) {
@@ -1130,3 +1211,85 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
+function toggleAutoAdjust() {
+  autoAdjustAspect = document.getElementById('autoAdjustAspect').checked;
+  if (autoAdjustAspect && toolState.selectedImageId) {
+    const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+    if (img) {
+      const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
+      // Update height based on current width
+      const currentWidth = parseInt(document.getElementById('customWidth').value);
+      const newHeight = Math.round(currentWidth / aspectRatio);
+      document.getElementById('customHeight').value = newHeight;
+      updateCustomSize();
+    }
+  }
+}
+
+function updateBorder() {
+  const thickness = parseInt(document.getElementById('slBorder').value);
+  toolState.borderThickness = thickness;
+  document.getElementById('valBorder').textContent = thickness + 'px';
+  generatePreview();
+}
+
+function updateBorderColor() {
+  const color = document.getElementById('borderColor').value;
+  toolState.borderColor = color;
+  generatePreview();
+}
+
+function adjustBorder(delta) {
+  const slider = document.getElementById('slBorder');
+  let newVal = parseInt(slider.value) + delta;
+  newVal = Math.max(slider.min, Math.min(slider.max, newVal));
+  slider.value = newVal;
+  updateBorder();
+}
+
+function updateCustomSize() {
+  const widthPx = parseInt(document.getElementById('customWidth').value);
+  const heightPx = parseInt(document.getElementById('customHeight').value);
+  
+  // If auto-adjust is on and we have a selected image, maintain aspect ratio
+  if (autoAdjustAspect && toolState.selectedImageId) {
+    const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+    if (img) {
+      const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
+      // Determine which input was changed last (simple way: if width changed, adjust height)
+      // For simplicity, always adjust height based on width when auto-adjust is on
+      const newHeight = Math.round(widthPx / aspectRatio);
+      document.getElementById('customHeight').value = newHeight;
+      // Update heightPx
+      heightPx = newHeight;
+    }
+  }
+  
+  // Convert px to mm at 300 DPI
+  const pxToMm = 25.4 / 300;
+  const widthMm = Math.round(widthPx * pxToMm);
+  const heightMm = Math.round(heightPx * pxToMm);
+  
+  // Update SIZES
+  SIZES.custom = {
+    name: `Custom (${widthPx}×${heightPx} px)`,
+    w: widthMm,
+    h: heightMm
+  };
+  
+  // Set all images to custom size
+  toolState.images.forEach(img => {
+    img.size = 'custom';
+  });
+  
+  // Update UI
+  const sizeSelect = document.getElementById('sizeSelect');
+  sizeSelect.value = 'custom';
+  document.getElementById('customSizeInputs').style.display = 'block';
+  
+  updateCapacityDisplay();
+  generatePreview();
+  renderImagesList();
+  showToast(`All images set to custom size ${widthPx}×${heightPx} px`, 'success');
+}

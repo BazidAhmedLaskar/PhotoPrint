@@ -50,12 +50,27 @@
       <div class="panel-section">
         <div class="panel-label">📐 Step 1: Select Photo Size</div>
         <select class="form-select" id="sizeSelect" onchange="updateCapacity()">
-          <option value="passport">Passport (35×45 mm)</option>
+          <option value="passport">Passport (30×40 mm)</option>
           <option value="stamp">Stamp Size (25×35 mm)</option>
           <option value="aadhaar">Aadhaar (35×45 mm)</option>
           <option value="pan">PAN Card (25×35 mm)</option>
           <option value="visa">Visa (51×51 mm)</option>
+          <option value="custom">Custom Size</option>
         </select>
+        <div id="customSizeInputs" style="display:none;margin-top:8px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="font-size:.8rem;color:var(--muted)">Width (px):</label>
+            <input type="number" id="customWidth" min="10" max="1000" value="413" class="form-input" style="width:80px;font-size:.8rem" onchange="updateCustomSize()">
+            <label style="font-size:.8rem;color:var(--muted)">Height (px):</label>
+            <input type="number" id="customHeight" min="10" max="1000" value="531" class="form-input" style="width:80px;font-size:.8rem" onchange="updateCustomSize()">
+          </div>
+          <div style="margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)">
+              <input type="checkbox" id="autoAdjustAspect" onchange="toggleAutoAdjust()">
+              Auto-adjust to look good (maintain aspect ratio)
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- STEP 2: ADD IMAGES -->
@@ -130,6 +145,29 @@
             </div>
           </div>
         </div>
+
+        <!-- Global Border Settings -->
+        <div class="panel-label" style="margin-top:12px;margin-bottom:6px">🎨 Global Border</div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <div class="slider-item-row">
+              <span class="slider-item-label">Thickness</span>
+              <span class="slider-item-val" id="valBorder">0px</span>
+            </div>
+            <div class="slider-controls">
+              <button class="slider-btn" onclick="adjustBorder(-1)">−</button>
+              <input type="range" id="slBorder" min="0" max="10" value="0" oninput="updateBorder()">
+              <button class="slider-btn" onclick="adjustBorder(1)">+</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)">
+            Border Color:
+            <input type="color" id="borderColor" value="#000000" onchange="updateBorderColor()">
+          </label>
+        </div>
+
         <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="resetEdits()">↩ Reset</button>
       </div>
 
