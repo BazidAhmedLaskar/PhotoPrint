@@ -275,11 +275,17 @@ function updateImageSize(id, size) {
     const customInputs = document.getElementById('imgCustomSizeInputs');
     if (size === 'custom') {
       customInputs.style.display = 'block';
-      // Set current values
       document.getElementById('imgCustomWidth').value = img.customWidth || 413;
       document.getElementById('imgCustomHeight').value = img.customHeight || 531;
-      // Set to custom size key
-      img.size = `custom_${img.id}`;
+      const customSizeKey = `custom_${img.id}`;
+      img.size = customSizeKey;
+      if (!SIZES[customSizeKey]) {
+        SIZES[customSizeKey] = {
+          name: `Custom (${img.customWidth || 413}×${img.customHeight || 531} px)`,
+          w: Math.round((img.customWidth || 413) * 25.4 / 300),
+          h: Math.round((img.customHeight || 531) * 25.4 / 300),
+        };
+      }
     } else {
       customInputs.style.display = 'none';
       img.size = size;
@@ -395,41 +401,38 @@ function removeImage(id) {
    IMAGE PREVIEW
 ═══════════════════════════════════════════ */
 function showImagePreview(imgObj) {
-  const container = document.getElementById('imagePreviewContainer');
   const placeholder = document.getElementById('previewPlaceholder');
   const previewCanvas = document.getElementById('previewCanvas');
   const previewImage = document.getElementById('previewImage');
   const previewStats = document.getElementById('previewStats');
-  
-  // Generate preview with current edits (including crop)
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = imgObj.img.naturalWidth;
-  tmpCanvas.height = imgObj.img.naturalHeight;
-  const ctx = tmpCanvas.getContext('2d');
 
-  // Apply edits
-  const b = imgObj.brightness / 100;
-  const c = imgObj.contrast / 100;
-  ctx.filter = `brightness(${b}) contrast(${c})`;
-  ctx.save();
-  if (imgObj.rotation !== 0) {
-    ctx.translate(tmpCanvas.width / 2, tmpCanvas.height / 2);
-    ctx.rotate(imgObj.rotation * Math.PI / 180);
-    ctx.translate(-tmpCanvas.width / 2, -tmpCanvas.height / 2);
+  const srcCanvas = getImageCanvas(imgObj);
+  if (srcCanvas && srcCanvas.width > 0 && srcCanvas.height > 0) {
+    previewCanvas.width = srcCanvas.width;
+    previewCanvas.height = srcCanvas.height;
+    const ctx = previewCanvas.getContext('2d');
+    ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    ctx.drawImage(srcCanvas, 0, 0);
+    previewCanvas.style.display = 'block';
+    previewImage.style.display = 'none';
+  } else {
+    previewImage.src = imgObj.src;
+    previewImage.style.display = 'block';
+    previewCanvas.style.display = 'none';
   }
-  ctx.drawImage(imgObj.img, 0, 0);
-  ctx.restore();
 
   if (placeholder) placeholder.style.display = 'none';
-  previewImage.src = tmpCanvas.toDataURL();
-  previewImage.style.display = 'block';
-  previewCanvas.style.display = 'none';
 
-  const sizeInfo = SIZES[imgObj.size];
+  const sizeInfo = SIZES[imgObj.size] || {
+    name: imgObj.customWidth && imgObj.customHeight ? `Custom (${imgObj.customWidth}×${imgObj.customHeight} px)` : 'Custom',
+    w: imgObj.customWidth ? Math.round(imgObj.customWidth * 25.4 / 300) : '',
+    h: imgObj.customHeight ? Math.round(imgObj.customHeight * 25.4 / 300) : ''
+  };
   const hasCrop = imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
+  const sizeText = sizeInfo.w && sizeInfo.h ? `${sizeInfo.w}×${sizeInfo.h} mm` : `${imgObj.customWidth}×${imgObj.customHeight} px`;
   previewStats.innerHTML = `
     <strong>${sizeInfo.name}</strong><br>
-    ${sizeInfo.w}×${sizeInfo.h} mm<br>
+    ${sizeText}<br>
     Copies: ${imgObj.copies}
     ${hasCrop ? '<br><span style="color:var(--orange)">✂️ Cropped</span>' : ''}
   `;
@@ -629,36 +632,20 @@ function showTempPreview(imgObj) {
   // Clear previous timeout
   if (tempPreviewTimeout) clearTimeout(tempPreviewTimeout);
   
-  // Generate preview with current edits
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = imgObj.img.naturalWidth;
-  tmpCanvas.height = imgObj.img.naturalHeight;
-  const ctx = tmpCanvas.getContext('2d');
-
-  // Apply edits
-  const b = imgObj.brightness / 100;
-  const c = imgObj.contrast / 100;
-  ctx.filter = `brightness(${b}) contrast(${c})`;
-  ctx.save();
-  if (imgObj.rotation !== 0) {
-    ctx.translate(tmpCanvas.width / 2, tmpCanvas.height / 2);
-    ctx.rotate(imgObj.rotation * Math.PI / 180);
-    ctx.translate(-tmpCanvas.width / 2, -tmpCanvas.height / 2);
-  }
-  ctx.drawImage(imgObj.img, 0, 0);
-  ctx.restore();
-
-  // Draw border if any
-  if (toolState.borderThickness > 0) {
-    drawBorder(ctx, 0, 0, tmpCanvas.width, tmpCanvas.height, toolState.borderThickness, toolState.borderColor);
-  }
+  const tmpCanvas = getImageCanvas(imgObj);
 
   // Show the temp preview
   const tempDiv = document.getElementById('tempEditPreview');
   const tempImg = document.getElementById('tempPreviewImg');
   const tempStats = document.getElementById('tempPreviewStats');
-  tempImg.src = tmpCanvas.toDataURL();
-  const sizeInfo = SIZES[imgObj.size];
+  if (tmpCanvas && tmpCanvas.width > 0) {
+    tempImg.src = tmpCanvas.toDataURL();
+  } else {
+    tempImg.src = imgObj.src;
+  }
+  const sizeInfo = SIZES[imgObj.size] || {
+    name: imgObj.customWidth && imgObj.customHeight ? `Custom (${imgObj.customWidth}×${imgObj.customHeight} px)` : 'Custom'
+  };
   const hasCrop = imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
   tempStats.innerHTML = `${sizeInfo.name} • ${imgObj.copies}× ${hasCrop ? '✂️' : ''}`;
   tempDiv.style.display = 'flex';
@@ -851,28 +838,36 @@ function getImageCanvas(imgObj) {
   
   // Apply crop if it exists
   if (imgObj.cropScale && (imgObj.cropScale !== 1.0 || imgObj.cropX !== 0 || imgObj.cropY !== 0)) {
-    // cropScale is zoom level (0.5-3.0)
-    // cropOffsetX/Y are pixel offsets in the crop canvas
-    // We need to convert visual crop coordinates back to source image coordinates
-    
-    const cropScale = imgObj.cropScale;
-    const zoomWidth = img.naturalWidth * cropScale;
-    const zoomHeight = img.naturalHeight * cropScale;
-    
-    // The visible area in the crop canvas is roughly centered
-    // The offset tells us where the zoomed image is positioned
-    // Convert offset from canvas coordinates to source image coordinates
-    const srcCropX = -imgObj.cropX / cropScale;
-    const srcCropY = -imgObj.cropY / cropScale;
-    const srcCropW = tmp.width / cropScale;
-    const srcCropH = tmp.height / cropScale;
-    
-    // Clamp to image bounds
+    const canvasW = cropCanvas?.width || 320;
+    const canvasH = cropCanvas?.height || 320;
+    const sizeInfo = SIZES[imgObj.size] || {
+      w: imgObj.customWidth ? Math.round(imgObj.customWidth * 25.4 / 300) : img.naturalWidth,
+      h: imgObj.customHeight ? Math.round(imgObj.customHeight * 25.4 / 300) : img.naturalHeight
+    };
+    const aspect = sizeInfo.w / sizeInfo.h;
+    const drawH = canvasH * imgObj.cropScale;
+    const drawW = drawH * img.naturalWidth / img.naturalHeight;
+    const x = (canvasW - drawW) / 2 + imgObj.cropX;
+    const y = (canvasH - drawH) / 2 + imgObj.cropY;
+    const cropW = Math.min(canvasW * 0.7, canvasH * 0.7 * aspect);
+    const cropH = cropW / aspect;
+    const cx = (canvasW - cropW) / 2;
+    const cy = (canvasH - cropH) / 2;
+
+    const srcScale = img.naturalWidth / drawW;
+    const srcCropX = (cx - x) * srcScale;
+    const srcCropY = (cy - y) * srcScale;
+    const srcCropW = cropW * srcScale;
+    const srcCropH = cropH * srcScale;
+
     const clampX = Math.max(0, Math.min(srcCropX, img.naturalWidth - srcCropW));
     const clampY = Math.max(0, Math.min(srcCropY, img.naturalHeight - srcCropH));
     const clampW = Math.min(srcCropW, img.naturalWidth - clampX);
     const clampH = Math.min(srcCropH, img.naturalHeight - clampY);
-    
+
+    tmp.width = Math.max(1, Math.round(clampW));
+    tmp.height = Math.max(1, Math.round(clampH));
+    ctx.clearRect(0, 0, tmp.width, tmp.height);
     ctx.drawImage(img, clampX, clampY, clampW, clampH, 0, 0, tmp.width, tmp.height);
   } else {
     ctx.drawImage(img, 0, 0);
