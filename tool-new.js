@@ -23,6 +23,41 @@ let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || '4btiRFSh8FEp3P
 let tempPreviewTimeout = null;
 let autoAdjustAspect = false;
 
+/* ═════════════════════════════════════════════════════════════════
+   BORDER DRAWING HELPER
+═════════════════════════════════════════════════════════════════ */
+function drawBorder(ctx, x, y, w, h, thickness, color) {
+  // Draw crisp, perfect border using fillRect instead of strokeRect
+  // This avoids anti-aliasing issues with strokeRect
+  ctx.fillStyle = color;
+  // Top border
+  ctx.fillRect(x, y, w, thickness);
+  // Bottom border
+  ctx.fillRect(x, y + h - thickness, w, thickness);
+  // Left border
+  ctx.fillRect(x, y + thickness, thickness, h - 2 * thickness);
+  // Right border
+  ctx.fillRect(x + w - thickness, y + thickness, thickness, h - 2 * thickness);
+}
+
+function drawBorderScaled(ctx, x, y, w, h, thickness, color, scale = 1) {
+  // Draw crisp border with scale support (for preview canvas)
+  const scaledThickness = thickness * scale;
+  const scaledX = x * scale;
+  const scaledY = y * scale;
+  const scaledW = w * scale;
+  const scaledH = h * scale;
+  ctx.fillStyle = color;
+  // Top border
+  ctx.fillRect(scaledX, scaledY, scaledW, scaledThickness);
+  // Bottom border
+  ctx.fillRect(scaledX, scaledY + scaledH - scaledThickness, scaledW, scaledThickness);
+  // Left border
+  ctx.fillRect(scaledX, scaledY + scaledThickness, scaledThickness, scaledH - 2 * scaledThickness);
+  // Right border
+  ctx.fillRect(scaledX + scaledW - scaledThickness, scaledY + scaledThickness, scaledThickness, scaledH - 2 * scaledThickness);
+}
+
 /* ═══════════════════════════════════════════
    CAPACITY CALCULATION
 ═══════════════════════════════════════════ */
@@ -516,9 +551,7 @@ function showTempPreview(imgObj) {
 
   // Draw border if any
   if (toolState.borderThickness > 0) {
-    ctx.strokeStyle = toolState.borderColor;
-    ctx.lineWidth = toolState.borderThickness;
-    ctx.strokeRect(toolState.borderThickness / 2, toolState.borderThickness / 2, tmpCanvas.width - toolState.borderThickness, tmpCanvas.height - toolState.borderThickness);
+    drawBorder(ctx, 0, 0, tmpCanvas.width, tmpCanvas.height, toolState.borderThickness, toolState.borderColor);
   }
 
   // Show the temp preview
@@ -640,13 +673,7 @@ function generatePreview() {
   // Draw borders
   if (toolState.borderThickness > 0) {
     positions.forEach(pos => {
-      const sx = pos.x * scale;
-      const sy = pos.y * scale;
-      const sw = pos.w * scale;
-      const sh = pos.h * scale;
-      ctx.strokeStyle = toolState.borderColor;
-      ctx.lineWidth = toolState.borderThickness * scale;
-      ctx.strokeRect(sx + toolState.borderThickness * scale / 2, sy + toolState.borderThickness * scale / 2, sw - toolState.borderThickness * scale, sh - toolState.borderThickness * scale);
+      drawBorderScaled(ctx, pos.x, pos.y, pos.w, pos.h, toolState.borderThickness, toolState.borderColor, scale);
     });
   }
 
@@ -773,11 +800,9 @@ function doPrint() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any
+      // Draw border if any - use same thickness as preview
       if (toolState.borderThickness > 0) {
-        ctx.strokeStyle = toolState.borderColor;
-        ctx.lineWidth = toolState.borderThickness;
-        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
       }
       
       totalCount++;
@@ -855,11 +880,9 @@ function openNewPage() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any
+      // Draw border if any - use same thickness as preview
       if (toolState.borderThickness > 0) {
-        ctx.strokeStyle = toolState.borderColor;
-        ctx.lineWidth = toolState.borderThickness;
-        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
       }
       
       currentX += photoW + gap;
@@ -935,11 +958,9 @@ function downloadImage() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any
+      // Draw border if any - use same thickness as preview
       if (toolState.borderThickness > 0) {
-        ctx.strokeStyle = toolState.borderColor;
-        ctx.lineWidth = toolState.borderThickness;
-        ctx.strokeRect(currentX + toolState.borderThickness / 2, currentY + toolState.borderThickness / 2, photoW - toolState.borderThickness, photoH - toolState.borderThickness);
+        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
       }
       
       currentX += photoW + gap;
