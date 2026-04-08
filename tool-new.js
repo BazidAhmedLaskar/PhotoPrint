@@ -135,6 +135,8 @@ function handleMultiImageUpload(e) {
           cropX: 0,
           cropY: 0,
           cropScale: 1.0, // Full image by default
+          customWidth: 413,
+          customHeight: 531,
         });
         
         // Auto-select first image only
@@ -207,7 +209,7 @@ function renderImagesList() {
     
     item.innerHTML = `
       <img src="${imgObj.src}" alt="Photo ${idx + 1}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)">
-      <div style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;cursor:pointer;opacity:0.7;transition:.2s" onclick="event.stopPropagation(); removeImage('${imgObj.id}')">✕</div>
+      <div style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;cursor:pointer;opacity:0.7;transition:.2s;z-index:10" onclick="event.stopPropagation(); removeImage('${imgObj.id}')">✕</div>
       <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:white;font-size:.7rem;padding:4px;text-align:center;border-radius:0 0 calc(var(--r) - 2px) calc(var(--r) - 2px)">${imgObj.copies}× ${SIZES[imgObj.size].name}</div>
     `;
     
@@ -235,7 +237,20 @@ function selectImage(id) {
     
     // Update size selector
     const sizeSelect = document.getElementById('imgSizeSelect');
-    sizeSelect.value = img.size;
+    const customInputs = document.getElementById('imgCustomSizeInputs');
+    
+    // Check if this is a custom size
+    if (img.size.startsWith('custom_')) {
+      sizeSelect.value = 'custom';
+      customInputs.style.display = 'block';
+      document.getElementById('imgCustomWidth').value = img.customWidth || 413;
+      document.getElementById('imgCustomHeight').value = img.customHeight || 531;
+      // Reset checkbox to unchecked when selecting (user can check if needed)
+      document.getElementById('imgAutoAdjustAspect').checked = false;
+    } else {
+      sizeSelect.value = img.size;
+      customInputs.style.display = 'none';
+    }
     
     // Update copies input
     const copiesInput = document.getElementById('imgCopiesInput');
@@ -256,15 +271,79 @@ function selectImage(id) {
 function updateImageSize(id, size) {
   const img = toolState.images.find(i => i.id === id);
   if (img) {
-    img.size = size;
+    // Show/hide custom size inputs
+    const customInputs = document.getElementById('imgCustomSizeInputs');
+    if (size === 'custom') {
+      customInputs.style.display = 'block';
+      // Set current values
+      document.getElementById('imgCustomWidth').value = img.customWidth || 413;
+      document.getElementById('imgCustomHeight').value = img.customHeight || 531;
+      // Set to custom size key
+      img.size = `custom_${img.id}`;
+    } else {
+      customInputs.style.display = 'none';
+      img.size = size;
+    }
+    
     // Update capacity info
-    const sizeCapacity = calculateSizeCapacity(size);
+    const sizeCapacity = calculateSizeCapacity(img.size);
     const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
     document.getElementById('imgCapacityInfo').textContent = status;
     
     updateCapacityDisplay();
     generatePreview();
     renderImagesList();
+  }
+}
+
+function updateImageCustomSize() {
+  const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+  if (img && img.size.startsWith('custom_')) {
+    const widthPx = parseInt(document.getElementById('imgCustomWidth').value);
+    const heightPx = parseInt(document.getElementById('imgCustomHeight').value);
+    
+    // Handle auto-adjust aspect ratio
+    const autoAdjust = document.getElementById('imgAutoAdjustAspect').checked;
+    if (autoAdjust && img.img) {
+      const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
+      const newHeight = Math.round(widthPx / aspectRatio);
+      document.getElementById('imgCustomHeight').value = newHeight;
+      img.customHeight = newHeight;
+    } else {
+      img.customHeight = heightPx;
+    }
+    
+    img.customWidth = widthPx;
+    
+    // Update the image's custom size in SIZES for this specific image
+    const customSizeKey = `custom_${img.id}`;
+    SIZES[customSizeKey] = {
+      name: `Custom (${widthPx}×${img.customHeight} px)`,
+      w: Math.round(widthPx * 25.4 / 300), // Convert px to mm at 300 DPI
+      h: Math.round(img.customHeight * 25.4 / 300),
+    };
+    img.size = customSizeKey;
+    
+    // Update capacity info
+    const sizeCapacity = calculateSizeCapacity(customSizeKey);
+    const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
+    document.getElementById('imgCapacityInfo').textContent = status;
+    
+    updateCapacityDisplay();
+    generatePreview();
+    renderImagesList();
+  }
+}
+
+function toggleImageAutoAdjust() {
+  const autoAdjust = document.getElementById('imgAutoAdjustAspect').checked;
+  const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+  if (autoAdjust && img && img.img) {
+    const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
+    const currentWidth = parseInt(document.getElementById('imgCustomWidth').value);
+    const newHeight = Math.round(currentWidth / aspectRatio);
+    document.getElementById('imgCustomHeight').value = newHeight;
+    updateImageCustomSize();
   }
 }
 
@@ -771,7 +850,7 @@ function getImageCanvas(imgObj) {
   }
   
   // Apply crop if it exists
-  if (imgObj.cropScale && imgObj.cropScale !== 1.0) {
+  if (imgObj.cropScale && (imgObj.cropScale !== 1.0 || imgObj.cropX !== 0 || imgObj.cropY !== 0)) {
     // cropScale is zoom level (0.5-3.0)
     // cropOffsetX/Y are pixel offsets in the crop canvas
     // We need to convert visual crop coordinates back to source image coordinates
@@ -1188,6 +1267,7 @@ function setupCropDrag() {
   if (cropCanvas._cropBound) return;
   cropCanvas._cropBound = true;
 
+  // Mouse events for desktop
   cropCanvas.addEventListener('mousedown', e => {
     toolState.cropDragging = true;
     toolState.cropStartX = e.clientX - toolState.cropOffsetX;
@@ -1204,7 +1284,65 @@ function setupCropDrag() {
   cropCanvas.addEventListener('mouseup', () => (toolState.cropDragging = false));
   cropCanvas.addEventListener('mouseleave', () => (toolState.cropDragging = false));
   
-  // Scroll/wheel zoom
+  // Touch events for mobile
+  let initialDistance = 0;
+  let initialScale = 1;
+  
+  cropCanvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      // Single touch - start dragging
+      toolState.cropDragging = true;
+      const touch = e.touches[0];
+      toolState.cropStartX = touch.clientX - toolState.cropOffsetX;
+      toolState.cropStartY = touch.clientY - toolState.cropOffsetY;
+    } else if (e.touches.length === 2) {
+      // Two touches - start pinch zoom
+      toolState.cropDragging = false; // Disable dragging during pinch
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      initialDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      initialScale = toolState.cropScale;
+    }
+  });
+  
+  cropCanvas.addEventListener('touchmove', e => {
+    e.preventDefault(); // Prevent scrolling
+    
+    if (e.touches.length === 1 && toolState.cropDragging) {
+      // Single touch - dragging
+      const touch = e.touches[0];
+      toolState.cropOffsetX = touch.clientX - toolState.cropStartX;
+      toolState.cropOffsetY = touch.clientY - toolState.cropStartY;
+      drawCrop();
+    } else if (e.touches.length === 2) {
+      // Two touches - pinch zoom
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const currentDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      
+      if (initialDistance > 0) {
+        const scale = (currentDistance / initialDistance) * initialScale;
+        toolState.cropScale = Math.max(0.5, Math.min(3.0, scale));
+        document.getElementById('cropZoom').value = Math.round(toolState.cropScale * 100);
+        document.getElementById('cropZoomVal').textContent = Math.round(toolState.cropScale * 100) + '%';
+        drawCrop();
+      }
+    }
+  });
+  
+  cropCanvas.addEventListener('touchend', e => {
+    if (e.touches.length === 0) {
+      toolState.cropDragging = false;
+    }
+  });
+  
+  // Scroll/wheel zoom for desktop
   cropCanvas.addEventListener('wheel', e => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
@@ -1247,21 +1385,22 @@ window.addEventListener('DOMContentLoaded', () => {
       const customInputs = document.getElementById('customSizeInputs');
       if (e.target.value === 'custom') {
         customInputs.style.display = 'block';
+        updateCustomSize(); // Apply custom size when selected
       } else {
         customInputs.style.display = 'none';
-      }
-      if (toolState.selectedImageId) {
-        const img = toolState.images.find(i => i.id === toolState.selectedImageId);
-        if (img) {
-          img.size = e.target.value;
-          updateCapacityDisplay();
-          generatePreview();
-          renderImagesList();
-          showToast(`Size changed to ${SIZES[img.size].name}`, 'success');
+        if (toolState.selectedImageId) {
+          const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+          if (img) {
+            img.size = e.target.value;
+            updateCapacityDisplay();
+            generatePreview();
+            renderImagesList();
+            showToast(`Size changed to ${SIZES[img.size].name}`, 'success');
+          }
+        } else {
+          showToast('Please select an image first', 'error');
+          sizeSelect.value = 'passport';
         }
-      } else {
-        showToast('Please select an image first', 'error');
-        sizeSelect.value = 'passport';
       }
     });
   }
@@ -1316,7 +1455,7 @@ function adjustBorder(delta) {
 
 function updateCustomSize() {
   const widthPx = parseInt(document.getElementById('customWidth').value);
-  const heightPx = parseInt(document.getElementById('customHeight').value);
+  let heightPx = parseInt(document.getElementById('customHeight').value);
   
   // If auto-adjust is on and we have a selected image, maintain aspect ratio
   if (autoAdjustAspect && toolState.selectedImageId) {
