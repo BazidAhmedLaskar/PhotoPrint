@@ -98,7 +98,7 @@ function updateCapacityDisplay() {
 ═══════════════════════════════════════════ */
 function handleMultiImageUpload(e) {
   const files = e.target.files;
-  if (!files) return;
+  if (!files || files.length === 0) return;
 
   let filesProcessed = 0;
   const totalFiles = files.length;
@@ -110,6 +110,12 @@ function handleMultiImageUpload(e) {
       img.onerror = () => {
         console.warn('Failed to load image:', file.name);
         filesProcessed++;
+        if (filesProcessed === totalFiles) {
+          renderImagesList();
+          updateCapacityDisplay();
+          generatePreview();
+          showToast(`Added ${totalFiles} image${totalFiles > 1 ? 's' : ''}`, 'success');
+        }
       };
       img.onload = () => {
         // Use unique ID: currentTime + unique index per batch
@@ -148,6 +154,16 @@ function handleMultiImageUpload(e) {
         }
       };
       img.src = ev.target.result;
+    };
+    reader.onerror = () => {
+      console.error('FileReader error for file:', idx);
+      filesProcessed++;
+      if (filesProcessed === totalFiles) {
+        renderImagesList();
+        updateCapacityDisplay();
+        generatePreview();
+        showToast('Error loading some images', 'error');
+      }
     };
     reader.readAsDataURL(file);
   });
@@ -230,6 +246,8 @@ function selectImage(id) {
     const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
     document.getElementById('imgCapacityInfo').textContent = status;
     
+    // Show image preview and temp preview
+    showImagePreview(img);
     showTempPreview(img);
     renderImagesList();
   }
@@ -495,6 +513,8 @@ function applyEdits() {
   document.getElementById('valContrast').textContent = c + '%';
   document.getElementById('valRotation').textContent = r + '°';
   
+  // Update image preview panel
+  showImagePreview(img);
   generatePreview();
   
   // Show temp preview
@@ -576,8 +596,10 @@ function showTempPreview(imgObj) {
 ═══════════════════════════════════════════ */
 function generatePreview() {
   if (toolState.images.length === 0) {
-    document.getElementById('a4Canvas').style.display = 'none';
-    document.getElementById('a4Placeholder').style.display = 'flex';
+    const canvas = document.getElementById('a4Canvas');
+    const placeholder = document.getElementById('a4Placeholder');
+    canvas.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'flex';
     document.getElementById('previewInfo').textContent = '📌 Add photos to see preview';
     return;
   }
@@ -594,10 +616,23 @@ function generatePreview() {
   const displayW = 480, displayH = 679;
   const scale = Math.min(displayW / a4W, displayH / a4H);
   const canvas = document.getElementById('a4Canvas');
-  canvas.width = Math.round(a4W * scale);
-  canvas.height = Math.round(a4H * scale);
+  
+  let canvasW = Math.round(a4W * scale);
+  let canvasH = Math.round(a4H * scale);
+  
+  // Safety: ensure minimum canvas size
+  if (canvasW < 100) canvasW = 480;
+  if (canvasH < 100) canvasH = 679;
+  
+  canvas.width = canvasW;
+  canvas.height = canvasH;
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get canvas 2D context');
+    return;
+  }
+  
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -661,13 +696,19 @@ function generatePreview() {
 
   // Draw images
   positions.forEach(pos => {
-    const imgObj = toolState.images[pos.imgIdx];
-    const srcCanvas = getImageCanvas(imgObj);
-    const sx = pos.x * scale;
-    const sy = pos.y * scale;
-    const sw = pos.w * scale;
-    const sh = pos.h * scale;
-    ctx.drawImage(srcCanvas, sx, sy, sw, sh);
+    try {
+      const imgObj = toolState.images[pos.imgIdx];
+      const srcCanvas = getImageCanvas(imgObj);
+      if (srcCanvas && srcCanvas.width > 0 && srcCanvas.height > 0) {
+        const sx = pos.x * scale;
+        const sy = pos.y * scale;
+        const sw = pos.w * scale;
+        const sh = pos.h * scale;
+        ctx.drawImage(srcCanvas, sx, sy, sw, sh);
+      }
+    } catch (e) {
+      console.error('Error drawing image:', e);
+    }
   });
 
   // Draw borders
@@ -679,6 +720,14 @@ function generatePreview() {
 
   document.getElementById('a4Placeholder').style.display = 'none';
   canvas.style.display = 'block';
+  
+  // Force canvas to be visible and ensure it's rendered
+  if (canvas.parentElement) {
+    canvas.parentElement.style.display = 'flex';
+  }
+  
+  // Force reflow to ensure canvas is rendered
+  canvas.offsetHeight;
 
   const cap = calculateTotalCapacity();
   if (totalUsed < cap.used) {
@@ -698,6 +747,13 @@ function generatePreview() {
 function getImageCanvas(imgObj) {
   const img = imgObj.img;
   const tmp = document.createElement('canvas');
+  
+  // Safety check: ensure image is loaded
+  if (!img || !img.naturalWidth || !img.naturalHeight) {
+    console.warn('Image not properly loaded:', imgObj.id);
+    return tmp; // Return empty canvas
+  }
+  
   tmp.width = img.naturalWidth;
   tmp.height = img.naturalHeight;
   const ctx = tmp.getContext('2d');
