@@ -129,50 +129,39 @@ function renderImagesList() {
     return;
   }
 
+  const borderThickness = toolState.borderThickness || 0;
+  const borderColor = toolState.borderColor || '#000000';
+
   toolState.images.forEach((imgObj, idx) => {
     const item = document.createElement('div');
-    item.className = 'image-list-item';
-    if (imgObj.id === toolState.selectedImageId) {
-      item.classList.add('active');
+    item.className = 'image-slot';
+    
+    if (borderThickness > 0) {
+      item.style.border = borderThickness + 'px solid ' + borderColor;
+    } else {
+      item.style.border = '2px dashed var(--border)';
     }
+    item.style.cursor = 'pointer';
+    item.style.position = 'relative';
+    item.style.aspectRatio = '1';
+    item.style.display = 'flex';
+    item.style.alignItems = 'center';
+    item.style.justifyContent = 'center';
+    item.style.borderRadius = 'var(--r)';
+    item.style.background = 'var(--surface)';
+    item.onclick = () => selectImage(imgObj.id);
     
     const sizeCapacity = calculateSizeCapacity(imgObj.size);
     const isOverCapacity = imgObj.copies > sizeCapacity;
     
     item.innerHTML = `
-      <div class="image-list-item-header" onclick="selectImage('${imgObj.id}')">
-        <img src="${imgObj.src}" alt="Photo ${idx + 1}" class="image-list-thumbnail">
-        <div class="image-list-info">
-          <div class="image-list-title">Photo ${idx + 1}</div>
-          <div class="image-list-meta">${imgObj.copies}× ${SIZES[imgObj.size].name}</div>
-        </div>
-        <div class="image-list-remove" onclick="event.stopPropagation(); removeImage('${imgObj.id}')">✕</div>
-      </div>
-      <div class="image-list-controls">
-        <select class="form-select" style="font-size:.75rem" onchange="updateImageSize('${imgObj.id}', this.value)">
-          <option value="passport" ${imgObj.size === 'passport' ? 'selected' : ''}>Passport (35×45)</option>
-          <option value="stamp" ${imgObj.size === 'stamp' ? 'selected' : ''}>Stamp (25×35)</option>
-          <option value="aadhaar" ${imgObj.size === 'aadhaar' ? 'selected' : ''}>Aadhaar (35×45)</option>
-          <option value="pan" ${imgObj.size === 'pan' ? 'selected' : ''}>PAN (25×35)</option>
-          <option value="visa" ${imgObj.size === 'visa' ? 'selected' : ''}>Visa (51×51)</option>
-        </select>
-        <div class="copies-control" style="margin-top:6px">
-          <button class="copies-btn" onclick="updateImageCopies('${imgObj.id}', -1)">−</button>
-          <input type="number" min="1" max="50" value="${imgObj.copies}" onchange="updateImageCopies('${imgObj.id}', parseInt(this.value) - ${imgObj.copies})" style="width:40px;padding:4px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:.8rem">
-          <button class="copies-btn" onclick="updateImageCopies('${imgObj.id}', 1)">+</button>
-          <span style="font-size:.7rem;color:var(--muted);margin-left:auto">${isOverCapacity ? '⚠️ Over' : 'Max: ' + sizeCapacity}</span>
-        </div>
-      </div>
+      <img src="${imgObj.src}" alt="Photo ${idx + 1}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)">
+      <div style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;cursor:pointer;opacity:0.7;transition:.2s" onclick="event.stopPropagation(); removeImage('${imgObj.id}')">✕</div>
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:white;font-size:.7rem;padding:4px;text-align:center;border-radius:0 0 calc(var(--r) - 2px) calc(var(--r) - 2px)">${imgObj.copies}× ${SIZES[imgObj.size].name}</div>
     `;
     
     list.appendChild(item);
   });
-  
-  // Scroll to view selected image
-  const activeItem = list.querySelector('.image-list-item.active');
-  if (activeItem) {
-    activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
 }
 
 function selectImage(id) {
@@ -189,31 +178,22 @@ function selectImage(id) {
     document.getElementById('slRotation').value = img.rotation;
     document.getElementById('valRotation').textContent = img.rotation + '°';
     
-    // Update global size selector to match this image's size
-    const sizeSelect = document.getElementById('sizeSelect');
-    if (sizeSelect) {
-      sizeSelect.value = img.size;
-      // Trigger change to show/hide custom inputs
-      sizeSelect.dispatchEvent(new Event('change'));
-      
-      // If custom, set input values
-      if (img.size === 'custom') {
-        const mmToPx = 300 / 25.4;
-        const widthPx = Math.round(SIZES.custom.w * mmToPx);
-        const heightPx = Math.round(SIZES.custom.h * mmToPx);
-        document.getElementById('customWidth').value = widthPx;
-        document.getElementById('customHeight').value = heightPx;
-        
-        // If auto-adjust is on, update based on this image's aspect ratio
-        if (autoAdjustAspect) {
-          const aspectRatio = img.img.naturalWidth / img.img.naturalHeight;
-          const newHeight = Math.round(widthPx / aspectRatio);
-          document.getElementById('customHeight').value = newHeight;
-          // Update SIZES with new height
-          updateCustomSize();
-        }
-      }
-    }
+    // Show and update selected image controls
+    const controlsDiv = document.getElementById('selectedImageControls');
+    controlsDiv.style.display = 'block';
+    
+    // Update size selector
+    const sizeSelect = document.getElementById('imgSizeSelect');
+    sizeSelect.value = img.size;
+    
+    // Update copies input
+    const copiesInput = document.getElementById('imgCopiesInput');
+    copiesInput.value = img.copies;
+    
+    // Update capacity info
+    const sizeCapacity = calculateSizeCapacity(img.size);
+    const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
+    document.getElementById('imgCapacityInfo').textContent = status;
     
     showTempPreview(img);
     renderImagesList();
@@ -224,14 +204,11 @@ function updateImageSize(id, size) {
   const img = toolState.images.find(i => i.id === id);
   if (img) {
     img.size = size;
-    // If this is the selected image, update global selector
-    if (id === toolState.selectedImageId) {
-      const sizeSelect = document.getElementById('sizeSelect');
-      if (sizeSelect) {
-        sizeSelect.value = size;
-        sizeSelect.dispatchEvent(new Event('change'));
-      }
-    }
+    // Update capacity info
+    const sizeCapacity = calculateSizeCapacity(size);
+    const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
+    document.getElementById('imgCapacityInfo').textContent = status;
+    
     updateCapacityDisplay();
     generatePreview();
     renderImagesList();
@@ -243,6 +220,16 @@ function updateImageCopies(id, delta) {
   if (img) {
     const maxCopies = 50;
     img.copies = Math.max(1, Math.min(maxCopies, img.copies + delta));
+    
+    // Update copies input
+    const copiesInput = document.getElementById('imgCopiesInput');
+    if (copiesInput) copiesInput.value = img.copies;
+    
+    // Update capacity info
+    const sizeCapacity = calculateSizeCapacity(img.size);
+    const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
+    document.getElementById('imgCapacityInfo').textContent = status;
+    
     updateCapacityDisplay();
     generatePreview();
     renderImagesList();
@@ -568,7 +555,7 @@ function generatePreview() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = 0; // No gap for maximum fit
+  const gap = Math.round(2 * MM2PX); // 2mm gap between images
 
   // Display preview
   const displayW = 480, displayH = 679;
@@ -584,8 +571,8 @@ function generatePreview() {
   // Calculate layout with per-image sizes
   let totalUsed = 0;
   let positions = [];
-  let currentY = 0; // Start from top edge for maximum fit
-  let currentX = 0; // Start from left edge
+  let currentY = margin; // Start from top with margin
+  let currentX = margin; // Start from left with margin
   let rowHeight = 0;
   let maxInRow = 0;
 
@@ -597,9 +584,9 @@ function generatePreview() {
 
     // Try to fit copies of this image
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW > a4W) {
+      if (currentX + photoW > a4W - margin) {
         // Move to next row
-        currentX = 0;
+        currentX = margin;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
@@ -748,7 +735,7 @@ function doPrint() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = 0; // No gap for maximum fit
+  const gap = Math.round(2 * MM2PX); // 2mm gap between images
 
   const printCanvas = document.createElement('canvas');
   printCanvas.width = a4W;
@@ -758,8 +745,8 @@ function doPrint() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = 0; // Start from left edge
-  let currentY = 0; // Start from top edge
+  let currentX = margin; // Start from left with margin
+  let currentY = margin; // Start from top with margin
   let rowHeight = 0;
   let totalCount = 0;
 
@@ -771,14 +758,14 @@ function doPrint() {
 
     // Draw copies of this image
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW > a4W) {
+      if (currentX + photoW > a4W - margin) {
         // Move to next row
-        currentX = 0;
+        currentX = margin;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH > a4H) {
+      if (currentY + photoH > a4H - margin) {
         // Out of space on A4
         break;
       }
@@ -834,7 +821,7 @@ function openNewPage() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = 0; // No gap for maximum fit
+  const gap = Math.round(2 * MM2PX); // 2mm gap between images
 
   const pageCanvas = document.createElement('canvas');
   pageCanvas.width = a4W;
@@ -844,8 +831,8 @@ function openNewPage() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = 0; // Start from left edge
-  let currentY = 0; // Start from top edge
+  let currentX = margin; // Start from left with margin
+  let currentY = margin; // Start from top with margin
   let rowHeight = 0;
 
   for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
@@ -855,13 +842,13 @@ function openNewPage() {
     const photoH = Math.round(size.h * MM2PX);
 
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW > a4W) {
-        currentX = 0;
+      if (currentX + photoW > a4W - margin) {
+        currentX = margin;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH > a4H) {
+      if (currentY + photoH > a4H - margin) {
         break;
       }
 
@@ -914,7 +901,7 @@ function downloadImage() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = 0; // No gap for maximum fit
+  const gap = Math.round(2 * MM2PX); // 2mm gap between images
 
   const dlCanvas = document.createElement('canvas');
   dlCanvas.width = a4W;
@@ -924,8 +911,8 @@ function downloadImage() {
   ctx.fillRect(0, 0, a4W, a4H);
 
   // Layout images on A4
-  let currentX = 0; // Start from left edge
-  let currentY = 0; // Start from top edge
+  let currentX = margin; // Start from left with margin
+  let currentY = margin; // Start from top with margin
   let rowHeight = 0;
 
   for (let imgIdx = 0; imgIdx < toolState.images.length; imgIdx++) {
@@ -935,13 +922,13 @@ function downloadImage() {
     const photoH = Math.round(size.h * MM2PX);
 
     for (let copy = 0; copy < imgObj.copies; copy++) {
-      if (currentX + photoW > a4W) {
-        currentX = 0;
+      if (currentX + photoW > a4W - margin) {
+        currentX = margin;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
-      if (currentY + photoH > a4H) {
+      if (currentY + photoH > a4H - margin) {
         break;
       }
 
@@ -1231,12 +1218,14 @@ function updateBorder() {
   const thickness = parseInt(document.getElementById('slBorder').value);
   toolState.borderThickness = thickness;
   document.getElementById('valBorder').textContent = thickness + 'px';
+  renderImagesList();
   generatePreview();
 }
 
 function updateBorderColor() {
   const color = document.getElementById('borderColor').value;
   toolState.borderColor = color;
+  renderImagesList();
   generatePreview();
 }
 

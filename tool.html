@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="styles.css">
   
   <style>
-    .images-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+    .images-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:12px 0}
     .image-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--surface);transition:.2s;position:relative}
     .image-slot:hover{border-color:var(--blue);background:rgba(43,115,255,.05)}
     .image-slot img{width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)}
@@ -87,8 +87,26 @@
         </div>
         <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="document.getElementById('photoInput').click()">➕ Add Image</button>
         <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handleMultiImageUpload(event)">
-        <div style="border:1px solid var(--border);border-radius:var(--r);padding:8px;max-height:200px;overflow-y:auto" id="imagesList"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;border:1px solid var(--border);border-radius:var(--r);padding:12px;max-height:300px;overflow-y:auto" id="imagesList"></div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:8px">📌 Each image: select size & copies below</div>
+
+        <!-- SELECTED IMAGE CONTROLS -->
+        <div id="selectedImageControls" style="display:none;margin-top:12px;padding:12px;background:rgba(43,115,255,.08);border-radius:var(--r);border:1px solid rgba(43,115,255,.2)">
+          <div class="panel-label" style="margin-bottom:8px">📐 Size & Copies</div>
+          <select class="form-select" id="imgSizeSelect" style="width:100%;margin-bottom:8px;font-size:.8rem" onchange="updateImageSize(toolState.selectedImageId, this.value)">
+            <option value="passport">Passport (35×45)</option>
+            <option value="stamp">Stamp (25×35)</option>
+            <option value="aadhaar">Aadhaar (35×45)</option>
+            <option value="pan">PAN (25×35)</option>
+            <option value="visa">Visa (51×51)</option>
+          </select>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="slider-btn" onclick="updateImageCopies(toolState.selectedImageId, -1)">−</button>
+            <input type="number" id="imgCopiesInput" min="1" max="50" style="flex:1;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:.8rem" onchange="updateImageCopies(toolState.selectedImageId, parseInt(this.value) - toolState.images.find(i=>i.id===toolState.selectedImageId).copies)">
+            <button class="slider-btn" onclick="updateImageCopies(toolState.selectedImageId, 1)">+</button>
+          </div>
+          <div style="font-size:.7rem;color:var(--muted);margin-top:6px;text-align:center" id="imgCapacityInfo"></div>
+        </div>
       </div>
 
       <!-- STEP 3: BACKGROUND REMOVAL & COLOR -->
