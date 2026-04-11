@@ -21,51 +21,6 @@ const SIZES = {
 const A4 = { w: 210, h: 297 };
 
 /* ═══════════════════════════════════════════
-   MIX & MATCH TEMPLATES
-═══════════════════════════════════════════ */
-const MIXTAPE_TEMPLATES = {
-  "4 Passports + 4 Stamps": [
-    { format: "passport", qty: 4 },
-    { format: "stamp", qty: 4 }
-  ],
-  "8 Passports": [
-    { format: "passport", qty: 8 }
-  ],
-  "8 Stamps": [
-    { format: "stamp", qty: 8 }
-  ],
-  "Custom Mix": []
-};
-
-/* ═══════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════ */
-const state = {
-  originalImage: null,
-  processedCanvas: null,
-  bgRemoved: false,
-  currentBgColor: '#ffffff',
-  selectedSize: 'passport',
-  copies: 8,
-  brightness: 100,
-  contrast: 100,
-  rotation: 0,
-  printCount: 0,
-  cropOffsetX: 0,
-  cropOffsetY: 0,
-  cropScale: 1,
-  cropDragging: false,
-  cropStartX: 0,
-  cropStartY: 0,
-  // MIX & MATCH STATE
-  mixTapeMode: false,
-  selectedTemplate: "4 Passports + 4 Stamps",
-  uploadedImages: [], // array of { id, canvas, formatType }
-  layoutSlots: [], // array of slot assignments: { slotId, imageId, format }
-  replicateMode: true // true = 1 image replicates; false = shuffle multiple images
-};
-
-/* ═══════════════════════════════════════════
    TOAST
 ═══════════════════════════════════════════ */
 let toastTimer;
@@ -104,8 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-checkPremium();
 
 // Setup active nav link
 function setActiveNav(page) {
