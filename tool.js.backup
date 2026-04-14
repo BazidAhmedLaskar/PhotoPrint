@@ -21,8 +21,8 @@ const toolState = {
 
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || 'gA5srFMY2fHjL2D7xkVSint2';
 let freeBgRemovalsUsed = parseInt(localStorage.getItem('ppp_free_bg_removals') || '0');
-let apiKeys = [];// Will be synced with apiKeysList after loading saved keys
-let currentApiKeyIndex = 0;
+let apiKeys = JSON.parse(localStorage.getItem('ppp_api_keys') || '[]');
+let currentApiKeyIndex = parseInt(localStorage.getItem('ppp_current_key_index') || '0');
 let autoAdjustAspect = false;
 
 /* ═══════════════════════════════════════════
@@ -39,15 +39,14 @@ function loadApiKeysList() {
     if (saved) {
       apiKeysList = JSON.parse(saved);
     } else {
+      // Initialize with default key if no keys exist
       apiKeysList = [];
     }
     
     activeKeyId = activeId || null;
-    apiKeys = apiKeysList;
   } catch (e) {
     console.error('Error loading API keys:', e);
     apiKeysList = [];
-    apiKeys = apiKeysList;
   }
 }
 
@@ -70,10 +69,8 @@ function addApiKey(key, nickname = '') {
     id,
     key: key.trim(),
     nickname: nickname.trim() || `API Key ${apiKeysList.length + 1}`,
-    createdAt: new Date().toISOString(),
-    usage: 0,
-    lastUsed: null
-  }; 
+    createdAt: new Date().toISOString()
+  };
 
   apiKeysList.push(keyObj);
   
@@ -115,8 +112,6 @@ function setActiveKey(id) {
   if (!keyObj) return false;
 
   activeKeyId = id;
-  currentApiKeyIndex = apiKeysList.findIndex(k => k.id === id);
-  if (currentApiKeyIndex === -1) currentApiKeyIndex = 0;
   removeBgApiKey = keyObj.key;
   saveApiKeysList();
   renderApiKeysList();
@@ -275,14 +270,17 @@ async function testNewApiKey() {
     ctx.fillStyle = '#00FF00';
     ctx.fillRect(50, 50, 100, 100);
 
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
-    if (!blob) {
-      throw new Error('Failed to create a test image');
-    }
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) reject(new Error('Failed to create image blob'));
+        else resolve(blob);
+      }, 'image/jpeg', 0.95);
+    });
 
     const formData = new FormData();
-    formData.append('image_file', blob, getBlobFileName(blob, 'test'));
-    formData.append('size', 'auto');
+    formData.append('image_file', blob, 'test.jpg');
+    formData.append('type', 'auto');
+    formData.append('format', 'auto');
 
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
@@ -299,11 +297,10 @@ async function testNewApiKey() {
     }
 
     if (!response.ok) {
-      const details = await getRemoveBgErrorDetails(response);
       statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
       statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
       statusDiv.style.color = '#F44336';
-      statusText.textContent = `❌ API Error (${response.status})${details}`;
+      statusText.textContent = `❌ API Error (${response.status})`;
       return;
     }
 
@@ -315,7 +312,7 @@ async function testNewApiKey() {
     statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
     statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
     statusDiv.style.color = '#F44336';
-    statusText.textContent = error && error.message ? `❌ ${error.message}` : '❌ Connection error - check internet';
+    statusText.textContent = '❌ Connection error - check internet';
   }
 }
 
@@ -422,7 +419,6 @@ function handleMultiImageUpload(e) {
           id,
           src: ev.target.result,
           img,
-          file,
           size: 'passport',
           copies: 1,
           brightness: 100,
@@ -785,8 +781,6 @@ function removeBackground() {
     }
     // Use default key for free usage
     removeBgApiKey = 'gA5srFMY2fHjL2D7xkVSint2';
-    const remaining = 10 - freeBgRemovalsUsed;
-    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 10, add your own API keys.`, 'info');
   } else {
     // Try to get next available API key
     const availableKey = getNextAvailableApiKey();
@@ -795,8 +789,6 @@ function removeBackground() {
       return;
     }
     removeBgApiKey = availableKey;
-    const activeIndex = currentApiKeyIndex + 1;
-    showToast(`🔑 Using saved API key ${activeIndex}/${apiKeys.length}.`, 'info');
   }
 
   const btn = document.getElementById('removeBgBtn');
@@ -857,8 +849,7 @@ function removeBackground() {
           showToast(`⚠️ Removed ${processed - failed} of ${toolState.images.length} backgrounds`, 'warning');
           restoreBtn.disabled = false;
         }
-        const freeInfo = apiKeys.length === 0 ? ` · Free uses ${Math.min(10, freeBgRemovalsUsed)}/10` : '';
-        document.getElementById('previewInfo').textContent = `📌 ${processed} images processed${freeInfo}`;
+        document.getElementById('previewInfo').textContent = `📌 ${processed} images processed`;
       }
     });
   });
@@ -866,41 +857,10 @@ function removeBackground() {
 
 async function processImageWithRemoveBg(imgObj, callback) {
   try {
-    const width = imgObj.img.naturalWidth || imgObj.img.width || 0;
-    const height = imgObj.img.naturalHeight || imgObj.img.height || 0;
-    if (width < 256 || height < 256) {
-      showToast('❌ Image is too small for reliable background removal. Use a larger image (at least 256×256 pixels).', 'error');
-      callback(false);
-      return;
-    }
-
-    // Reject images that are likely too low-contrast or too complex for remove.bg.
-    if (!isImageLikelyForeground(imgObj.img)) {
-      showToast('❌ This image may not have a clearly separable foreground. Try a photo with one main subject against a contrasting background.', 'error');
-      callback(false);
-      return;
-    }
-
-    // Use the original file when available, but convert WebP to PNG for remove.bg.
-    let uploadBlob = null;
-    let uploadName = 'photo.png';
-
-    if (imgObj.file instanceof Blob) {
-      if (imgObj.file.type === 'image/webp') {
-        uploadBlob = await canvasToBlob(imgObj.img, 'image/png');
-        uploadName = getBlobFileName(uploadBlob, 'photo');
-      } else {
-        uploadBlob = imgObj.file;
-        uploadName = imgObj.file.name || getBlobFileName(imgObj.file, 'photo');
-      }
-    } else {
-      uploadBlob = await canvasToBlob(imgObj.img);
-      if (uploadBlob) {
-        uploadName = getBlobFileName(uploadBlob, 'photo');
-      }
-    }
-
-    if (!uploadBlob) {
+    // Get the image as blob/file
+    const blob = await canvasToBlob(imgObj.img);
+    
+    if (!blob) {
       showToast('❌ Failed to process image', 'error');
       callback(false);
       return;
@@ -908,18 +868,9 @@ async function processImageWithRemoveBg(imgObj, callback) {
 
     // Send to remove.bg API
     const formData = new FormData();
-    formData.append('image_file', uploadBlob, uploadName);
-    formData.append('size', 'auto');
-    formData.append('format', 'png');
-
-    console.log('remove.bg upload', {
-      uploadName,
-      uploadType: uploadBlob.type,
-      width,
-      height,
-      fileProvided: imgObj.file instanceof Blob,
-      fileName: imgObj.file && imgObj.file.name
-    });
+    formData.append('image_file', blob);
+    formData.append('type', 'auto');
+    formData.append('format', 'auto');
 
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
@@ -931,19 +882,14 @@ async function processImageWithRemoveBg(imgObj, callback) {
 
     // Handle API errors with proper error messages
     if (response.status === 401) {
-      showToast('❌ Invalid API key! Please check your remove.bg key.', 'error');
+      showToast('❌ Invalid API key! Please check and re-enter.', 'error');
       openApiKeyModal();
       callback(false);
       return;
     }
     
     if (response.status === 400) {
-      const details = await getRemoveBgErrorDetails(response);
-      const unknownForeground = details.toLowerCase().includes('unknown_foreground');
-      const message = unknownForeground
-        ? '❌ Could not remove background — remove.bg could not identify the foreground. Try an image with a single clear subject against a contrasting background.'
-        : `❌ Bad Request - invalid image or request.${details}`;
-      showToast(`${message}${unknownForeground ? ` See https://www.remove.bg/supported-images for supported images.` : ''}`, 'error');
+      showToast('❌ Bad Request - Invalid image format. Try a different image.', 'error');
       callback(false);
       return;
     }
@@ -955,23 +901,21 @@ async function processImageWithRemoveBg(imgObj, callback) {
     }
     
     if (response.status === 403) {
-      const details = await getRemoveBgErrorDetails(response);
-      showToast(`❌ Forbidden! API key validation failed.${details}`, 'error');
+      showToast('❌ Forbidden! API key validation failed.', 'error');
       callback(false);
       return;
     }
     
     if (response.status === 429) {
-      const details = await getRemoveBgErrorDetails(response);
-      showToast(`⏳ Rate limited! Too many requests. Try again in a moment.${details}`, 'error');
+      showToast('⏳ Rate limited! Too many requests. Try again in a moment.', 'error');
       callback(false);
       return;
     }
     
     if (!response.ok) {
-      const details = await getRemoveBgErrorDetails(response);
-      console.error('API Error Response:', response.status, details);
-      showToast(`❌ API Error (${response.status}): Remove.bg service error.${details}`, 'error');
+      const errorText = await response.text();
+      console.error('API Error Response:', response.status, errorText);
+      showToast(`❌ API Error (${response.status}): Remove.bg service error. Try again later.`, 'error');
       callback(false);
       return;
     }
@@ -1032,28 +976,8 @@ async function processImageWithRemoveBg(imgObj, callback) {
   }
 }
 
-async function getRemoveBgErrorDetails(response) {
-  let text = '';
-  try {
-    text = await response.text();
-    if (!text) return '';
-
-    const payload = JSON.parse(text);
-    if (payload && Array.isArray(payload.errors) && payload.errors.length > 0) {
-      const err = payload.errors[0];
-      const title = err.title || '';
-      const code = err.code || '';
-      return title ? ` — ${title}${code ? ` (${code})` : ''}` : ` — ${text}`;
-    }
-
-    return ` — ${text}`;
-  } catch (e) {
-    return text ? ` — ${text}` : '';
-  }
-}
-
 // Helper function to convert image to blob
-function canvasToBlob(imgElement, type = 'image/png') {
+function canvasToBlob(imgElement) {
   return new Promise((resolve) => {
     try {
       const width = imgElement.naturalWidth || imgElement.width || 0;
@@ -1072,67 +996,12 @@ function canvasToBlob(imgElement, type = 'image/png') {
       ctx.drawImage(imgElement, 0, 0);
       canvas.toBlob((blob) => {
         resolve(blob);
-      }, type, 0.95);
+      }, 'image/png', 0.95);
     } catch (e) {
       console.error('Error converting image:', e);
       resolve(null);
     }
   });
-}
-
-function isImageLikelyForeground(imgElement) {
-  try {
-    const width = imgElement.naturalWidth || imgElement.width || 0;
-    const height = imgElement.naturalHeight || imgElement.height || 0;
-    if (width === 0 || height === 0) return true;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(imgElement, 0, 0, width, height);
-    const imageData = ctx.getImageData(0, 0, width, height);
-    const data = imageData.data;
-
-    let minLum = 255;
-    let maxLum = 0;
-    let sumLum = 0;
-    let sumSqLum = 0;
-    let count = 0;
-    const step = Math.max(1, Math.floor(Math.sqrt((width * height) / 25000)));
-
-    for (let y = 0; y < height; y += step) {
-      for (let x = 0; x < width; x += step) {
-        const index = (y * width + x) * 4;
-        const r = data[index];
-        const g = data[index + 1];
-        const b = data[index + 2];
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        minLum = Math.min(minLum, lum);
-        maxLum = Math.max(maxLum, lum);
-        sumLum += lum;
-        sumSqLum += lum * lum;
-        count += 1;
-      }
-    }
-
-    if (count === 0) return true;
-    const meanLum = sumLum / count;
-    const variance = sumSqLum / count - meanLum * meanLum;
-    const stddev = Math.sqrt(Math.max(0, variance));
-    const contrast = maxLum - minLum;
-
-    return contrast > 35 && stddev > 18;
-  } catch (e) {
-    return true;
-  }
-}
-
-function getBlobFileName(blob, baseName) {
-  if (!blob || !blob.type) return `${baseName}.png`;
-  const type = blob.type.split('/')[1] || 'png';
-  const extension = type.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'png';
-  return `${baseName}.${extension}`;
 }
 
 function restoreBackground() {
@@ -1166,24 +1035,23 @@ function openApiKeyModal() {
     loadApiKeysList();
     renderApiKeysList();
     
-    const statusInfo = document.getElementById('apiStatusInfo');
-    if (apiKeys.length > 0) {
-      statusInfo.textContent = `✓ ${apiKeys.length} saved API key(s) available. Add more keys or select one from the list.`;
-      statusInfo.style.display = 'block';
-    } else if (freeBgRemovalsUsed < 10) {
-      statusInfo.textContent = `🔓 Free mode available: ${10 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
-      statusInfo.style.display = 'block';
+    // Pre-fill with saved API key if exists
+    if (removeBgApiKey) {
+      document.getElementById('apiKeyInput').value = removeBgApiKey;
+      // Show status indicator
+      document.getElementById('apiStatusInfo').style.display = 'block';
     } else {
-      statusInfo.textContent = '🔒 Free limit reached. Add API keys to continue background removal.';
-      statusInfo.style.display = 'block';
+      document.getElementById('apiStatusInfo').style.display = 'none';
+      document.getElementById('apiKeyInput').value = '';
     }
-
+    
     // Hide all status messages when opening
     document.getElementById('apiErrorMsg').style.display = 'none';
     document.getElementById('apiTestStatus').style.display = 'none';
     document.getElementById('apiSavedMsg').style.display = 'none';
     
     modal.classList.add('open');
+    // Don't show overlay click close for this modal
     modal.onclick = (e) => {
       if (e.target === modal) return; // Prevent close
     };
@@ -1204,7 +1072,6 @@ function closeApiKeyModal() {
 function toggleApiKeyVisibility() {
   const input = document.getElementById('apiKeyInput');
   const checkbox = document.getElementById('showApiKey');
-  if (!input || !checkbox) return;
   if (checkbox.checked) {
     input.type = 'text';
   } else {
@@ -1213,12 +1080,7 @@ function toggleApiKeyVisibility() {
 }
 
 async function testApiKey() {
-  const inputEl = document.getElementById('apiKeyInput');
-  if (!inputEl) {
-    showToast('ℹ️ Use Add API Key to save a remove.bg key instead.', 'info');
-    return;
-  }
-  const apiKey = inputEl.value.trim();
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
   
   if (!apiKey) {
     showApiTestError('❌ Please enter an API key first');
@@ -1251,14 +1113,29 @@ async function testApiKey() {
     ctx.fillRect(75, 75, 50, 50);
 
     // Create blob with high quality
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
-    if (!blob) {
-      throw new Error('Failed to create test image');
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Failed to create image blob'));
+          } else {
+            resolve(blob);
+          }
+        },
+        'image/jpeg',  // Use JPEG instead of PNG for better compatibility
+        0.95  // High quality
+      );
+    });
+
+    if (!blob || blob.size === 0) {
+      showApiTestError('❌ Failed to create test image - Please try again');
+      return;
     }
 
     const formData = new FormData();
-    formData.append('image_file', blob, getBlobFileName(blob, 'test'));
-    formData.append('size', 'auto');
+    formData.append('image_file', blob, 'test.jpg');  // Add filename
+    formData.append('type', 'auto');
+    formData.append('format', 'auto');
 
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
@@ -1274,14 +1151,7 @@ async function testApiKey() {
     }
 
     if (response.status === 400) {
-      let details = '';
-      try {
-        const text = await response.text();
-        details = text ? ` — ${text}` : '';
-      } catch (e) {
-        details = '';
-      }
-      showApiTestError(`❌ Bad Request - The request is invalid.${details}`);
+      showApiTestError('❌ Bad Request - The test image may be invalid. Try using a different image format.');
       return;
     }
 
@@ -1327,12 +1197,7 @@ function showApiTestError(message) {
 }
 
 function saveApiKey() {
-  const inputEl = document.getElementById('apiKeyInput');
-  if (!inputEl) {
-    showToast('ℹ️ Use Add API Key in the modal to manage your API keys.', 'info');
-    return;
-  }
-  const inputKey = inputEl.value.trim();
+  const inputKey = document.getElementById('apiKeyInput').value.trim();
   const errorMsg = document.getElementById('apiErrorMsg');
   const errorText = document.getElementById('apiErrorText');
 
@@ -1397,8 +1262,7 @@ function clearApiKey() {
   if (confirm('Are you sure? This will remove your saved API key.')) {
     localStorage.removeItem('ppp_removebg_key');
     removeBgApiKey = null;
-    const inputEl = document.getElementById('apiKeyInput');
-    if (inputEl) inputEl.value = '';
+    document.getElementById('apiKeyInput').value = '';
     showToast('API key removed', '');
     closeApiKeyModal();
   }
@@ -2527,34 +2391,110 @@ function showApiKeyRequiredModal() {
   modal.innerHTML = `
     <div class="modal-content api-key-required-modal">
       <div class="modal-header">
-        <h3>🔑 Add Your Own API Keys</h3>
+        <h3>🔑 API Keys Required</h3>
         <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
       </div>
       <div class="modal-body">
         <div class="api-key-explanation">
-          <p><strong>You have used all 10 free background removals.</strong></p>
+          <p><strong>All API keys are exhausted!</strong></p>
           
           <div class="explanation-section">
-            <h4>💡 How the free limit works</h4>
+            <h4>💡 Why do you need API keys?</h4>
             <ul>
-              <li>This app gives you 10 free remove.bg calls automatically.</li>
-              <li>These free calls use a built-in key hidden in the code.</li>
-              <li>After 10 uses, you must add your own remove.bg API keys.</li>
+              <li><strong>For you:</strong> It's completely FREE! Get API keys from remove.bg</li>
+              <li><strong>For us:</strong> The API costs money per use, so we rotate through keys</li>
+              <li><strong>Multiple keys:</strong> Add 10-20 keys for continuous usage</li>
             </ul>
           </div>
           
           <div class="steps-section">
-            <h4>🚀 How to continue using the tool</h4>
+            <h4>🚀 How to add API keys:</h4>
             <ol>
-              <li>Go to <a href="https://www.remove.bg" target="_blank">remove.bg</a> and sign up for free.</li>
-              <li>Get your API key from the remove.bg dashboard.</li>
-              <li>Click "Add API Key" in the API setup modal.</li>
-              <li>Paste your key and save it locally in this browser.</li>
+              <li>Go to <a href="https://www.remove.bg" target="_blank">remove.bg</a></li>
+              <li>Sign up for free accounts (use different emails)</li>
+              <li>Get API keys from each account dashboard</li>
+              <li>Add them below (one per line)</li>
             </ol>
           </div>
           
+          <div class="api-key-input-section">
+            <label for="userApiKeys">Enter your remove.bg API keys (one per line):</label>
+            <textarea id="userApiKeys" placeholder="Paste your API keys here, one per line..." rows="8"></textarea>
+            <button id="saveUserApiKeys" class="btn-primary">Save API Keys</button>
+          </div>
+          
           <div class="note-section">
-            <p class="note"><em>💡 Your keys are stored only in this browser, not on our servers.</em></p>
+            <p class="note"><em>💡 Note: Your API keys are stored locally in your browser and never sent to our servers.</em></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.style.display = 'block';
+  
+  // Add event listener for save button
+  document.getElementById('saveUserApiKeys').addEventListener('click', function() {
+    const apiKeysText = document.getElementById('userApiKeys').value.trim();
+    if (apiKeysText) {
+      const keys = apiKeysText.split('\n').map(key => key.trim()).filter(key => key.length > 0);
+      if (keys.length > 0) {
+        apiKeys = keys.map(key => ({ key: key, usage: 0, lastUsed: null }));
+        localStorage.setItem('ppp_api_keys', JSON.stringify(apiKeys));
+        currentApiKeyIndex = 0;
+        localStorage.setItem('ppp_current_key_index', '0');
+        removeBgApiKey = apiKeys[0].key;
+        showToast(`✅ ${keys.length} API keys saved! Background removal is now active.`, 'success');
+        modal.remove();
+      } else {
+        showToast('❌ Please enter valid API keys.', 'error');
+      }
+    } else {
+      showToast('❌ Please enter API keys.', 'error');
+    }
+  });
+  
+function showApiKeyRequiredModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-content api-key-required-modal">
+      <div class="modal-header">
+        <h3>🔑 API Keys Required</h3>
+        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="api-key-explanation">
+          <p><strong>All API keys are exhausted!</strong></p>
+          
+          <div class="explanation-section">
+            <h4>💡 Why do you need API keys?</h4>
+            <ul>
+              <li><strong>For you:</strong> It's completely FREE! Get API keys from remove.bg</li>
+              <li><strong>For us:</strong> The API costs money per use, so we rotate through keys</li>
+              <li><strong>Multiple keys:</strong> Add 10-20 keys for continuous usage</li>
+            </ul>
+          </div>
+          
+          <div class="steps-section">
+            <h4>🚀 How to add API keys:</h4>
+            <ol>
+              <li>Go to <a href="https://www.remove.bg" target="_blank">remove.bg</a></li>
+              <li>Sign up for free accounts (use different emails)</li>
+              <li>Get API keys from each account dashboard</li>
+              <li>Add them below (one per line)</li>
+            </ol>
+          </div>
+          
+          <div class="api-key-input-section">
+            <label for="userApiKeys">Enter your remove.bg API keys (one per line):</label>
+            <textarea id="userApiKeys" placeholder="Paste your API keys here, one per line..." rows="8"></textarea>
+            <button id="saveUserApiKeys" class="btn-primary">Save API Keys</button>
+          </div>
+          
+          <div class="note-section">
+            <p class="note"><em>💡 Note: Your API keys are stored locally in your browser and never sent to our servers.</em></p>
           </div>
         </div>
       </div>
@@ -2627,20 +2567,19 @@ function updateApiKeyUsage() {
 
 // Initialize API keys on page load
 function initializeApiKeys() {
-  loadApiKeysList();
-  apiKeys = apiKeysList;
-  currentApiKeyIndex = 0;
-  if (activeKeyId) {
-    const idx = apiKeysList.findIndex(k => k.id === activeKeyId);
-    if (idx !== -1) currentApiKeyIndex = idx;
-  }
-
+  // Load API keys from storage
+  apiKeys = JSON.parse(localStorage.getItem('ppp_api_keys') || '[]');
+  currentApiKeyIndex = parseInt(localStorage.getItem('ppp_current_key_index') || '0');
+  
+  // Set current API key
   if (apiKeys.length > 0 && currentApiKeyIndex < apiKeys.length) {
     removeBgApiKey = apiKeys[currentApiKeyIndex].key;
   } else {
+    // Fall back to default key
     removeBgApiKey = localStorage.getItem('ppp_removebg_key') || 'gA5srFMY2fHjL2D7xkVSint2';
   }
-
+  
+  // Update API key status display
   updateApiKeyStatus();
 }
 
@@ -2664,4 +2603,3 @@ function updateApiKeyStatus() {
     statusElement.style.color = remaining > 10 ? '#4CAF50' : remaining > 5 ? '#FF9800' : '#f44336';
   }
 }
-

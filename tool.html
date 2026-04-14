@@ -15,6 +15,7 @@
     .images-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:12px 0}
     .image-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:var(--surface);transition:.2s;position:relative}
     .image-slot:hover{border-color:var(--blue);background:rgba(43,115,255,.05)}
+    .image-slot.selected{border-color:var(--blue);background:rgba(43,115,255,.08);box-shadow:0 0 0 4px rgba(43,115,255,.30)}
     .image-slot img{width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)}
     .image-slot-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange); border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;cursor:pointer;opacity:0.7;transition:.2s;z-index:10}
     .image-slot:hover .image-slot-remove{opacity:1;transform:scale(1.1)}
@@ -234,6 +235,7 @@
           
           <div style="margin-top:16px;padding:16px;background:var(--surface);border-radius:var(--r);text-align:center;font-size:.85rem;color:var(--muted)">
             <div id="previewInfo">Upload images to start</div>
+            <div id="apiKeyStatus" style="margin-top:8px;font-size:.75rem"></div>
           </div>
           
         </div>
@@ -330,24 +332,10 @@
         </div>
       </div>
 
-      <!-- API KEY INPUT -->
       <div class="form-group">
-        <label class="form-label">🔐 remove.bg API Key</label>
-        <div style="background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.2);border-radius:6px;padding:8px;margin-bottom:8px;font-size:.75rem;color:var(--muted)">
-          💡 <strong>Tip:</strong> Create multiple remove.bg accounts with different Gmails to get 50 free calls each. Switch between API keys here to use all credits!
-        </div>
-        <input type="password" id="apiKeyInput" class="form-input" placeholder="Paste your API key here" style="margin-bottom:6px">
-        <div style="display:flex;gap:8px;font-size:.75rem;color:var(--muted)">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="showApiKey" onchange="toggleApiKeyVisibility()">
-            Show key
-          </label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin-left:auto" onclick="testApiKey()">
-            <span style="color:var(--blue);cursor:pointer">🧪 Test Key</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer" onclick="clearApiKey()">
-            <span style="color:#f44336;cursor:pointer">✕ Clear</span>
-          </label>
+        <label class="form-label">🔐 API Key Management</label>
+        <div style="background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.2);border-radius:6px;padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--muted)">
+          This app gives you 10 free background removals automatically using a hidden default key. After that, add your own remove.bg API keys below to continue.
         </div>
       </div>
 
@@ -454,7 +442,7 @@
           <a href="BACKGROUND_REMOVER.md" target="_blank" style="font-size:.8rem;color:var(--blue);text-decoration:none;cursor:pointer">📖 Full Tutorial →</a>
         </div>
         <button class="btn btn-ghost" onclick="closeApiKeyModal()">✕ Close</button>
-        <button class="btn btn-orange" onclick="saveApiKey()" id="saveApiKeyBtn">✓ Save & Continue</button>
+        <button class="btn btn-orange" onclick="openAddKeyDialog()" id="openAddKeyBtn">➕ Add API Key</button>
       </div>
 
       <!-- SAVED STATUS -->
