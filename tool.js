@@ -245,79 +245,6 @@ function saveNewApiKey() {
   }
 }
 
-async function testNewApiKey() {
-  const key = document.getElementById('newKeyInput').value.trim();
-  
-  if (!key) {
-    showToast('❌ Please enter an API key first', 'error');
-    return;
-  }
-
-  if (key.length < 20) {
-    showToast('❌ API key too short', 'error');
-    return;
-  }
-
-  const statusDiv = document.getElementById('newKeyTestStatus');
-  const statusText = document.getElementById('newKeyTestStatusText');
-  statusDiv.style.display = 'block';
-  statusText.textContent = '🧪 Testing API key...';
-
-  try {
-    // Create a small test image
-    const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    
-    ctx.fillStyle = '#FF0000';
-    ctx.fillRect(0, 0, 200, 200);
-    ctx.fillStyle = '#00FF00';
-    ctx.fillRect(50, 50, 100, 100);
-
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
-    if (!blob) {
-      throw new Error('Failed to create a test image');
-    }
-
-    const formData = new FormData();
-    formData.append('image_file', blob, getBlobFileName(blob, 'test'));
-    formData.append('size', 'auto');
-
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: { 'X-API-Key': key },
-      body: formData
-    });
-
-    if (response.status === 401) {
-      statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
-      statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
-      statusDiv.style.color = '#F44336';
-      statusText.textContent = '❌ Invalid API key';
-      return;
-    }
-
-    if (!response.ok) {
-      const details = await getRemoveBgErrorDetails(response);
-      statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
-      statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
-      statusDiv.style.color = '#F44336';
-      statusText.textContent = `❌ API Error (${response.status})${details}`;
-      return;
-    }
-
-    statusDiv.style.background = 'rgba(76, 175, 80, 0.15)';
-    statusDiv.style.borderColor = 'rgba(76, 175, 80, 0.3)';
-    statusDiv.style.color = '#4CAF50';
-    statusText.textContent = '✓ API key is valid!';
-  } catch (error) {
-    statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
-    statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
-    statusDiv.style.color = '#F44336';
-    statusText.textContent = error && error.message ? `❌ ${error.message}` : '❌ Connection error - check internet';
-  }
-}
 
 /* ═════════════════════════════════════════════════════════════════
    BORDER DRAWING HELPER
@@ -906,28 +833,18 @@ async function processImageWithRemoveBg(imgObj, callback) {
       return;
     }
 
-    // Send to remove.bg API
-    const formData = new FormData();
-    formData.append('image_file', uploadBlob, uploadName);
-    formData.append('size', 'auto');
-    formData.append('format', 'png');
+    // Send to remove.bg API with auto type first.
+    let response = await sendRemoveBgRequest(uploadBlob, uploadName, 'auto');
 
-    console.log('remove.bg upload', {
-      uploadName,
-      uploadType: uploadBlob.type,
-      width,
-      height,
-      fileProvided: imgObj.file instanceof Blob,
-      fileName: imgObj.file && imgObj.file.name
-    });
-
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-API-Key': removeBgApiKey
-      },
-      body: formData
-    });
+    if (response.status === 400) {
+      const details = await getRemoveBgErrorDetails(response.clone());
+      const unknownForeground = details.toLowerCase().includes('unknown_foreground');
+      if (unknownForeground) {
+        console.log('remove.bg unknown_foreground, retrying with product type');
+        const retryResponse = await sendRemoveBgRequest(uploadBlob, uploadName, 'product');
+        response = retryResponse;
+      }
+    }
 
     // Handle API errors with proper error messages
     if (response.status === 401) {
@@ -1050,6 +967,30 @@ async function getRemoveBgErrorDetails(response) {
   } catch (e) {
     return text ? ` — ${text}` : '';
   }
+}
+
+async function sendRemoveBgRequest(uploadBlob, uploadName, type = 'auto') {
+  const formData = new FormData();
+  formData.append('image_file', uploadBlob, uploadName);
+  formData.append('size', 'auto');
+  formData.append('format', 'png');
+  formData.append('type', type);
+
+  console.log('remove.bg upload', {
+    uploadName,
+    uploadType: uploadBlob.type,
+    type,
+    fileProvided: !!uploadName,
+    fileName: uploadName
+  });
+
+  return await fetch('https://api.remove.bg/v1.0/removebg', {
+    method: 'POST',
+    headers: {
+      'X-API-Key': removeBgApiKey
+    },
+    body: formData
+  });
 }
 
 // Helper function to convert image to blob
