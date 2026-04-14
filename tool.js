@@ -20,7 +20,6 @@ const toolState = {
 };
 
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || 'gA5srFMY2fHjL2D7xkVSint2';
-let tempPreviewTimeout = null;
 let autoAdjustAspect = false;
 
 /* ═══════════════════════════════════════════
@@ -552,9 +551,8 @@ function selectImage(id) {
     const status = img.copies > sizeCapacity ? '⚠️ Over capacity' : `Max: ${sizeCapacity}`;
     document.getElementById('imgCapacityInfo').textContent = status;
     
-    // Show image preview and temp preview
+    // Show image preview
     showImagePreview(img);
-    showTempPreview(img);
     renderImagesList();
   }
 }
@@ -681,10 +679,6 @@ function removeImage(id) {
   renderImagesList();
   updateCapacityDisplay();
   generatePreview();
-  if (toolState.selectedImageId) {
-    const img = toolState.images.find(i => i.id === toolState.selectedImageId);
-    if (img) showTempPreview(img);
-  }
   showToast('Image removed', '');
 }
 
@@ -719,7 +713,7 @@ function showImagePreview(imgObj) {
     w: imgObj.customWidth ? Math.round(imgObj.customWidth * 25.4 / 300) : '',
     h: imgObj.customHeight ? Math.round(imgObj.customHeight * 25.4 / 300) : ''
   };
-  const hasCrop = imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
+  const hasCrop = imgObj.cropRegionW || imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
   const sizeText = sizeInfo.w && sizeInfo.h ? `${sizeInfo.w}×${sizeInfo.h} mm` : `${imgObj.customWidth}×${imgObj.customHeight} px`;
   previewStats.innerHTML = `
     <strong>${sizeInfo.name}</strong><br>
@@ -1260,9 +1254,6 @@ function applyEdits() {
   // Update image preview panel
   showImagePreview(img);
   generatePreview();
-  
-  // Show temp preview
-  showTempPreview(img);
 }
 
 function resetEdits() {
@@ -1290,34 +1281,6 @@ function adjustSlider(id, delta) {
   applyEdits();
 }
 
-function showTempPreview(imgObj) {
-  // Clear previous timeout
-  if (tempPreviewTimeout) clearTimeout(tempPreviewTimeout);
-  
-  const tmpCanvas = getImageCanvas(imgObj);
-
-  // Show the temp preview
-  const tempDiv = document.getElementById('tempEditPreview');
-  const tempImg = document.getElementById('tempPreviewImg');
-  const tempStats = document.getElementById('tempPreviewStats');
-  if (tmpCanvas && tmpCanvas.width > 0) {
-    tempImg.src = tmpCanvas.toDataURL();
-  } else {
-    tempImg.src = imgObj.src;
-  }
-  const sizeInfo = SIZES[imgObj.size] || {
-    name: imgObj.customWidth && imgObj.customHeight ? `Custom (${imgObj.customWidth}×${imgObj.customHeight} px)` : 'Custom'
-  };
-  const hasCrop = imgObj.cropX !== 0 || imgObj.cropY !== 0 || imgObj.cropScale !== 1.0;
-  tempStats.innerHTML = `${sizeInfo.name} • ${imgObj.copies}× ${hasCrop ? '✂️' : ''}`;
-  tempDiv.style.display = 'flex';
-
-  // Hide after 1 second
-  tempPreviewTimeout = setTimeout(() => {
-    tempDiv.style.display = 'none';
-    tempPreviewTimeout = null;
-  }, 1000);
-}
 
 /* ═══════════════════════════════════════════
    A4 PREVIEW GENERATION
@@ -1485,9 +1448,27 @@ function getImageCanvas(imgObj) {
     return document.createElement('canvas'); // Return empty canvas
   }
   
+  // Check if this image has a crop region saved
+  const hasCropRegion = imgObj.cropRegionW && imgObj.cropRegionH;
+  
+  let canvasWidth = imgWidth;
+  let canvasHeight = imgHeight;
+  let srcX = 0, srcY = 0, srcW = imgWidth, srcH = imgHeight;
+  
+  if (hasCropRegion) {
+    // Use the saved crop region
+    srcX = imgObj.cropRegionX || 0;
+    srcY = imgObj.cropRegionY || 0;
+    srcW = imgObj.cropRegionW || imgWidth;
+    srcH = imgObj.cropRegionH || imgHeight;
+    
+    canvasWidth = srcW;
+    canvasHeight = srcH;
+  }
+  
   const tmp = document.createElement('canvas');
-  tmp.width = imgWidth;
-  tmp.height = imgHeight;
+  tmp.width = canvasWidth;
+  tmp.height = canvasHeight;
   const ctx = tmp.getContext('2d');
 
   if (!ctx) {
@@ -1512,8 +1493,15 @@ function getImageCanvas(imgObj) {
     ctx.translate(-tmp.width / 2, -tmp.height / 2);
   }
   
-  // Draw the image
-  ctx.drawImage(srcImage, 0, 0);
+  // Draw the image (or cropped portion)
+  if (hasCropRegion) {
+    // Draw only the cropped region
+    ctx.drawImage(srcImage, srcX, srcY, srcW, srcH, 0, 0, canvasWidth, canvasHeight);
+  } else {
+    // Draw the whole image
+    ctx.drawImage(srcImage, 0, 0);
+  }
+  
   ctx.restore();
 
   return tmp;
@@ -1845,10 +1833,20 @@ function loadCropImage(idx) {
   // Set the global cropImg variable
   cropImg = sourceImage;
   
-  // Load existing crop settings for this image
-  toolState.cropOffsetX = imgObj.cropX || 0;
-  toolState.cropOffsetY = imgObj.cropY || 0;
-  toolState.cropScale = imgObj.cropScale || 1.0;
+  // Reset crop state for new image (crop happens fresh each time)
+  toolState.cropOffsetX = 0;
+  toolState.cropOffsetY = 0;
+  toolState.cropScale = 1.0;
+  
+  // Reset zoom slider
+  const cropZoom = document.getElementById('cropZoom');
+  const cropZoomVal = document.getElementById('cropZoomVal');
+  if (cropZoom) {
+    cropZoom.value = 100;
+  }
+  if (cropZoomVal) {
+    cropZoomVal.textContent = '100%';
+  }
   
   // Draw immediately
   drawCrop();
@@ -1880,12 +1878,61 @@ function prevCropImage() {
 }
 
 function saveCropForCurrentImage() {
-  if (toolState.cropCurrentImageIndex !== null && toolState.images[toolState.cropCurrentImageIndex]) {
-    const imgObj = toolState.images[toolState.cropCurrentImageIndex];
-    imgObj.cropX = toolState.cropOffsetX;
-    imgObj.cropY = toolState.cropOffsetY;
-    imgObj.cropScale = toolState.cropScale;
+  if (toolState.cropCurrentImageIndex === null || !toolState.images[toolState.cropCurrentImageIndex]) {
+    return;
   }
+  
+  const imgObj = toolState.images[toolState.cropCurrentImageIndex];
+  const sourceImage = imgObj.processed || imgObj.img;
+  
+  if (!sourceImage || !cropCanvas) {
+    return;
+  }
+  
+  const imgWidth = sourceImage.naturalWidth || sourceImage.width || 0;
+  const imgHeight = sourceImage.naturalHeight || sourceImage.height || 0;
+  
+  if (imgWidth === 0 || imgHeight === 0) {
+    return;
+  }
+  
+  // Get current crop modal canvas dimensions and crop frame
+  const W = cropCanvas.width;
+  const H = cropCanvas.height;
+  const aspect = imgWidth / imgHeight;
+  
+  // Calculate crop frame dimensions (must match drawCrop())
+  const cropW = Math.min(W * 0.7, H * 0.7 * aspect);
+  const cropH = cropW / aspect;
+  const cx = (W - cropW) / 2;  // Frame center X
+  const cy = (H - cropH) / 2;  // Frame center Y
+  
+  // Current image drawing position on canvas
+  const scaledWidth = imgWidth * toolState.cropScale;
+  const scaledHeight = imgHeight * toolState.cropScale;
+  const drawX = (W - scaledWidth) / 2 + toolState.cropOffsetX;
+  const drawY = (H - scaledHeight) / 2 + toolState.cropOffsetY;
+  
+  // Calculate which part of the image is within the crop frame
+  // Convert frame coordinates to image coordinates
+  const frameLeftX = (cx - drawX) / toolState.cropScale;
+  const frameTopY = (cy - drawY) / toolState.cropScale;
+  const frameRightX = frameLeftX + (cropW / toolState.cropScale);
+  const frameBottomY = frameTopY + (cropH / toolState.cropScale);
+  
+  // Clamp to image bounds
+  const cropImageX = Math.max(0, Math.floor(frameLeftX));
+  const cropImageY = Math.max(0, Math.floor(frameTopY));
+  const cropImageW = Math.min(imgWidth - cropImageX, Math.ceil(frameRightX - frameLeftX));
+  const cropImageH = Math.min(imgHeight - cropImageY, Math.ceil(frameBottomY - frameTopY));
+  
+  // Store the crop region (in original image coordinates)
+  imgObj.cropRegionX = cropImageX;
+  imgObj.cropRegionY = cropImageY;
+  imgObj.cropRegionW = cropImageW;
+  imgObj.cropRegionH = cropImageH;
+  
+  console.log('Saved crop region:', {x: cropImageX, y: cropImageY, w: cropImageW, h: cropImageH});
 }
 
 function drawCrop() {
@@ -2010,7 +2057,6 @@ function updateCropZoom(val) {
 function applyCrop() {
   saveCropForCurrentImage();
   generatePreview();
-  showTempPreview(toolState.images[toolState.cropCurrentImageIndex]);
   closeCropModal();
   showToast('Crop applied!', 'success');
 }

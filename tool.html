@@ -257,13 +257,23 @@
   <div class="modal-overlay" id="cropModal">
     <div class="modal">
       <h3>✂️ Crop & Frame Check</h3>
-      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Position image in the blue frame. Drag to pan · Scroll to zoom</p>
+      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Position image in blue frame to show final result</p>
       
       <!-- Image Navigation -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
         <button class="btn btn-ghost btn-sm" id="cropPrevBtn" onclick="prevCropImage()">← Prev</button>
         <span id="cropNavInfo" style="font-size:.8rem;color:var(--muted);font-weight:600">Image 1 of 1</span>
         <button class="btn btn-ghost btn-sm" id="cropNextBtn" onclick="nextCropImage()">Next →</button>
+      </div>
+      
+      <!-- Zoom Slider -->
+      <div style="margin-bottom:16px;padding:12px;background:rgba(43,115,255,.05);border-radius:var(--r)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-size:.85rem;color:var(--muted)">🔍 Zoom:</span>
+          <input type="range" id="cropZoom" min="50" max="300" value="100" style="flex:1;cursor:pointer" oninput="updateCropZoom(this.value)">
+          <span id="cropZoomVal" style="font-size:.85rem;font-weight:600;min-width:40px">100%</span>
+        </div>
+        <p style="font-size:.75rem;color:var(--muted);margin:0">Drag to pan • Pinch to zoom (mobile)</p>
       </div>
       
       <div class="crop-container" id="cropContainer">
@@ -499,12 +509,6 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
-
-<!-- TEMP EDIT PREVIEW (MOBILE ONLY) -->
-<div id="tempEditPreview" style="display:none;position:fixed;top:10px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:rgba(0,0,0,0.9);border-radius:8px;z-index:1000;align-items:center;justify-content:center;border:2px solid #fff;">
-  <img id="tempPreviewImg" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px;" alt="Editing Preview">
-  <div id="tempPreviewStats" style="position:absolute;bottom:8px;left:8px;right:8px;font-size:10px;color:#fff;text-shadow:0 0 4px rgba(0,0,0,0.8);"></div>
-</div>
 
 <script src="shared.js"></script>
 <script src="tool.js"></script>
