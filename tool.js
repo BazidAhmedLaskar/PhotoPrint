@@ -95,6 +95,7 @@ function addApiKey(key, nickname = '') {
   
   saveApiKeysList();
   renderApiKeysList();
+  updateApiKeyStatus();
   return { success: true, id };
 }
 
@@ -130,6 +131,7 @@ function setActiveKey(id) {
   removeBgApiKey = keyObj.key;
   saveApiKeysList();
   renderApiKeysList();
+  updateApiKeyStatus();
   showToast(`✓ Switched to: ${keyObj.nickname}`, 'success');
   return true;
 }
@@ -266,6 +268,7 @@ function saveNewApiKey() {
   if (result.success) {
     errorMsg.style.display = 'none';
     closeAddKeyModal();
+    updateApiKeyStatus();
     showToast('✓ API Key saved successfully!', 'success');
   } else {
     errorText.textContent = result.error;
@@ -741,7 +744,7 @@ function removeBackground() {
     // Use default key for free usage
     removeBgApiKey = 'gA5srFMY2fHjL2D7xkVSint2';
     const remaining = 3 - freeBgRemovalsUsed;
-    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 3, add your own API keys.`, 'info');
+    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After free, add API keys for 50+ credits each!`, 'info');
   } else {
     // Try to get next available API key
     const availableKey = getNextAvailableApiKey();
@@ -897,6 +900,7 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
       // Mark current key as exhausted and try next key
       if (apiKeys.length > 0) {
         apiKeys[currentApiKeyIndex].usage = 50; // Mark as exhausted
+        saveApiKeysList(); // Persist the exhausted status
         const nextKey = getNextAvailableApiKey();
         
         if (nextKey && retryCount < apiKeys.length) {
@@ -904,6 +908,7 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
           removeBgApiKey = nextKey;
           const nextIndex = currentApiKeyIndex + 1;
           showToast(`🔑 Switching to API key ${nextIndex}/${apiKeys.length}...`, 'info');
+          updateApiKeyStatus(); // Update UI to show key switch
           
           // Retry with new key
           await processImageWithRemoveBg(imgObj, callback, retryCount + 1);
@@ -911,7 +916,8 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
         }
       }
       
-      showToast('⚠️ Quota exceeded! All API keys exhausted. Add more keys or upgrade your plan.', 'error');
+      showToast('❌ All API keys exhausted (50 credits/month per key). Add more API keys for more credits or contact support for help.', 'error');
+      updateApiKeyStatus(); // Update UI to show exhausted state
       callback(false);
       return;
     }
@@ -1160,13 +1166,13 @@ function openApiKeyModal() {
     
     const statusInfo = document.getElementById('apiStatusInfo');
     if (apiKeys.length > 0) {
-      statusInfo.textContent = `✓ ${apiKeys.length} saved API key(s) available. Add more keys or select one from the list.`;
+      statusInfo.textContent = `✓ ${apiKeys.length} API key(s) active (50 credits/month each). Add more keys for more monthly credits!`;
       statusInfo.style.display = 'block';
     } else if (freeBgRemovalsUsed < 3) {
-      statusInfo.textContent = `🔓 Free mode available: ${3 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
+      statusInfo.textContent = `🔓 Free mode: ${3 - freeBgRemovalsUsed} free removes left. Then add API keys (50 credits each) for more removals.`;
       statusInfo.style.display = 'block';
     } else {
-      statusInfo.textContent = '🔒 Free limit reached. Add API keys to continue background removal.';
+      statusInfo.textContent = '🔒 Free limit reached. Add API keys now (each key gives 50 monthly credits) to continue.';
       statusInfo.style.display = 'block';
     }
 
@@ -2507,23 +2513,25 @@ function showApiKeyRequiredModal() {
         <h3 style="margin:0;font-family:var(--font-h);font-size:1.2rem">🔑 Add API Keys to Continue</h3>
       </div>
       <div class="modal-body" style="padding:24px;">
-        <p style="color:var(--muted);margin-bottom:16px"><strong>✓ You've used all 10 free background removals!</strong></p>
+        <p style="color:var(--muted);margin-bottom:16px"><strong>✓ You've used all 3 free background removals!</strong></p>
         
         <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
           <h4 style="margin:0 0 8px 0;font-family:var(--font-h)">💡 How it works</h4>
           <ul style="margin:0;padding-left:20px;color:var(--muted)">
-            <li>This tool provides 10 free background removals</li>
-            <li>After that, you need your own remove.bg API key</li>
+            <li>This tool provides 3 free background removals</li>
+            <li>Each API key gives 50 credits per month</li>
+            <li>Add multiple API keys for more monthly credits!</li>
             <li>Keys are stored only in your browser, not on our servers</li>
           </ul>
         </div>
 
         <div style="background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
-          <h4 style="margin:0 0 8px 0;font-family:var(--font-h)">🚀 Quick Setup (2 minutes)</h4>
+          <h4 style="margin:0 0 8px 0;font-family:var(--font-h)">🚀 Get More Credits (Add Multiple Keys)</h4>
           <ol style="margin:0;padding-left:20px;color:var(--muted)">
-            <li>Go to <a href="https://www.remove.bg" target="_blank" style="color:var(--blue)">remove.bg</a> and sign up (free)</li>
-            <li>Copy your API key from dashboard</li>
-            <li>Paste below and click Save</li>
+            <li>Each API key gives 50 credits/month</li>
+            <li>Create multiple remove.bg accounts (using different emails)</li>
+            <li>Get API key from each account</li>
+            <li>Add all keys here to get 50+ credits/month per key!</li>
           </ol>
         </div>
 
@@ -2587,6 +2595,7 @@ function saveTempApiKey() {
   if (result.success) {
     showToast('✅ API key saved! Background removal is now active.', 'success');
     closeTempApiModal();
+    updateApiKeyStatus();
     // Auto-trigger background removal since user just added key
     removeBackground();
   } else {
@@ -2631,7 +2640,7 @@ function updateApiKeyUsage() {
   if (apiKeys.length > 0 && currentApiKeyIndex < apiKeys.length) {
     apiKeys[currentApiKeyIndex].usage++;
     apiKeys[currentApiKeyIndex].lastUsed = new Date().toISOString();
-    localStorage.setItem('ppp_api_keys', JSON.stringify(apiKeys));
+    saveApiKeysList(); // Save to correct storage key
   }
 }
 
