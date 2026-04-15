@@ -1746,9 +1746,10 @@ function doPrint() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any - use same thickness as preview
+      // Draw border if any - scale thickness for 300 DPI print vs 96 DPI preview
       if (toolState.borderThickness > 0) {
-        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
+        const scaledThickness = Math.max(1, Math.round(toolState.borderThickness * (300 / 96)));
+        drawBorder(ctx, currentX, currentY, photoW, photoH, scaledThickness, toolState.borderColor);
       }
       
       totalCount++;
@@ -1826,9 +1827,10 @@ function openNewPage() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any - use same thickness as preview
+      // Draw border if any - scale thickness for 300 DPI print vs 96 DPI preview
       if (toolState.borderThickness > 0) {
-        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
+        const scaledThickness = Math.max(1, Math.round(toolState.borderThickness * (300 / 96)));
+        drawBorder(ctx, currentX, currentY, photoW, photoH, scaledThickness, toolState.borderColor);
       }
       
       currentX += photoW + gap;
@@ -1904,9 +1906,10 @@ function downloadImage() {
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any - use same thickness as preview
+      // Draw border if any - scale thickness for 300 DPI print vs 96 DPI preview
       if (toolState.borderThickness > 0) {
-        drawBorder(ctx, currentX, currentY, photoW, photoH, Math.max(1, toolState.borderThickness), toolState.borderColor);
+        const scaledThickness = Math.max(1, Math.round(toolState.borderThickness * (300 / 96)));
+        drawBorder(ctx, currentX, currentY, photoW, photoH, scaledThickness, toolState.borderColor);
       }
       
       currentX += photoW + gap;
