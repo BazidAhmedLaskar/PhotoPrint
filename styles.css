@@ -237,17 +237,35 @@ canvas#a4Canvas{display:block;image-rendering:auto}
 /* CROP MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px}
 .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px 24px 24px;width:520px;max-width:100%;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);padding:28px 24px 24px;width:520px;max-width:100%;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.45);overflow:hidden}
+.modal.temp-modal{max-height:90vh;overflow-y:auto}
+.modal-header{padding:24px;border-bottom:1px solid var(--border)}
+.modal-body{padding:24px}
 #apiKeyModal .modal{max-width:680px;max-height:90vh;overflow-y:auto}
 #addKeyModal .modal{max-width:520px}
 #cropModal .modal{max-width:560px}
 .modal h3{font-family:var(--font-h);font-size:1.25rem;margin-bottom:18px;padding-right:40px}
 .modal-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border:none;background:rgba(255,255,255,.08);color:var(--text);border-radius:50%;cursor:pointer;font-size:1.15rem;display:flex;align-items:center;justify-content:center;transition:.2s;z-index:2}
 .modal-close:hover{background:rgba(255,255,255,.14)}
+.modal::-webkit-scrollbar, #savedKeysList::-webkit-scrollbar {width:10px;height:10px}
+.modal::-webkit-scrollbar-track, #savedKeysList::-webkit-scrollbar-track {background:rgba(255,255,255,.03);border-radius:999px}
+.modal::-webkit-scrollbar-thumb, #savedKeysList::-webkit-scrollbar-thumb {background:rgba(255,255,255,.14);border-radius:999px;border:2px solid rgba(0,0,0,0)}
+.modal::-webkit-scrollbar-thumb:hover, #savedKeysList::-webkit-scrollbar-thumb:hover {background:rgba(255,255,255,.22)}
+.modal{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) rgba(255,255,255,.03)}
 .modal p{margin-bottom:0}
 .modal .form-group{margin-bottom:18px}
 .modal .form-label{margin-bottom:8px}
 .modal .form-input{width:100%}
+.tutorial-section{background:rgba(33,150,243,.06);border:1px solid rgba(33,150,243,.18);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.tutorial-section-header{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.tutorial-section-title{font-family:var(--font-h);font-size:1rem;color:var(--text);font-weight:700}
+.tutorial-section-subtitle{font-size:.85rem;color:var(--muted)}
+.tutorial-video{position:relative;padding-top:56.25%;border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#000;margin-bottom:12px}
+.tutorial-video iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.tutorial-links{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tutorial-link{display:block;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text);text-decoration:none;border:1px solid rgba(255,255,255,.08);font-size:.88rem;transition:.2s}
+.tutorial-link:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18)}
+@media(max-width:768px){.tutorial-links{grid-template-columns:1fr}}
 .modal-footer{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;align-items:center;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:18px}
 .modal-footer .btn{min-width:100px}
 .crop-container{position:relative;overflow:hidden;border-radius:var(--r);border:1px solid var(--border);background:#000;width:100%;height:320px;cursor:crosshair;touch-action:none}

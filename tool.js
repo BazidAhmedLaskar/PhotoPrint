@@ -25,6 +25,44 @@ let apiKeys = [];// Will be synced with apiKeysList after loading saved keys
 let currentApiKeyIndex = 0;
 let autoAdjustAspect = false;
 
+const TUTORIAL_CONTENT = {
+  desktop: {
+    videoEmbedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    title: 'Desktop tutorial video',
+    subtitle: 'Watch the desktop walkthrough'
+  },
+  mobile: {
+    linkUrl: 'https://example.com/mobile-tutorial',
+    title: 'Mobile tutorial link',
+    subtitle: 'Open the phone walkthrough'
+  }
+};
+
+function renderTutorialSection(container) {
+  if (!container) return;
+
+  const isMobile = window.innerWidth <= 768;
+  const content = isMobile ? TUTORIAL_CONTENT.mobile : TUTORIAL_CONTENT.desktop;
+
+  container.innerHTML = `
+    <div class="tutorial-section">
+      <div class="tutorial-section-header">
+        <div class="tutorial-section-title">${content.title}</div>
+        <div class="tutorial-section-subtitle">${content.subtitle}</div>
+      </div>
+      ${isMobile ? `
+        <a class="tutorial-link" href="${content.linkUrl}" target="_blank" rel="noreferrer noopener">
+          ${content.title}
+        </a>
+      ` : `
+        <div class="tutorial-video">
+          <iframe src="${content.videoEmbedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      `}
+    </div>
+  `;
+}
+
 /* ═══════════════════════════════════════════
    NAVIGATION & UI UTILITIES
 ═══════════════════════════════════════════ */
@@ -1173,6 +1211,8 @@ function openApiKeyModal() {
     // Hide all status messages when opening
     document.getElementById('apiErrorMsg').style.display = 'none';
     document.getElementById('apiSavedMsg').style.display = 'none';
+
+    renderTutorialSection(document.getElementById('apiTutorialSection'));
     
     modal.classList.add('open');
     modal.onclick = (e) => {
@@ -2405,12 +2445,12 @@ function showApiKeyRequiredModal() {
   overlay.id = 'tempApiModal';
   
   overlay.innerHTML = `
-    <div class="modal" style="max-width:600px;position:relative;">
+    <div class="modal temp-modal" style="max-width:600px;max-height:90vh;overflow-y:auto;position:relative;">
       <button class="modal-close" onclick="closeTempApiModal()">&times;</button>
-      <div style="padding:24px;border-bottom:1px solid var(--border)">
+      <div class="modal-header" style="padding:24px;border-bottom:1px solid var(--border)">
         <h3 style="margin:0;font-family:var(--font-h);font-size:1.2rem">🔑 Add API Keys to Continue</h3>
       </div>
-      <div style="padding:24px;max-height:60vh;overflow-y:auto">
+      <div class="modal-body" style="padding:24px;">
         <p style="color:var(--muted);margin-bottom:16px"><strong>✓ You've used all 10 free background removals!</strong></p>
         
         <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
@@ -2430,6 +2470,8 @@ function showApiKeyRequiredModal() {
             <li>Paste below and click Save</li>
           </ol>
         </div>
+
+        <div class="tutorial-section" id="tempApiTutorialSection"></div>
 
         <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)">Your API Key:</label>
         <input type="password" id="tempApiKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="width:100%;margin-bottom:12px;font-family:monospace;font-size:.8rem">
@@ -2451,6 +2493,7 @@ function showApiKeyRequiredModal() {
   
   document.body.appendChild(overlay);
   overlay.classList.add('open');
+  renderTutorialSection(document.getElementById('tempApiTutorialSection'));
   
   // Focus on input
   setTimeout(() => document.getElementById('tempApiKeyInput').focus(), 100);
