@@ -36,8 +36,7 @@
     <a href="index.html" class="nav-link" data-page="home">Home</a>
     <a href="tool.html" class="nav-link active nav-link-hide" data-page="tool">Tool</a>
     <a href="contact.html" class="nav-link nav-link-hide" data-page="contact">Contact</a>
-    <button class="nav-link" style="background:none;border:none;cursor:pointer;font-size:0.9rem" onClick="openApiKeyModal()" title="Configure Remove Background API">⚙️ API Setup</button>
-    <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
+    <button class="nav-link nav-api-btn" onclick="openApiKeyModal()" title="Configure Remove Background API">⚙️ API Setup</button>
   </div>
 
 </nav>
@@ -295,7 +294,7 @@
       
       <!-- API STATUS INDICATOR -->
       <div id="apiStatusInfo" style="background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:.85rem;color:#4CAF50;display:none">
-        ✓ <strong>API Key Configured</strong> - You can now use background removal. Click Test Key to verify it's still valid.
+        ✓ <strong>API Key Configured</strong> - You can now use background removal.
       </div>
       
       <!-- ERROR MESSAGE -->
@@ -310,8 +309,8 @@
         <div style="display:flex;gap:10px;margin-bottom:10px">
           <div style="flex-shrink:0;width:24px;height:24px;background:var(--blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700">1</div>
           <div>
-            <div style="font-weight:600">Visit remove.bg/api</div>
-            <div style="color:var(--muted);font-size:.8rem;margin-top:2px">Go to <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);text-decoration:underline">remove.bg/api</a> and sign up for free account</div>
+            <div style="font-weight:600">Visit remove.bg/api & Sign Up</div>
+            <div style="color:var(--text);font-size:.8rem;margin-top:2px">Go to <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);text-decoration:underline">remove.bg/api</a> and create a free account</div>
           </div>
         </div>
 
@@ -319,7 +318,7 @@
           <div style="flex-shrink:0;width:24px;height:24px;background:var(--blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700">2</div>
           <div>
             <div style="font-weight:600">Get Your API Key</div>
-            <div style="color:var(--muted);font-size:.8rem;margin-top:2px">Go to API section, copy your API key. Free plan: 50 API calls/month</div>
+            <div style="color:var(--text);font-size:.8rem;margin-top:2px">Go to API section → Copy your API key from account settings. (Free plan: 50 API calls/month)</div>
           </div>
         </div>
 
@@ -327,7 +326,7 @@
           <div style="flex-shrink:0;width:24px;height:24px;background:var(--blue);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700">3</div>
           <div>
             <div style="font-weight:600">Paste Key & Save</div>
-            <div style="color:var(--muted);font-size:.8rem;margin-top:2px">Paste API key below. Your key is saved locally in your browser</div>
+            <div style="color:var(--text);font-size:.8rem;margin-top:2px">Paste your API key below → Click Save Key. Your key is saved locally in your browser (not stored on servers)</div>
           </div>
         </div>
       </div>
@@ -339,10 +338,7 @@
         </div>
       </div>
 
-      <!-- API STATUS -->
-      <div id="apiTestStatus" style="display:none;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:.8rem;color:var(--text)">
-        <div id="apiTestStatusText">Testing...</div>
-      </div>
+
 
       <!-- MULTIPLE KEY MANAGEMENT -->
       <div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:var(--r);padding:12px;margin-bottom:12px">
@@ -360,11 +356,11 @@
 
       <!-- QUOTA INFO & UPGRADE OPTIONS -->
       <div style="background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.2);border-radius:var(--r);padding:12px;margin-bottom:12px;font-size:.75rem;color:var(--text);line-height:1.6">
-        <div style="font-weight:600;margin-bottom:8px">💡 Get More Credits - 3 Ways</div>
+        <div style="font-weight:600;margin-bottom:8px">💡 Get More Credits - 2 Ways</div>
         
         <div style="margin-bottom:10px;padding:8px;background:rgba(255,255,255,.3);border-radius:4px">
           <div style="font-weight:500;color:#ff9500">✅ Option 1: Create Multiple Free Accounts</div>
-          <div style="color:var(--muted);font-size:.7rem;margin-top:4px">
+          <div style="color:var(--text);font-size:.7rem;margin-top:4px">
             • Create new remove.bg accounts with different Gmail addresses<br>
             • Each account gets 50 FREE API calls/month<br>
             • Get API key from each account<br>
@@ -373,17 +369,8 @@
         </div>
         
         <div style="margin-bottom:10px;padding:8px;background:rgba(255,255,255,.3);border-radius:4px">
-          <div style="font-weight:500;color:#ff9500">💳 Option 2: Upgrade Your Plan</div>
-          <div style="color:var(--muted);font-size:.7rem;margin-top:4px">
-            • Starter: 500 calls/month - <a href="https://www.remove.bg/pricing" target="_blank" style="color:var(--blue)">$99/month</a><br>
-            • Professional: 1,500+ calls/month - $199/month<br>
-            • Best if you need many removals regularly
-          </div>
-        </div>
-        
-        <div style="margin-bottom:10px;padding:8px;background:rgba(255,255,255,.3);border-radius:4px">
           <div style="font-weight:500;color:#ff9500">📧 Create Multi-Account Setup (Recommended)</div>
-          <div style="color:var(--muted);font-size:.7rem;margin-top:4px">
+          <div style="color:var(--text);font-size:.7rem;margin-top:4px">
             <strong>How to:</strong><br>
             1. Create account at <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue)">remove.bg/api</a> with Gmail #1<br>
             2. Get API Key #1 from account settings<br>
@@ -396,7 +383,7 @@
         
         <div style="padding-top:8px;border-top:1px solid rgba(255,152,0,.2)">
           <div style="font-weight:500;color:#4CAF50">💚 Alternative Services</div>
-          <div style="color:var(--muted);font-size:.7rem;margin-top:4px">
+          <div style="color:var(--text);font-size:.7rem;margin-top:4px">
             • <a href="https://photoroom.com" target="_blank" style="color:var(--blue)">PhotoRoom API</a> - Different pricing, similar quality<br>
             • <a href="https://imagga.com" target="_blank" style="color:var(--blue)">Imagga Background Removal</a> - Per-image pricing<br>
             • <a href="https://api.removebg.ai" target="_blank" style="color:var(--blue)">removebg.ai</a> - Budget-friendly alternative
@@ -406,32 +393,32 @@
 
       <!-- ALTERNATIVE APIs SECTION -->
       <div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:var(--r);padding:12px;margin-bottom:12px">
-        <div style="font-weight:600;font-size:.85rem;margin-bottom:8px;cursor:pointer" onclick="toggleAlternativeApis()">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:8px;cursor:pointer;color:var(--text)" onclick="toggleAlternativeApis()">
           🔄 <span id="altApiToggleText">Show Alternative APIs</span>
         </div>
-        <div id="alternativeApisList" style="display:none;font-size:.75rem;color:var(--text);line-height:1.6;gap:8px">
-          <div style="padding:8px;background:rgba(255,255,255,.5);border-radius:4px;margin-bottom:6px">
+        <div id="alternativeApisList" style="display:none;font-size:.75rem;line-height:1.6;flex-direction:column;gap:10px">
+          <div style="padding:10px;background:rgba(33,150,243,.12);border:1px solid rgba(33,150,243,.2);border-radius:4px">
             <div style="font-weight:500;color:#2196F3">remove.bg (Current)</div>
-            <div style="color:var(--muted);margin-top:2px">Best for: High quality, popular, trusted • Cost: $99-199/month for more</div>
-            <div style="margin-top:4px"><a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);font-size:.7rem">Get API Key →</a></div>
+            <div style="color:var(--text);margin-top:4px;font-size:.7rem">Best for: High quality, popular, trusted • Cost: $99-199/month for more</div>
+            <div style="margin-top:6px"><a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);font-size:.7rem;font-weight:500">Get API Key →</a></div>
           </div>
           
-          <div style="padding:8px;background:rgba(255,255,255,.5);border-radius:4px;margin-bottom:6px">
+          <div style="padding:10px;background:rgba(255,152,0,.12);border:1px solid rgba(255,152,0,.2);border-radius:4px">
             <div style="font-weight:500;color:#FF9800">PhotoRoom API</div>
-            <div style="color:var(--muted);margin-top:2px">Best for: Professional results, batch processing • Cost: Similar to remove.bg</div>
-            <div style="margin-top:4px"><a href="https://photoroom.com/api" target="_blank" style="color:var(--blue);font-size:.7rem">Get API Key →</a></div>
+            <div style="color:var(--text);margin-top:4px;font-size:.7rem">Best for: Professional results, batch processing • Cost: Similar to remove.bg</div>
+            <div style="margin-top:6px"><a href="https://photoroom.com/api" target="_blank" style="color:var(--blue);font-size:.7rem;font-weight:500">Get API Key →</a></div>
           </div>
           
-          <div style="padding:8px;background:rgba(255,255,255,.5);border-radius:4px;margin-bottom:6px">
+          <div style="padding:10px;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.2);border-radius:4px">
             <div style="font-weight:500;color:#4CAF50">Imagga Background Removal</div>
-            <div style="color:var(--muted);margin-top:2px">Best for: Budget users, per-image pricing • Cost: Pay-as-you-go</div>
-            <div style="margin-top:4px"><a href="https://imagga.com/background-removal" target="_blank" style="color:var(--blue);font-size:.7rem">Get API Key →</a></div>
+            <div style="color:var(--text);margin-top:4px;font-size:.7rem">Best for: Budget users, per-image pricing • Cost: Pay-as-you-go</div>
+            <div style="margin-top:6px"><a href="https://imagga.com/background-removal" target="_blank" style="color:var(--blue);font-size:.7rem;font-weight:500">Get API Key →</a></div>
           </div>
           
-          <div style="padding:8px;background:rgba(255,255,255,.5);border-radius:4px">
+          <div style="padding:10px;background:rgba(244,67,54,.12);border:1px solid rgba(244,67,54,.2);border-radius:4px">
             <div style="font-weight:500;color:#F44336">removebg.ai (Alternative)</div>
-            <div style="color:var(--muted);margin-top:2px">Best for: Budget-friendly, unlimited plans • Cost: Affordable ($29+/month)</div>
-            <div style="margin-top:4px"><a href="https://api.removebg.ai" target="_blank" style="color:var(--blue);font-size:.7rem">Get API Key →</a></div>
+            <div style="color:var(--text);margin-top:4px;font-size:.7rem">Best for: Budget-friendly, unlimited plans • Cost: Affordable ($29+/month)</div>
+            <div style="margin-top:6px"><a href="https://api.removebg.ai" target="_blank" style="color:var(--blue);font-size:.7rem;font-weight:500">Get API Key →</a></div>
           </div>
         </div>
       </div>
@@ -461,19 +448,21 @@
     <div class="form-group">
       <label class="form-label">Key Nickname (Optional)</label>
       <input type="text" id="keyNickname" class="form-input" placeholder="e.g., Gmail1, Work Account, Free Tier..." style="margin-bottom:8px">
-      <div style="font-size:.75rem;color:var(--muted)">Give this key a name to identify it easily</div>
+      <div style="font-size:.75rem;color:var(--text)">Give this key a name to identify it easily</div>
     </div>
 
     <div class="form-group">
       <label class="form-label">🔐 API Key</label>
       <input type="password" id="newKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted)">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="showNewKey" onchange="toggleNewKeyVisibility()">
-            Show key
-          </label>
-        </div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--text)">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text)">
+          <input type="checkbox" id="showNewKey" onchange="toggleNewKeyVisibility()">
+          Show key
+        </label>
       </div>
+    </div>
+
+    <div id="addKeyErrorMsg" style="display:none;background:#fee;border:1px solid #fcc;border-radius:var(--r);padding:10px;margin-bottom:12px;color:#c00;font-size:.85rem">
       <strong>⚠️ Error:</strong> <span id="addKeyErrorText"></span>
     </div>
 

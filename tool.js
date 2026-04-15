@@ -26,6 +26,16 @@ let currentApiKeyIndex = 0;
 let autoAdjustAspect = false;
 
 /* ═══════════════════════════════════════════
+   NAVIGATION & UI UTILITIES
+═══════════════════════════════════════════ */
+function toggleNavMenu() {
+  const navLinks = document.getElementById('navLinks');
+  if (navLinks) {
+    navLinks.classList.toggle('active');
+  }
+}
+
+/* ═══════════════════════════════════════════
    MULTIPLE API KEY MANAGEMENT
 ═══════════════════════════════════════════ */
 let apiKeysList = []; // Array of {id, key, nickname, createdAt}
@@ -176,9 +186,27 @@ function openAddKeyDialog() {
   document.getElementById('newKeyInput').value = '';
   document.getElementById('newKeyInput').type = 'password';
   document.getElementById('showNewKey').checked = false;
-  document.getElementById('newKeyTestStatus').style.display = 'none';
   document.getElementById('addKeyErrorMsg').style.display = 'none';
   document.getElementById('newKeyInput').focus();
+  
+  // Add real-time validation
+  document.getElementById('newKeyInput').addEventListener('input', validateApiKeyLength);
+}
+
+function validateApiKeyLength() {
+  const key = document.getElementById('newKeyInput').value.trim();
+  const errorMsg = document.getElementById('addKeyErrorMsg');
+  const errorText = document.getElementById('addKeyErrorText');
+  
+  if (key && key.length < 20) {
+    errorText.textContent = 'API key is too short (minimum 20 characters)';
+    errorMsg.style.display = 'block';
+  } else if (key && !/^[a-zA-Z0-9]+$/.test(key)) {
+    errorText.textContent = 'API key contains invalid characters (only letters and numbers allowed)';
+    errorMsg.style.display = 'block';
+  } else {
+    errorMsg.style.display = 'none';
+  }
 }
 
 function openEditKeyDialog(id, nickname) {
@@ -791,7 +819,7 @@ function removeBackground() {
   });
 }
 
-async function processImageWithRemoveBg(imgObj, callback) {
+async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
   try {
     const width = imgObj.img.naturalWidth || imgObj.img.width || 0;
     const height = imgObj.img.naturalHeight || imgObj.img.height || 0;
@@ -866,7 +894,24 @@ async function processImageWithRemoveBg(imgObj, callback) {
     }
     
     if (response.status === 402) {
-      showToast('⚠️ Quota exceeded! No more API credits this month.', 'error');
+      // Mark current key as exhausted and try next key
+      if (apiKeys.length > 0) {
+        apiKeys[currentApiKeyIndex].usage = 50; // Mark as exhausted
+        const nextKey = getNextAvailableApiKey();
+        
+        if (nextKey && retryCount < apiKeys.length) {
+          // Switch to next key and retry
+          removeBgApiKey = nextKey;
+          const nextIndex = currentApiKeyIndex + 1;
+          showToast(`🔑 Switching to API key ${nextIndex}/${apiKeys.length}...`, 'info');
+          
+          // Retry with new key
+          await processImageWithRemoveBg(imgObj, callback, retryCount + 1);
+          return;
+        }
+      }
+      
+      showToast('⚠️ Quota exceeded! All API keys exhausted. Add more keys or upgrade your plan.', 'error');
       callback(false);
       return;
     }
@@ -1101,6 +1146,12 @@ function isApiKeyConfigured() {
 }
 
 function openApiKeyModal() {
+  // Close mobile menu when opened
+  const navLinks = document.getElementById('navLinks');
+  if (navLinks) {
+    navLinks.classList.remove('active');
+  }
+  
   const modal = document.getElementById('apiKeyModal');
   if (modal) {
     // Load and render saved API keys
@@ -1121,7 +1172,6 @@ function openApiKeyModal() {
 
     // Hide all status messages when opening
     document.getElementById('apiErrorMsg').style.display = 'none';
-    document.getElementById('apiTestStatus').style.display = 'none';
     document.getElementById('apiSavedMsg').style.display = 'none';
     
     modal.classList.add('open');
@@ -1138,7 +1188,6 @@ function closeApiKeyModal() {
   }
   // Clear error message
   document.getElementById('apiErrorMsg').style.display = 'none';
-  document.getElementById('apiTestStatus').style.display = 'none';
   document.getElementById('apiSavedMsg').style.display = 'none';
 }
 
@@ -1153,119 +1202,7 @@ function toggleApiKeyVisibility() {
   }
 }
 
-async function testApiKey() {
-  const inputEl = document.getElementById('apiKeyInput');
-  if (!inputEl) {
-    showToast('ℹ️ Use Add API Key to save a remove.bg key instead.', 'info');
-    return;
-  }
-  const apiKey = inputEl.value.trim();
-  
-  if (!apiKey) {
-    showApiTestError('❌ Please enter an API key first');
-    return;
-  }
 
-  if (apiKey.length < 20) {
-    showApiTestError('❌ API key appears to be invalid (too short). remove.bg keys are usually 20+ characters.');
-    return;
-  }
-
-  const statusDiv = document.getElementById('apiTestStatus');
-  const statusText = document.getElementById('apiTestStatusText');
-  statusDiv.style.display = 'block';
-  statusText.textContent = '🧪 Testing API key...';
-
-  try {
-    // Create a small test image - ensure high quality
-    const canvas = document.createElement('canvas');
-    canvas.width = 200;  // Slightly larger for better quality
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    
-    // Draw a test pattern
-    ctx.fillStyle = '#FF0000';
-    ctx.fillRect(0, 0, 200, 200);
-    ctx.fillStyle = '#00FF00';
-    ctx.fillRect(50, 50, 100, 100);
-    ctx.fillStyle = '#0000FF';
-    ctx.fillRect(75, 75, 50, 50);
-
-    // Create blob with high quality
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.95));
-    if (!blob) {
-      throw new Error('Failed to create test image');
-    }
-
-    const formData = new FormData();
-    formData.append('image_file', blob, getBlobFileName(blob, 'test'));
-    formData.append('size', 'auto');
-
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-API-Key': apiKey
-      },
-      body: formData
-    });
-
-    if (response.status === 401) {
-      showApiTestError('❌ Unauthorized - API key is invalid. Check your key at remove.bg/api');
-      return;
-    }
-
-    if (response.status === 400) {
-      let details = '';
-      try {
-        const text = await response.text();
-        details = text ? ` — ${text}` : '';
-      } catch (e) {
-        details = '';
-      }
-      showApiTestError(`❌ Bad Request - The request is invalid.${details}`);
-      return;
-    }
-
-    if (response.status === 402) {
-      showApiTestError('⚠️ Quota exceeded - Your API monthly limit is used up. Upgrade your plan at remove.bg');
-      return;
-    }
-
-    if (response.status === 403) {
-      showApiTestError('❌ Forbidden - Your account may be restricted. Check your remove.bg account');
-      return;
-    }
-
-    if (!response.ok) {
-      showApiTestError(`❌ API Error (${response.status}) - Service error. Please try again later.`);
-      return;
-    }
-
-    statusDiv.style.background = 'rgba(76, 175, 80, 0.15)';
-    statusDiv.style.borderColor = 'rgba(76, 175, 80, 0.3)';
-    statusDiv.style.color = '#4CAF50';
-    statusText.textContent = '✓ API key is valid and working!';
-    
-  } catch (error) {
-    if (error.message.includes('Failed to fetch')) {
-      showApiTestError('❌ Network error - Check your internet connection');
-    } else if (error.message.includes('timeout')) {
-      showApiTestError('❌ Request timeout - remove.bg server is slow, try again');
-    } else {
-      showApiTestError(`❌ Error: ${error.message}`);
-    }
-  }
-}
-
-function showApiTestError(message) {
-  const statusDiv = document.getElementById('apiTestStatus');
-  const statusText = document.getElementById('apiTestStatusText');
-  statusDiv.style.display = 'block';
-  statusDiv.style.background = 'rgba(244, 67, 54, 0.15)';
-  statusDiv.style.borderColor = 'rgba(244, 67, 54, 0.3)';
-  statusDiv.style.color = '#f44336';
-  statusText.textContent = message;
-}
 
 function saveApiKey() {
   const inputEl = document.getElementById('apiKeyInput');
@@ -1315,7 +1252,6 @@ function saveApiKey() {
     
     // Show success message
     errorMsg.style.display = 'none';
-    document.getElementById('apiTestStatus').style.display = 'none';
     const savedMsg = document.getElementById('apiSavedMsg');
     savedMsg.style.display = 'block';
     
@@ -1350,7 +1286,7 @@ function toggleAlternativeApis() {
   const text = document.getElementById('altApiToggleText');
   
   if (list.style.display === 'none') {
-    list.style.display = 'grid';
+    list.style.display = 'flex';
     text.textContent = 'Hide Alternative APIs';
   } else {
     list.style.display = 'none';
