@@ -25,44 +25,6 @@ let apiKeys = [];// Will be synced with apiKeysList after loading saved keys
 let currentApiKeyIndex = 0;
 let autoAdjustAspect = false;
 
-const TUTORIAL_CONTENT = {
-  desktop: {
-    videoEmbedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    title: 'Desktop tutorial video',
-    subtitle: 'Watch the desktop walkthrough'
-  },
-  mobile: {
-    linkUrl: 'https://example.com/mobile-tutorial',
-    title: 'Mobile tutorial link',
-    subtitle: 'Open the phone walkthrough'
-  }
-};
-
-function renderTutorialSection(container) {
-  if (!container) return;
-
-  const isMobile = window.innerWidth <= 768;
-  const content = isMobile ? TUTORIAL_CONTENT.mobile : TUTORIAL_CONTENT.desktop;
-
-  container.innerHTML = `
-    <div class="tutorial-section">
-      <div class="tutorial-section-header">
-        <div class="tutorial-section-title">${content.title}</div>
-        <div class="tutorial-section-subtitle">${content.subtitle}</div>
-      </div>
-      ${isMobile ? `
-        <a class="tutorial-link" href="${content.linkUrl}" target="_blank" rel="noreferrer noopener">
-          ${content.title}
-        </a>
-      ` : `
-        <div class="tutorial-video">
-          <iframe src="${content.videoEmbedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>
-      `}
-    </div>
-  `;
-}
-
 /* ═══════════════════════════════════════════
    NAVIGATION & UI UTILITIES
 ═══════════════════════════════════════════ */
@@ -1212,7 +1174,6 @@ function openApiKeyModal() {
     document.getElementById('apiErrorMsg').style.display = 'none';
     document.getElementById('apiSavedMsg').style.display = 'none';
 
-    renderTutorialSection(document.getElementById('apiTutorialSection'));
     
     modal.classList.add('open');
     modal.onclick = (e) => {
@@ -2493,7 +2454,6 @@ function showApiKeyRequiredModal() {
   
   document.body.appendChild(overlay);
   overlay.classList.add('open');
-  renderTutorialSection(document.getElementById('tempApiTutorialSection'));
   
   // Focus on input
   setTimeout(() => document.getElementById('tempApiKeyInput').focus(), 100);
