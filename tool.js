@@ -734,14 +734,14 @@ function removeBackground() {
   // Check if user has API keys configured
   if (apiKeys.length === 0) {
     // Check free usage limit
-    if (freeBgRemovalsUsed >= 10) {
+    if (freeBgRemovalsUsed >= 1) {
       showApiKeyRequiredModal();
       return;
     }
     // Use default key for free usage
     removeBgApiKey = 'gA5srFMY2fHjL2D7xkVSint2';
-    const remaining = 10 - freeBgRemovalsUsed;
-    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 10, add your own API keys.`, 'info');
+    const remaining = 1 - freeBgRemovalsUsed;
+    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 1, add your own API keys.`, 'info');
   } else {
     // Try to get next available API key
     const availableKey = getNextAvailableApiKey();
@@ -812,7 +812,7 @@ function removeBackground() {
           showToast(`⚠️ Removed ${processed - failed} of ${toolState.images.length} backgrounds`, 'warning');
           restoreBtn.disabled = false;
         }
-        const freeInfo = apiKeys.length === 0 ? ` · Free uses ${Math.min(10, freeBgRemovalsUsed)}/10` : '';
+        const freeInfo = apiKeys.length === 0 ? ` · Free uses ${Math.min(1, freeBgRemovalsUsed)}/1` : '';
         document.getElementById('previewInfo').textContent = `📌 ${processed} images processed${freeInfo}`;
       }
     });
@@ -1162,8 +1162,8 @@ function openApiKeyModal() {
     if (apiKeys.length > 0) {
       statusInfo.textContent = `✓ ${apiKeys.length} saved API key(s) available. Add more keys or select one from the list.`;
       statusInfo.style.display = 'block';
-    } else if (freeBgRemovalsUsed < 10) {
-      statusInfo.textContent = `🔓 Free mode available: ${10 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
+    } else if (freeBgRemovalsUsed < 1) {
+      statusInfo.textContent = `🔓 Free mode available: ${1 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
       statusInfo.style.display = 'block';
     } else {
       statusInfo.textContent = '🔒 Free limit reached. Add API keys to continue background removal.';
@@ -2399,75 +2399,110 @@ function updateCustomSize() {
    FREE USAGE LIMIT MODAL
 ═══════════════════════════════════════════ */
 function showApiKeyRequiredModal() {
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.innerHTML = `
-    <div class="modal-content api-key-required-modal">
-      <div class="modal-header">
-        <h3>🔑 Add Your Own API Keys</h3>
-        <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'tempApiModal';
+  
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:600px;position:relative;">
+      <button class="modal-close" onclick="closeTempApiModal()">&times;</button>
+      <div style="padding:24px;border-bottom:1px solid var(--border)">
+        <h3 style="margin:0;font-family:var(--font-h);font-size:1.2rem">🔑 Add API Keys to Continue</h3>
       </div>
-      <div class="modal-body">
-        <div class="api-key-explanation">
-          <p><strong>You have used all 10 free background removals.</strong></p>
-          
-          <div class="explanation-section">
-            <h4>💡 How the free limit works</h4>
-            <ul>
-              <li>This app gives you 10 free remove.bg calls automatically.</li>
-              <li>These free calls use a built-in key hidden in the code.</li>
-              <li>After 10 uses, you must add your own remove.bg API keys.</li>
-            </ul>
-          </div>
-          
-          <div class="steps-section">
-            <h4>🚀 How to continue using the tool</h4>
-            <ol>
-              <li>Go to <a href="https://www.remove.bg" target="_blank">remove.bg</a> and sign up for free.</li>
-              <li>Get your API key from the remove.bg dashboard.</li>
-              <li>Click "Add API Key" in the API setup modal.</li>
-              <li>Paste your key and save it locally in this browser.</li>
-            </ol>
-          </div>
-          
-          <div class="note-section">
-            <p class="note"><em>💡 Your keys are stored only in this browser, not on our servers.</em></p>
-          </div>
+      <div style="padding:24px;max-height:60vh;overflow-y:auto">
+        <p style="color:var(--muted);margin-bottom:16px"><strong>✓ You've used all 10 free background removals!</strong></p>
+        
+        <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
+          <h4 style="margin:0 0 8px 0;font-family:var(--font-h)">💡 How it works</h4>
+          <ul style="margin:0;padding-left:20px;color:var(--muted)">
+            <li>This tool provides 10 free background removals</li>
+            <li>After that, you need your own remove.bg API key</li>
+            <li>Keys are stored only in your browser, not on our servers</li>
+          </ul>
         </div>
+
+        <div style="background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
+          <h4 style="margin:0 0 8px 0;font-family:var(--font-h)">🚀 Quick Setup (2 minutes)</h4>
+          <ol style="margin:0;padding-left:20px;color:var(--muted)">
+            <li>Go to <a href="https://www.remove.bg" target="_blank" style="color:var(--blue)">remove.bg</a> and sign up (free)</li>
+            <li>Copy your API key from dashboard</li>
+            <li>Paste below and click Save</li>
+          </ol>
+        </div>
+
+        <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)">Your API Key:</label>
+        <input type="password" id="tempApiKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="width:100%;margin-bottom:12px;font-family:monospace;font-size:.8rem">
+        
+        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-bottom:16px;cursor:pointer">
+          <input type="checkbox" id="tempShowApiKey" onchange="document.getElementById('tempApiKeyInput').type = this.checked ? 'text' : 'password'">
+          Show API key
+        </label>
+
+        <div id="tempApiError" style="display:none;background:rgba(244,67,54,.1);border:1px solid rgba(244,67,54,.3);color:#f44336;padding:8px;border-radius:var(--r);font-size:.8rem;margin-bottom:12px"></div>
+      </div>
+      
+      <div style="padding:16px;border-top:1px solid var(--border);display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="saveTempApiKey()">✓ Save & Continue</button>
+        <button class="btn btn-ghost" onclick="closeTempApiModal()">Skip for Now</button>
       </div>
     </div>
   `;
   
-  document.body.appendChild(modal);
-  modal.style.display = 'block';
+  document.body.appendChild(overlay);
+  overlay.classList.add('open');
   
-  // Add event listener for save button
-  document.getElementById('saveUserApiKeys').addEventListener('click', function() {
-    const apiKeysText = document.getElementById('userApiKeys').value.trim();
-    if (apiKeysText) {
-      const keys = apiKeysText.split('\n').map(key => key.trim()).filter(key => key.length > 0);
-      if (keys.length > 0) {
-        apiKeys = keys.map(key => ({ key: key, usage: 0, lastUsed: null }));
-        localStorage.setItem('ppp_api_keys', JSON.stringify(apiKeys));
-        currentApiKeyIndex = 0;
-        localStorage.setItem('ppp_current_key_index', '0');
-        removeBgApiKey = apiKeys[0].key;
-        showToast(`✅ ${keys.length} API keys saved! Background removal is now active.`, 'success');
-        modal.remove();
-      } else {
-        showToast('❌ Please enter valid API keys.', 'error');
-      }
-    } else {
-      showToast('❌ Please enter API keys.', 'error');
-    }
+  // Focus on input
+  setTimeout(() => document.getElementById('tempApiKeyInput').focus(), 100);
+  
+  // Close when clicking outside
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeTempApiModal();
   });
   
-  // Close modal when clicking outside
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      modal.remove();
-    }
+  // Add Enter key support
+  document.getElementById('tempApiKeyInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') saveTempApiKey();
   });
+}
+
+function saveTempApiKey() {
+  const apiKeyInput = document.getElementById('tempApiKeyInput');
+  const errorDiv = document.getElementById('tempApiError');
+  const key = apiKeyInput.value.trim();
+  
+  if (!key) {
+    errorDiv.textContent = 'Please enter your API key';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  if (key.length < 20) {
+    errorDiv.textContent = 'API key seems too short. Please check and try again.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Add the key using the existing function
+  const result = addApiKey(key, `API Key (Added ${new Date().toLocaleDateString()})`);
+  
+  if (result.success) {
+    showToast('✅ API key saved! Background removal is now active.', 'success');
+    closeTempApiModal();
+    // Auto-trigger background removal since user just added key
+    removeBackground();
+  } else {
+    errorDiv.textContent = result.error || 'Failed to save API key';
+    errorDiv.style.display = 'block';
+  }
+}
+
+function closeTempApiModal() {
+  const modal = document.getElementById('tempApiModal');
+  if (modal) {
+    modal.classList.remove('open');
+    setTimeout(() => modal.remove(), 200);
+  }
 }
 
 // Get next available API key with rotation
@@ -2527,8 +2562,8 @@ function updateApiKeyStatus() {
   if (!statusElement) return;
   
   if (apiKeys.length === 0) {
-    if (freeBgRemovalsUsed < 10) {
-      statusElement.innerHTML = `🔓 Free mode: ${10 - freeBgRemovalsUsed} uses left`;
+    if (freeBgRemovalsUsed < 1) {
+      statusElement.innerHTML = `🔓 Free mode: ${1 - freeBgRemovalsUsed} uses left`;
       statusElement.style.color = '#4CAF50';
     } else {
       statusElement.innerHTML = `🔒 Free limit reached - Add API keys`;

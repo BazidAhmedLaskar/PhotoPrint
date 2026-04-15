@@ -289,7 +289,8 @@
 
   <!-- API KEY SETUP MODAL -->
   <div class="modal-overlay" id="apiKeyModal">
-    <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;position:relative;">
+      <button class="modal-close" onclick="closeApiKeyModal()">&times;</button>
       <h3>🔑 Setup remove.bg API for Background Removal</h3>
       
       <!-- API STATUS INDICATOR -->
@@ -442,7 +443,8 @@
 
 <!-- ADD/EDIT API KEY MODAL -->
 <div class="modal-overlay" id="addKeyModal">
-  <div class="modal" style="max-width:500px">
+  <div class="modal" style="max-width:500px;position:relative;">
+    <button class="modal-close" onclick="closeAddKeyModal()">&times;</button>
     <h3>🔑 <span id="addKeyTitle">Add New API Key</span></h3>
     
     <div class="form-group">
