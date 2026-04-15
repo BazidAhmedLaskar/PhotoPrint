@@ -1280,19 +1280,6 @@ function clearApiKey() {
   }
 }
 
-function toggleAlternativeApis() {
-  const list = document.getElementById('alternativeApisList');
-  const text = document.getElementById('altApiToggleText');
-  
-  if (list.style.display === 'none') {
-    list.style.display = 'flex';
-    text.textContent = 'Hide Alternative APIs';
-  } else {
-    list.style.display = 'none';
-    text.textContent = 'Show Alternative APIs';
-  }
-}
-
 /* ═══════════════════════════════════════════
    BACKGROUND COLOR
 ═══════════════════════════════════════════ */
