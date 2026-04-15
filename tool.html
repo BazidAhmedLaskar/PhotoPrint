@@ -21,9 +21,55 @@
     .image-slot:hover .image-slot-remove{opacity:1;transform:scale(1.1)}
     .capacity-info{background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin:12px 0;font-size:.85rem;color:var(--text)}
     .capacity-num{font-family:var(--font-h);font-weight:700;color:var(--blue);font-size:1.2rem}
+    /* Mobile touch improvements */
     @media (max-width: 768px) {
       .video-tutorial { max-width: 280px !important; }
       .video-tutorial-popup { max-width: 200px !important; }
+      
+      /* Improve slider touch targets */
+      input[type="range"] {
+        -webkit-appearance: none;
+        height: 20px;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background: var(--blue);
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      
+      input[type="range"]::-moz-range-thumb {
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background: var(--blue);
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      
+      /* Improve button touch targets */
+      .btn, button, .slider-btn {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+      }
+      
+      /* Prevent text selection on touch */
+      .crop-container, #cropCanvas {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
     }
   </style>
 </head>

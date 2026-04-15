@@ -2205,16 +2205,16 @@ function setupCropDrag() {
   });
   
   cropCanvas.addEventListener('touchmove', e => {
-    e.preventDefault(); // Prevent scrolling
-    
     if (e.touches.length === 1 && toolState.cropDragging) {
       // Single touch - dragging
+      e.preventDefault(); // Prevent scrolling only when dragging
       const touch = e.touches[0];
       toolState.cropOffsetX = touch.clientX - toolState.cropStartX;
       toolState.cropOffsetY = touch.clientY - toolState.cropStartY;
       drawCrop();
     } else if (e.touches.length === 2) {
       // Two touches - pinch zoom
+      e.preventDefault(); // Prevent scrolling during pinch
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const currentDistance = Math.sqrt(
@@ -2236,6 +2236,7 @@ function setupCropDrag() {
         drawCrop();
       }
     }
+    // If not dragging or pinching, allow default behavior (scrolling)
   });
   
   cropCanvas.addEventListener('touchend', e => {
