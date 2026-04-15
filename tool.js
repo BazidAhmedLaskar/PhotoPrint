@@ -734,14 +734,14 @@ function removeBackground() {
   // Check if user has API keys configured
   if (apiKeys.length === 0) {
     // Check free usage limit
-    if (freeBgRemovalsUsed >= 1) {
+    if (freeBgRemovalsUsed >= 3) {
       showApiKeyRequiredModal();
       return;
     }
     // Use default key for free usage
     removeBgApiKey = 'gA5srFMY2fHjL2D7xkVSint2';
-    const remaining = 1 - freeBgRemovalsUsed;
-    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 1, add your own API keys.`, 'info');
+    const remaining = 3 - freeBgRemovalsUsed;
+    showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After 3, add your own API keys.`, 'info');
   } else {
     // Try to get next available API key
     const availableKey = getNextAvailableApiKey();
@@ -812,7 +812,7 @@ function removeBackground() {
           showToast(`⚠️ Removed ${processed - failed} of ${toolState.images.length} backgrounds`, 'warning');
           restoreBtn.disabled = false;
         }
-        const freeInfo = apiKeys.length === 0 ? ` · Free uses ${Math.min(1, freeBgRemovalsUsed)}/1` : '';
+        const freeInfo = apiKeys.length === 0 ? ` · Free uses ${Math.min(3, freeBgRemovalsUsed)}/3` : '';
         document.getElementById('previewInfo').textContent = `📌 ${processed} images processed${freeInfo}`;
       }
     });
@@ -1162,8 +1162,8 @@ function openApiKeyModal() {
     if (apiKeys.length > 0) {
       statusInfo.textContent = `✓ ${apiKeys.length} saved API key(s) available. Add more keys or select one from the list.`;
       statusInfo.style.display = 'block';
-    } else if (freeBgRemovalsUsed < 1) {
-      statusInfo.textContent = `🔓 Free mode available: ${1 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
+    } else if (freeBgRemovalsUsed < 3) {
+      statusInfo.textContent = `🔓 Free mode available: ${3 - freeBgRemovalsUsed} free removes left. Add API keys after you exhaust free usage.`;
       statusInfo.style.display = 'block';
     } else {
       statusInfo.textContent = '🔒 Free limit reached. Add API keys to continue background removal.';
@@ -1360,8 +1360,102 @@ function adjustSlider(id, delta) {
   newVal = Math.max(slider.min, Math.min(slider.max, newVal));
   slider.value = newVal;
   applyEdits();
+  
+  // Show preview for button clicks on mobile
+  if (window.innerWidth < 768) {
+    showEditPreview();
+    setTimeout(hideEditPreview, 800);
+  }
 }
 
+/* ═══════════════════════════════════════════
+   LIVE EDIT PREVIEW OVERLAY (Mobile)
+═══════════════════════════════════════════ */
+function showEditPreview() {
+  if (!toolState.selectedImageId) return;
+  
+  const overlay = document.getElementById('editPreviewOverlay');
+  const img = toolState.images.find(i => i.id === toolState.selectedImageId);
+  if (!img) return;
+  
+  overlay.style.display = 'flex';
+  updateEditPreview(img);
+}
+
+function hideEditPreview() {
+  const overlay = document.getElementById('editPreviewOverlay');
+  overlay.style.display = 'none';
+}
+
+function updateEditPreview(imgObj) {
+  const srcCanvas = getImageCanvas(imgObj);
+  const previewCanvas = document.getElementById('editPreviewCanvas');
+  
+  if (!previewCanvas) {
+    console.error('Preview canvas not found');
+    return;
+  }
+  
+  if (!srcCanvas || srcCanvas.width === 0 || srcCanvas.height === 0) {
+    console.warn('Source canvas invalid');
+    return;
+  }
+  
+  try {
+    // Fit to container while maintaining aspect ratio
+    const maxW = window.innerWidth * 0.9;
+    const maxH = window.innerHeight * 0.7;
+    let w = srcCanvas.width;
+    let h = srcCanvas.height;
+    
+    const scale = Math.min(maxW / w, maxH / h, 1);
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
+    
+    previewCanvas.width = w;
+    previewCanvas.height = h;
+    
+    const ctx = previewCanvas.getContext('2d');
+    if (!ctx) {
+      console.error('Could not get canvas context');
+      return;
+    }
+    
+    ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    ctx.drawImage(srcCanvas, 0, 0, srcCanvas.width, srcCanvas.height, 0, 0, w, h);
+  } catch (e) {
+    console.error('Error updating preview:', e);
+  }
+}
+
+function attachSliderListeners() {
+  const sliders = ['slBright', 'slContrast', 'slRotation'];
+  
+  sliders.forEach(sliderId => {
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    
+    slider.addEventListener('input', (e) => {
+      showEditPreview();
+    });
+    
+    slider.addEventListener('change', (e) => {
+      hideEditPreview();
+    });
+    
+    slider.addEventListener('pointerup', hideEditPreview);
+    slider.addEventListener('touchend', hideEditPreview);
+    slider.addEventListener('mouseup', hideEditPreview);
+  });
+}
+
+// Initialize slider listeners immediately
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', attachSliderListeners);
+} else {
+  // DOM is already loaded
+  attachSliderListeners();
+}
 
 /* ═══════════════════════════════════════════
    A4 PREVIEW GENERATION
@@ -2566,8 +2660,8 @@ function updateApiKeyStatus() {
   if (!statusElement) return;
   
   if (apiKeys.length === 0) {
-    if (freeBgRemovalsUsed < 1) {
-      statusElement.innerHTML = `🔓 Free mode: ${1 - freeBgRemovalsUsed} uses left`;
+    if (freeBgRemovalsUsed < 3) {
+      statusElement.innerHTML = `🔓 Free mode: ${3 - freeBgRemovalsUsed} uses left`;
       statusElement.style.color = '#4CAF50';
     } else {
       statusElement.innerHTML = `🔒 Free limit reached - Add API keys`;
