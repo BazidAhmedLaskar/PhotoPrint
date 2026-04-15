@@ -824,14 +824,6 @@ function removeBackground() {
 
 async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
   try {
-    const width = imgObj.img.naturalWidth || imgObj.img.width || 0;
-    const height = imgObj.img.naturalHeight || imgObj.img.height || 0;
-    if (width < 256 || height < 256) {
-      showToast('❌ Image is too small for reliable background removal. Use a larger image (at least 256×256 pixels).', 'error');
-      callback(false);
-      return;
-    }
-
     // Reject images that are likely too low-contrast or too complex for remove.bg.
     if (!isImageLikelyForeground(imgObj.img)) {
       showToast('❌ This image may not have a clearly separable foreground. Try a photo with one main subject against a contrasting background.', 'error');
