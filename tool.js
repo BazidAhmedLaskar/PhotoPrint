@@ -21,6 +21,8 @@ const toolState = {
 
 let removeBgApiKey = localStorage.getItem('ppp_removebg_key') || 'gA5srFMY2fHjL2D7xkVSint2';
 let freeBgRemovalsUsed = parseInt(localStorage.getItem('ppp_free_bg_removals') || '0');
+let freeApiKeys = ['4btiRFSh8FEp3PQ5dhbgJeER', 'gA5srFMY2fHjL2D7xkVSint2', 'gAsFkBeZAV8vWPUCSRMFuKak', '1reFLgF5S7YF9GzMqxYoh2bT', '1F7KZmJQPZj9vrTMvGL7L6pE', 'k7gcpki5gT64DfQjfqRr76St', 'JbpN9remjrUBdboLKWzpD7F9', 'kQZuGtDVbCj2tV5jENR1Uetg', 'rPj3fsbciEPTVYhVa6oSqRQF']; // Fallback keys for free mode
+let currentFreeKeyIndex = 0;
 let apiKeys = [];// Will be synced with apiKeysList after loading saved keys
 let currentApiKeyIndex = 0;
 let autoAdjustAspect = false;
@@ -158,7 +160,6 @@ function renderApiKeysList() {
   let html = '';
   apiKeysList.forEach(keyObj => {
     const isActive = activeKeyId === keyObj.id;
-    const keyPreview = keyObj.key.substring(0, 8) + '...' + keyObj.key.substring(keyObj.key.length - 4);
     const createdDate = new Date(keyObj.createdAt).toLocaleDateString();
     
     html += `
@@ -166,7 +167,7 @@ function renderApiKeysList() {
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="flex:1">
             <div style="font-weight:600;color:${isActive ? '#4CAF50' : 'var(--text)'}">${isActive ? '✓ ' : ''}${keyObj.nickname}</div>
-            <div style="color:var(--muted);font-size:.7rem;margin-top:2px">${keyPreview} · Added ${createdDate}</div>
+            <div style="color:var(--muted);font-size:.7rem;margin-top:2px">Added ${createdDate}</div>
           </div>
           <div style="display:flex;gap:4px">
             ${!isActive ? `<button style="padding:4px 8px;background:var(--blue);color:white;border:none;border-radius:4px;cursor:pointer;font-size:.7rem" onclick="setActiveKey('${keyObj.id}')">Use</button>` : '<span style="padding:4px 8px;background:var(--green);color:white;border-radius:4px;font-size:.7rem">Active</span>'}
@@ -741,8 +742,8 @@ function removeBackground() {
       showApiKeyRequiredModal();
       return;
     }
-    // Use default key for free usage
-    removeBgApiKey = 'gA5srFMY2fHjL2D7xkVSint2';
+    // Use current free key for free usage
+    removeBgApiKey = freeApiKeys[currentFreeKeyIndex];
     const remaining = 3 - freeBgRemovalsUsed;
     showToast(`✅ Free mode active: ${freeBgRemovalsUsed} used, ${remaining} free removes left. After free, add API keys for 50+ credits each!`, 'info');
   } else {
@@ -871,6 +872,14 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
 
     // Handle API errors with proper error messages
     if (response.status === 401) {
+      // For free mode, try next key instead of failing
+      if (apiKeys.length === 0 && currentFreeKeyIndex < freeApiKeys.length - 1) {
+        currentFreeKeyIndex++;
+        removeBgApiKey = freeApiKeys[currentFreeKeyIndex];
+        console.log(`Switching to free key ${currentFreeKeyIndex + 1}/${freeApiKeys.length}`);
+        await processImageWithRemoveBg(imgObj, callback, retryCount + 1);
+        return;
+      }
       showToast('❌ Invalid API key! Please check your remove.bg key.', 'error');
       openApiKeyModal();
       callback(false);
@@ -889,7 +898,25 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
     }
     
     if (response.status === 402) {
-      // Mark current key as exhausted and try next key
+      // Handle free mode key exhaustion
+      if (apiKeys.length === 0) {
+        if (currentFreeKeyIndex < freeApiKeys.length - 1) {
+          // Try next free key
+          currentFreeKeyIndex++;
+          removeBgApiKey = freeApiKeys[currentFreeKeyIndex];
+          console.log(`Free key exhausted, switching to free key ${currentFreeKeyIndex + 1}/${freeApiKeys.length}`);
+          await processImageWithRemoveBg(imgObj, callback, retryCount + 1);
+          return;
+        } else {
+          // All free keys exhausted, require user to add API key
+          showToast('❌ Free trial limit reached. Please add your own API key to continue.', 'error');
+          openApiKeyModal();
+          callback(false);
+          return;
+        }
+      }
+      
+      // Handle paid API keys exhaustion
       if (apiKeys.length > 0) {
         apiKeys[currentApiKeyIndex].usage = 50; // Mark as exhausted
         saveApiKeysList(); // Persist the exhausted status
@@ -1164,7 +1191,7 @@ function openApiKeyModal() {
       statusInfo.textContent = `🔓 Free mode: ${3 - freeBgRemovalsUsed} free removes left. Then add API keys (50 credits each) for more removals.`;
       statusInfo.style.display = 'block';
     } else {
-      statusInfo.textContent = '🔒 Free limit reached. Add API keys now (each key gives 50 monthly credits) to continue.';
+      statusInfo.textContent = '� Free limit reached. Add API keys now (each key gives 50 monthly credits) to continue.';
       statusInfo.style.display = 'block';
     }
 
