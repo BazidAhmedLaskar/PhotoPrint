@@ -246,7 +246,9 @@ canvas#a4Canvas{display:block;image-rendering:auto}
 .modal-body{padding:24px}
 #apiKeyModal .modal{max-width:680px}
 #addKeyModal .modal{max-width:520px}
-#cropModal .modal{max-width:560px}
+#cropModal .modal{max-width:720px;max-height:85vh}
+.crop-container{width:100%;min-height:420px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border-radius:16px;overflow:hidden;margin-bottom:12px}
+#cropCanvas{display:block;width:100%;max-width:100%;border-radius:14px;background:#0f162d;touch-action:none;cursor:grab;user-select:none}
 .modal h3{font-family:var(--font-h);font-size:1.25rem;margin-bottom:18px;padding-right:40px}
 .modal-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border:none;background:rgba(255,255,255,.08);color:var(--text);border-radius:50%;cursor:pointer;font-size:1.15rem;display:flex;align-items:center;justify-content:center;transition:.2s;z-index:2}
 .modal-close:hover{background:rgba(255,255,255,.14)}

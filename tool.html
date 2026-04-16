@@ -339,8 +339,22 @@
         <button class="btn btn-ghost btn-sm" id="cropNextBtn" onclick="nextCropImage()">Next →</button>
       </div>
       
-      <!-- Zoom Slider -->
+      <!-- Crop Options -->
       <div style="margin-bottom:16px;padding:12px;background:rgba(43,115,255,.05);border-radius:var(--r)">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px">
+          <label style="font-size:.85rem;color:var(--muted);min-width:120px">
+            Ratio:
+            <select id="cropRatioSelect" onchange="updateCropRatio(this.value)" style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text)">
+              <option value="default">Print size ratio</option>
+              <option value="original">Original image ratio</option>
+              <option value="square">Square 1:1</option>
+              <option value="portrait34">Portrait 3:4</option>
+              <option value="portrait45">Portrait 4:5</option>
+              <option value="landscape43">Landscape 4:3</option>
+              <option value="landscape32">Landscape 3:2</option>
+            </select>
+          </label>
+        </div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <span style="font-size:.85rem;color:var(--muted)">🔍 Zoom:</span>
           <input type="range" id="cropZoom" min="50" max="300" value="100" style="flex:1;cursor:pointer" oninput="updateCropZoom(this.value)">
@@ -354,7 +368,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
-        <button class="btn btn-orange" onclick="applyCrop()">✓ Apply Crop</button>
+        <button class="btn btn-orange" onclick="applyCrop()">✓ OK</button>
       </div>
     </div>
   </div>

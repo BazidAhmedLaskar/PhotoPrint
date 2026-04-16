@@ -13,6 +13,8 @@ const toolState = {
   cropOffsetX: 0,
   cropOffsetY: 0,
   cropScale: 1,
+  cropAspect: null,
+  cropRatioMode: 'default',
   cropDragging: false,
   cropStartX: 0,
   cropStartY: 0,
@@ -1941,6 +1943,30 @@ function downloadImage() {
 let cropImg = null;
 let cropCanvas, cropCtx;
 
+const CROP_RATIO_MAP = {
+  square: 1,
+  portrait34: 3 / 4,
+  portrait45: 4 / 5,
+  landscape43: 4 / 3,
+  landscape32: 3 / 2,
+};
+
+function getCropAspectRatio(imgObj, imgWidth, imgHeight) {
+  if (toolState.cropAspect === 'original') {
+    return imgWidth && imgHeight ? imgWidth / imgHeight : 1;
+  }
+  if (typeof toolState.cropAspect === 'number') {
+    return toolState.cropAspect;
+  }
+
+  const size = imgObj && SIZES[imgObj.size];
+  if (size && size.w && size.h) {
+    return size.w / size.h;
+  }
+
+  return imgWidth && imgHeight ? imgWidth / imgHeight : 1;
+}
+
 function openCropModal() {
   if (toolState.images.length === 0) {
     showToast('Add images first', 'error');
@@ -1953,6 +1979,8 @@ function openCropModal() {
   const selectedImg = toolState.images.find(i => i.id === toolState.selectedImageId);
   const startIndex = selectedImg ? toolState.images.indexOf(selectedImg) : 0;
   toolState.cropCurrentImageIndex = startIndex;
+  toolState.cropAspect = null;
+  toolState.cropRatioMode = 'default';
 
   const modalEl = document.getElementById('cropModal');
   if (!modalEl) {
@@ -1986,13 +2014,15 @@ function openCropModal() {
       return;
     }
 
-    // Set canvas size to match container
-    const rect = container.getBoundingClientRect();
-    const width = Math.max(300, container.offsetWidth || rect.width || 400);
-    const height = container.offsetHeight || rect.height || 320;
+    // Set canvas size to match container and keep it large enough for easy cropping
+    const containerW = container.offsetWidth || 520;
+    const containerH = container.offsetHeight || Math.round(containerW * 0.72);
     
-    cropCanvas.width = width;
-    cropCanvas.height = height;
+    const canvasW = Math.max(520, containerW);
+    const canvasH = Math.max(420, containerH);
+    
+    cropCanvas.width = canvasW;
+    cropCanvas.height = canvasH;
 
     console.log('Crop canvas initialized:', cropCanvas.width, 'x', cropCanvas.height);
 
@@ -2040,11 +2070,15 @@ function loadCropImage(idx) {
   // Reset zoom slider
   const cropZoom = document.getElementById('cropZoom');
   const cropZoomVal = document.getElementById('cropZoomVal');
+  const cropRatioSelect = document.getElementById('cropRatioSelect');
   if (cropZoom) {
     cropZoom.value = 100;
   }
   if (cropZoomVal) {
     cropZoomVal.textContent = '100%';
+  }
+  if (cropRatioSelect) {
+    cropRatioSelect.value = 'default';
   }
   
   // Draw immediately
@@ -2102,10 +2136,9 @@ function saveCropForCurrentImage() {
   
   // Recalculate frame dimensions (from drawCrop)
   const currentImg = toolState.images[toolState.cropCurrentImageIndex];
-  const size = SIZES[currentImg.size];
-  const aspect = size ? (size.w / size.h) : (imgWidth / imgHeight);
+  const aspect = getCropAspectRatio(currentImg, imgWidth, imgHeight);
   
-  const cropFrameW = Math.min(W * 0.7, H * 0.7 * aspect);
+  const cropFrameW = Math.min(W * 0.92, H * 0.92 * aspect);
   const cropFrameH = cropFrameW / aspect;
   const frameLeftX = (W - cropFrameW) / 2;
   const frameTopY = (H - cropFrameH) / 2;
@@ -2187,15 +2220,14 @@ function drawCrop() {
 
   // Get current image object for aspect ratio
   const currentImg = toolState.images[toolState.cropCurrentImageIndex];
-  const size = currentImg && SIZES[currentImg.size];
-  const aspect = size ? (size.w / size.h) : (imgWidth / imgHeight);
+  const aspect = getCropAspectRatio(currentImg, imgWidth, imgHeight);
 
   // Clear background
   cropCtx.fillStyle = '#1a1a2e';
   cropCtx.fillRect(0, 0, W, H);
 
   // Calculate crop frame dimensions (what user sees as the target area)
-  const cropFrameW = Math.min(W * 0.7, H * 0.7 * aspect);
+  const cropFrameW = Math.min(W * 0.92, H * 0.92 * aspect);
   const cropFrameH = cropFrameW / aspect;
   const frameCenterX = W / 2;
   const frameCenterY = H / 2;
@@ -2258,6 +2290,29 @@ function updateCropZoom(val) {
   if (cropZoomVal) {
     cropZoomVal.textContent = val + '%';
   }
+  drawCrop();
+}
+
+function updateCropRatio(value) {
+  const cropRatioSelect = document.getElementById('cropRatioSelect');
+  if (cropRatioSelect) {
+    cropRatioSelect.value = value;
+  }
+
+  if (value === 'default') {
+    toolState.cropAspect = null;
+    toolState.cropRatioMode = 'default';
+  } else if (value === 'original') {
+    toolState.cropAspect = 'original';
+    toolState.cropRatioMode = 'original';
+  } else if (CROP_RATIO_MAP[value]) {
+    toolState.cropAspect = CROP_RATIO_MAP[value];
+    toolState.cropRatioMode = value;
+  } else {
+    toolState.cropAspect = null;
+    toolState.cropRatioMode = 'default';
+  }
+
   drawCrop();
 }
 
