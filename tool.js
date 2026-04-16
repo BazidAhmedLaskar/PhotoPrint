@@ -44,6 +44,7 @@ let apiKeysList = []; // Array of {id, key, nickname, createdAt}
 let activeKeyId = null; // ID of currently active key
 
 function loadApiKeysList() {
+  console.log('📂 Loading API Keys from Storage');
   try {
     const saved = localStorage.getItem('ppp_api_keys_list');
     const activeId = localStorage.getItem('ppp_active_key_id');
@@ -64,6 +65,7 @@ function loadApiKeysList() {
 }
 
 function saveApiKeysList() {
+  console.log('💾 Saving API Keys to Storage');
   try {
     localStorage.setItem('ppp_api_keys_list', JSON.stringify(apiKeysList));
     localStorage.setItem('ppp_active_key_id', activeKeyId || '');
@@ -73,6 +75,7 @@ function saveApiKeysList() {
 }
 
 function addApiKey(key, nickname = '') {
+  console.log('➕ Adding new API Key with nickname:', nickname);
   if (!key || key.trim().length < 20) {
     return { success: false, error: 'API key must be at least 20 characters' };
   }
@@ -96,20 +99,6 @@ function addApiKey(key, nickname = '') {
   }
   
   saveApiKeysList();
-  
-  // Reload API keys list to sync with newly added key
-  loadApiKeysList();
-  apiKeys = apiKeysList;
-  
-  // Set current index to the newly added key if first time
-  if (apiKeysList.length === 1) {
-    currentApiKeyIndex = 0;
-  } else if (!activeKeyId || activeKeyId === id) {
-    currentApiKeyIndex = apiKeysList.findIndex(k => k.id === id);
-  }
-  
-  removeBgApiKey = apiKeysList[currentApiKeyIndex].key;
-  
   renderApiKeysList();
   updateApiKeyStatus();
   return { success: true, id };
@@ -163,6 +152,7 @@ function editApiKeyNickname(id, newNickname) {
 }
 
 function renderApiKeysList() {
+  console.log('📋 Rendering API Keys List - Total keys:', apiKeys.length);
   const container = document.getElementById('savedKeysList');
   if (!container) return;
 
@@ -197,6 +187,7 @@ function renderApiKeysList() {
 }
 
 function openAddKeyDialog() {
+  console.log('➕ Opening Add API Key Dialog');
   document.getElementById('addKeyModal').classList.add('open');
   document.getElementById('addKeyTitle').textContent = 'Add New API Key';
   document.getElementById('keyNickname').value = '';
@@ -237,6 +228,7 @@ function openEditKeyDialog(id, nickname) {
 }
 
 function closeAddKeyModal() {
+  console.log('✕ Closing Add Key Dialog');
   document.getElementById('addKeyModal').classList.remove('open');
 }
 
@@ -247,6 +239,7 @@ function toggleNewKeyVisibility() {
 }
 
 function saveNewApiKey() {
+  console.log('💾 Saving new API key');
   const nickname = document.getElementById('keyNickname').value.trim();
   const key = document.getElementById('newKeyInput').value.trim();
   const errorMsg = document.getElementById('addKeyErrorMsg');
@@ -283,9 +276,8 @@ function saveNewApiKey() {
   if (result.success) {
     errorMsg.style.display = 'none';
     closeAddKeyModal();
-    closeApiKeyModal(); // Close main API modal too
     updateApiKeyStatus();
-    showToast('✓ API Key saved! Click "✂️ Remove Background" to continue.', 'success');
+    showToast('✓ API Key saved successfully!', 'success');
   } else {
     errorText.textContent = result.error;
     errorMsg.style.display = 'block';
@@ -925,7 +917,7 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
         } else {
           // All free keys exhausted, require user to add API key
           showToast('❌ Free trial limit reached. Please add your own API key to continue.', 'error');
-          showApiKeyRequiredModal();
+          openApiKeyModal();
           callback(false);
           return;
         }
@@ -1186,6 +1178,7 @@ function isApiKeyConfigured() {
 }
 
 function openApiKeyModal() {
+  console.log('🔑 Opening API Key Modal');
   // Close mobile menu when opened
   const navLinks = document.getElementById('navLinks');
   if (navLinks) {
@@ -1223,6 +1216,7 @@ function openApiKeyModal() {
 }
 
 function closeApiKeyModal() {
+  console.log('✕ Closing API Key Modal');
   const modal = document.getElementById('apiKeyModal');
   if (modal) {
     modal.classList.remove('open');
