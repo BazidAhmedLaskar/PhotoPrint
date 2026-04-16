@@ -96,6 +96,20 @@ function addApiKey(key, nickname = '') {
   }
   
   saveApiKeysList();
+  
+  // Reload API keys list to sync with newly added key
+  loadApiKeysList();
+  apiKeys = apiKeysList;
+  
+  // Set current index to the newly added key if first time
+  if (apiKeysList.length === 1) {
+    currentApiKeyIndex = 0;
+  } else if (!activeKeyId || activeKeyId === id) {
+    currentApiKeyIndex = apiKeysList.findIndex(k => k.id === id);
+  }
+  
+  removeBgApiKey = apiKeysList[currentApiKeyIndex].key;
+  
   renderApiKeysList();
   updateApiKeyStatus();
   return { success: true, id };
@@ -269,8 +283,9 @@ function saveNewApiKey() {
   if (result.success) {
     errorMsg.style.display = 'none';
     closeAddKeyModal();
+    closeApiKeyModal(); // Close main API modal too
     updateApiKeyStatus();
-    showToast('✓ API Key saved successfully!', 'success');
+    showToast('✓ API Key saved! Click "✂️ Remove Background" to continue.', 'success');
   } else {
     errorText.textContent = result.error;
     errorMsg.style.display = 'block';
@@ -910,7 +925,7 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
         } else {
           // All free keys exhausted, require user to add API key
           showToast('❌ Free trial limit reached. Please add your own API key to continue.', 'error');
-          openApiKeyModal();
+          showApiKeyRequiredModal();
           callback(false);
           return;
         }

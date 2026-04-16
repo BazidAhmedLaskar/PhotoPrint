@@ -360,7 +360,7 @@
 
   <!-- API KEY SETUP MODAL -->
   <div class="modal-overlay" id="apiKeyModal">
-    <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto;position:relative;">
+    <div class="modal">
       <button class="modal-close" onclick="closeApiKeyModal()">&times;</button>
       <h3>🔑 Setup remove.bg API for Background Removal</h3>
       
@@ -404,9 +404,9 @@
       </div>
 
       <!-- YOUTUBE TUTORIAL VIDEO -->
-      <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:14px;margin-bottom:16px;text-align:center">
-        <div style="font-weight:600;margin-bottom:8px">📹 Video Tutorial: How to Add API Key</div>
-        <div style="position:relative;padding-bottom:56.4%;height:0;overflow:hidden;max-width:342px;margin:0 auto" class="video-tutorial">
+      <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;text-align:center">
+        <div style="font-weight:600;margin-bottom:8px;font-size:.9rem">📹 Video Tutorial: How to Add API Key</div>
+        <div style="position:relative;padding-bottom:56.4%;height:0;overflow:hidden;max-width:100%;margin:0 auto" class="video-tutorial">
           <iframe src="https://www.youtube.com/embed/xKuHtvUFxqI" title="Tutorial to add api key in photoprintpro#website" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
         </div>
       </div>
@@ -418,18 +418,18 @@
         </div>
       </div>
 
-      <!-- API KEY MANAGEMENT HIDDEN FROM USERS -->
-      <div style="display:none">
-        <div style="font-weight:600;font-size:.85rem;margin-bottom:8px">🔑 Manage Multiple API Keys</div>
-        <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px">Add, edit, or remove multiple API keys to manage your quota across different accounts</div>
+      <!-- API KEY MANAGEMENT -->
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:8px">🔑 Manage Your API Keys</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px">Add, edit, or remove API keys to manage your quota across different accounts</div>
         
         <!-- Saved Keys List -->
-        <div id="savedKeysList" style="margin-bottom:10px;max-height:200px;overflow-y:auto;border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px;background:rgba(255,255,255,.2)">
-          <div style="text-align:center;color:var(--muted);font-size:.75rem;padding:20px">No keys saved yet</div>
+        <div id="savedKeysList" style="margin-bottom:12px;max-height:180px;overflow-y:auto;border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px;background:rgba(255,255,255,.05)">
+          <div style="text-align:center;color:var(--muted);font-size:.75rem;padding:16px">No keys saved yet</div>
         </div>
         
         <!-- Add New Key Button -->
-        <button class="btn btn-ghost btn-sm" style="width:100%;font-size:.8rem" onclick="openAddKeyDialog()">➕ Add New API Key</button>
+        <button class="btn btn-blue btn-sm" style="width:100%;font-size:.85rem" onclick="openAddKeyDialog()">➕ Add New API Key</button>
       </div>
 
       <!-- QUOTA INFO & UPGRADE OPTIONS -->
@@ -460,14 +460,12 @@
         </div>
       </div>
 
-      </div> <!-- END HIDDEN API MANAGEMENT -->
-
       <!-- ACTIONS -->
       <div class="modal-footer">
         <div style="flex:1;text-align:left">
           <a href="BACKGROUND_REMOVER.md" target="_blank" style="font-size:.8rem;color:var(--blue);text-decoration:none;cursor:pointer">📖 Full Tutorial →</a>
         </div>
-        <button class="btn btn-ghost" onclick="closeApiKeyModal()">✕ Close</button>
+        <button class="btn btn-ghost" onclick="closeApiKeyModal()" title="Close modal">✕ Close</button>
         <button class="btn btn-orange" onclick="openAddKeyDialog()" id="openAddKeyBtn">➕ Add API Key</button>
       </div>
 
@@ -481,7 +479,7 @@
 
 <!-- ADD/EDIT API KEY MODAL -->
 <div class="modal-overlay" id="addKeyModal">
-  <div class="modal" style="max-width:500px;position:relative;">
+  <div class="modal">
     <button class="modal-close" onclick="closeAddKeyModal()">&times;</button>
     <h3>🔑 <span id="addKeyTitle">Add New API Key</span></h3>
     
@@ -495,13 +493,13 @@
     
     <div class="form-group">
       <label class="form-label">Key Nickname (Optional)</label>
-      <input type="text" id="keyNickname" class="form-input" placeholder="e.g., Gmail1, Work Account, Free Tier..." style="margin-bottom:8px">
+      <input type="text" id="keyNickname" class="form-input" placeholder="e.g., Gmail1, Work Account, Free Tier..." style="margin-bottom:8px;box-sizing:border-box">
       <div style="font-size:.75rem;color:var(--text)">Give this key a name to identify it easily</div>
     </div>
 
     <div class="form-group">
       <label class="form-label">🔐 API Key</label>
-      <input type="password" id="newKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="margin-bottom:6px">
+      <input type="password" id="newKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="margin-bottom:6px;box-sizing:border-box">
       <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--text)">
         <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text)">
           <input type="checkbox" id="showNewKey" onchange="toggleNewKeyVisibility()">
