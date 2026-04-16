@@ -58,7 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  registerServiceWorker();
 });
+
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service worker registered:', reg.scope))
+      .catch(err => console.warn('Service worker registration failed:', err));
+  }
+}
+
+window.addEventListener('online', () => showToast('Online: background removal is available.', 'success'));
+window.addEventListener('offline', () => showToast('Offline: background removal will not work.', 'warning'));
 
 // Setup active nav link
 function setActiveNav(page) {
