@@ -56,53 +56,6 @@ async function removeBg(imageBlob) {
   return await sendRemoveBgRequest(imageBlob, 'photo.png', 'auto');
 }
 
-function saveLastImageLocally(imageData) {
-  try {
-    localStorage.setItem('lastImage', imageData);
-  } catch (e) {
-    console.warn('Could not save last image locally:', e);
-  }
-}
-
-function loadLastImageFallback() {
-  const imageData = localStorage.getItem('lastImage');
-  if (!imageData) return false;
-
-  const img = new Image();
-  img.onload = () => {
-    const id = 'offline_' + Date.now();
-    toolState.images.push({
-      id,
-      src: imageData,
-      img,
-      file: null,
-      size: 'passport',
-      copies: 1,
-      brightness: 100,
-      contrast: 100,
-      rotation: 0,
-      processed: null,
-      cropX: 0,
-      cropY: 0,
-      cropScale: 1.0,
-      customWidth: 413,
-      customHeight: 531,
-    });
-    toolState.selectedImageId = id;
-    selectImage(id);
-    renderImagesList();
-    updateCapacityDisplay();
-    generatePreview();
-    showToast('Loaded last saved image from offline storage', 'success');
-  };
-  img.onerror = () => {
-    localStorage.removeItem('lastImage');
-    console.warn('Stored offline fallback image failed to load');
-  };
-  img.src = imageData;
-  return true;
-}
-
 /* ═══════════════════════════════════════════
    MULTIPLE API KEY MANAGEMENT
 ═══════════════════════════════════════════ */
@@ -467,7 +420,6 @@ function handleMultiImageUpload(e) {
           customWidth: 413,
           customHeight: 531,
         });
-        saveLastImageLocally(ev.target.result);
         
         // Auto-select first image only
         if (wasFirst) {
@@ -743,7 +695,7 @@ function removeImage(id) {
   } else {
     clearImagePreview();
   }
-  showToast('Image removed', '');
+  showToast('Image removed', 'success');
 }
 
 /* ═══════════════════════════════════════════
@@ -1055,7 +1007,6 @@ async function processImageWithRemoveBg(imgObj, callback, retryCount = 0) {
             // Store the transparent image directly, don't bake in the background color
             // This allows dynamic background color changes
             imgObj.processed = resultImg;
-            saveLastImageLocally(resultImg.src);
             callback(true);
           } catch (e) {
             console.error('Error processing PNG:', e);
@@ -2520,11 +2471,6 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // Initialize API keys and set current key
   initializeApiKeys();
-
-  // Load the last cached image for offline fallback if no images are present
-  if (toolState.images.length === 0) {
-    loadLastImageFallback();
-  }
 
   // Handle global size selector - applies to currently selected image
   const sizeSelect = document.getElementById('sizeSelect');

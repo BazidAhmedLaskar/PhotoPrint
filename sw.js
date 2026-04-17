@@ -1,10 +1,5 @@
-const CACHE_NAME = 'photo-tool-v1';
+const CACHE_NAME = 'photo-tool-v2';
 const OFFLINE_ASSETS = [
-  '/',
-  '/index.html',
-  '/tool.html',
-  '/contact.html',
-  '/updates.html',
   '/styles.css',
   '/shared.js',
   '/tool.js'
@@ -26,30 +21,33 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.destination === 'image') {
-    event.respondWith(
-      fetch(event.request).catch(() => null)
-    );
+  const request = event.request;
+
+  // Navigation requests: network only, no caching
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(fetch(request));
     return;
   }
 
+  // Images: network only, no offline support
+  if (request.destination === 'image') {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Other assets: cache first, then network
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
+    caches.match(request).then(cachedResponse => {
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      return fetch(event.request).then(networkResponse => {
-        if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
+      return fetch(request).then(networkResponse => {
+        if (request.method === 'GET' && request.url.startsWith(self.location.origin)) {
           const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
         }
         return networkResponse;
-      }).catch(() => {
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
-        }
-        return null;
       });
     })
   );
