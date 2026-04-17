@@ -36,9 +36,10 @@ function toggleNavMenu() {
   const navLinks = document.getElementById('navLinks');
   const toggle = document.getElementById('navMenuToggle');
   if (navLinks) {
-    navLinks.classList.toggle('active');
+    const isOpen = navLinks.classList.toggle('active');
     if (toggle) {
       toggle.classList.toggle('active');
+      toggle.textContent = isOpen ? '✕' : '☰';
     }
   }
 }
