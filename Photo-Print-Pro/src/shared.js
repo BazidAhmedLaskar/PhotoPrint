@@ -43,6 +43,7 @@ function toggleNavMenu() {
   const navLinks = document.getElementById('navLinks');
   const toggle = document.getElementById('navMenuToggle');
   navLinks.classList.toggle('active');
+  toggle.classList.toggle('active');
   toggle.textContent = navLinks.classList.contains('active') ? '✕' : '☰';
 }
 
@@ -54,7 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
       link.addEventListener('click', () => {
         navLinks.classList.remove('active');
         const toggle = document.getElementById('navMenuToggle');
-        if (toggle) toggle.textContent = '☰';
+        if (toggle) {
+          toggle.classList.remove('active');
+          toggle.textContent = '☰';
+        }
       });
     });
   }
