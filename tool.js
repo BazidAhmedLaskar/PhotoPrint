@@ -501,7 +501,7 @@ function renderImagesList() {
     
     item.innerHTML = `
       <img src="${imgObj.src}" alt="Photo ${idx + 1}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)">
-      <button class="image-tile-close" onclick="event.stopPropagation(); removeImage('${imgObj.id}')" style="pointer-events: auto;">✕</button>
+      <div class="image-tile-close" style="pointer-events: auto;" onclick="event.stopPropagation(); removeImage('${imgObj.id}')">✕</div>
       <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:white;font-size:.7rem;padding:4px;text-align:center;border-radius:0 0 calc(var(--r) - 2px) calc(var(--r) - 2px)">${imgObj.copies}× ${SIZES[imgObj.size].name}</div>
     `;
     
