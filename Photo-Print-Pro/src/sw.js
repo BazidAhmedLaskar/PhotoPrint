@@ -2,7 +2,7 @@ const CACHE_NAME = 'photo-tool-v1';
 const OFFLINE_ASSETS = [
   '/',
   '/index.html',
-  '/tool.html',
+  '/index.html',
   '/contact.html',
   '/updates.html',
   '/styles.css',

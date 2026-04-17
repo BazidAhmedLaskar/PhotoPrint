@@ -254,7 +254,7 @@
   <button id="navMenuToggle" class="nav-menu-toggle" onclick="toggleNavMenu()">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="index.html" class="nav-link" data-page="home">Home</a>
-    <a href="tool.html" class="nav-link" data-page="tool">Tool</a>
+    <a href="index.html" class="nav-link" data-page="tool">Tool</a>
     <a href="updates.html" class="nav-link active" data-page="updates">Updates</a>
     <a href="download.html" class="nav-link" data-page="download">Download</a>
     <a href="contact.html" class="nav-link" data-page="contact">Contact</a>
@@ -302,6 +302,13 @@
 <script>
 // Updates database
 const updates = [
+  {
+    date: new Date(2026, 3, 17, 4, 34), // April 17 4:34 AM
+    title: "💻 Windows Installer & Download Page",
+    description: "Launched Windows EXE installer (photo-tool_0.1.0_x64-setup.exe) and dedicated download page. Users can now install PhotoPrintPro directly on Windows 10/11.",
+    type: "feature",
+    tags: ["Desktop", "Windows", "Distribution"]
+  },
   {
     date: new Date(2026, 3, 16, 11, 30), // April 16 11:30 AM
     title: "🌐 Offline Mode & Service Worker",
