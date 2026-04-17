@@ -330,11 +330,16 @@
   <!-- CROP MODAL -->
   <div class="modal-overlay" id="cropModal">
     <div class="modal">
-      <h3>✂️ Crop & Frame Check</h3>
-      <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Position image in blue frame to show final result</p>
-      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0">✂️ Crop & Frame Check</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="closeCropModal()">Cancel</button>
+          <button class="btn btn-orange btn-sm" onclick="applyCrop()">✓ Save</button>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.82rem;margin:0 0 16px">Position image in blue frame to show final result</p>
       <!-- Image Navigation -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
         <button class="btn btn-ghost btn-sm" id="cropPrevBtn" onclick="prevCropImage()">← Prev</button>
         <span id="cropNavInfo" style="font-size:.8rem;color:var(--muted);font-weight:600">Image 1 of 1</span>
         <button class="btn btn-ghost btn-sm" id="cropNextBtn" onclick="nextCropImage()">Next →</button>
@@ -342,7 +347,7 @@
       
       <!-- Crop Options -->
       <div style="margin-bottom:16px;padding:12px;background:rgba(43,115,255,.05);border-radius:var(--r)">
-        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px">
           <label style="font-size:.85rem;color:var(--muted);min-width:120px">
             Ratio:
             <select id="cropRatioSelect" onchange="updateCropRatio(this.value)" style="margin-left:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text)">
@@ -356,7 +361,7 @@
             </select>
           </label>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <span style="font-size:.85rem;color:var(--muted)">🔍 Zoom:</span>
           <input type="range" id="cropZoom" min="50" max="300" value="100" style="flex:1;cursor:pointer" oninput="updateCropZoom(this.value)">
           <span id="cropZoomVal" style="font-size:.85rem;font-weight:600;min-width:40px">100%</span>
@@ -366,10 +371,6 @@
       
       <div class="crop-container" id="cropContainer">
         <canvas id="cropCanvas"></canvas>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
-        <button class="btn btn-orange" onclick="applyCrop()">✓ OK</button>
       </div>
     </div>
   </div>

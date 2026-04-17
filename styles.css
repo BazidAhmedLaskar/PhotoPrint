@@ -347,15 +347,17 @@ canvas#a4Canvas{display:block;image-rendering:auto}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;overflow:auto}
 .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:var(--rL);width:520px;max-width:100%;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.45);box-sizing:border-box;max-height:85vh;display:flex;flex-direction:column;overflow-y:auto}
-.modal > *:not(.modal-footer){padding:24px}
+.modal > *:not(.modal-footer):not(p){padding:24px}
 .modal > h3{padding:28px 24px 18px;margin:0;flex-shrink:0}
+.modal > p{padding:0}
 .modal.temp-modal{max-height:90vh}
 .modal-footer{flex-shrink:0;border-top:1px solid var(--border);padding:18px 24px;background:var(--card)}
 .modal-header{padding:24px;border-bottom:1px solid var(--border)}
 .modal-body{padding:24px}
 #apiKeyModal .modal{max-width:680px}
 #addKeyModal .modal{max-width:520px}
-#cropModal .modal{max-width:720px;max-height:85vh}
+#cropModal .modal{max-width:900px;max-height:90vh;padding:24px}
+#cropModal .crop-container{width:100%;min-height:500px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border-radius:16px;overflow:hidden;margin:20px 0}
 .crop-container{width:100%;min-height:420px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border-radius:16px;overflow:hidden;margin-bottom:12px}
 #cropCanvas{display:block;width:100%;max-width:100%;border-radius:14px;background:#0f162d;touch-action:none;cursor:grab;user-select:none}
 .modal h3{font-family:var(--font-h);font-size:1.25rem;margin-bottom:18px;padding-right:40px}
