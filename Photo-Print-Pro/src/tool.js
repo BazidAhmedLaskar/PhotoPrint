@@ -1799,26 +1799,59 @@ function doPrint() {
   }
 
   const dataURL = printCanvas.toDataURL('image/jpeg', 0.95);
-  const printWin = window.open('', '_blank', 'width=900,height=1000');
-  printWin.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>PhotoPrint Output - Print</title>
-      <style>
-        * { margin: 0; padding: 0; }
-        @page { margin: 0; size: A4 portrait; }
-        body { margin: 0; padding: 0; }
-        img { width: 210mm; height: 297mm; display: block; }
-      </style>
-    </head>
-    <body>
-      <img src="${dataURL}" alt="PhotoPrint Output" onload="window.print();setTimeout(()=>window.close(),500)">
-    </body>
-    </html>
-  `);
-  printWin.document.close();
-  showToast('✓ Print dialog opening...', 'success');
+  
+  // For desktop app (Tauri), use window.print() directly
+  // For web, open in new window first
+  if (isDesktopApp) {
+    // Desktop app - print directly
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>PhotoPrint Output - Print</title>
+        <style>
+          * { margin: 0; padding: 0; }
+          @page { margin: 0; size: A4 portrait; }
+          body { margin: 0; padding: 0; }
+          img { width: 210mm; height: 297mm; display: block; }
+        </style>
+      </head>
+      <body>
+        <img src="${dataURL}" alt="PhotoPrint Output">
+        <script>
+          window.print();
+        </script>
+      </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+    showToast('✓ Print dialog opening...', 'success');
+  } else {
+    // Web app - open in new window with auto-close
+    const printWin = window.open('', '_blank', 'width=900,height=1000');
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>PhotoPrint Output - Print</title>
+        <style>
+          * { margin: 0; padding: 0; }
+          @page { margin: 0; size: A4 portrait; }
+          body { margin: 0; padding: 0; }
+          img { width: 210mm; height: 297mm; display: block; }
+        </style>
+      </head>
+      <body>
+        <img src="${dataURL}" alt="PhotoPrint Output" onload="window.print();setTimeout(()=>window.close(),500)">
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+    showToast('✓ Print dialog opening...', 'success');
+  }
 }
 
 function openNewPage() {

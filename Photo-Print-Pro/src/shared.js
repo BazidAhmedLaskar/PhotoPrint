@@ -8,6 +8,31 @@ const CONFIG = {
 };
 
 /* ═══════════════════════════════════════════
+   ENVIRONMENT DETECTION
+═══════════════════════════════════════════ */
+const isDesktopApp = typeof window !== 'undefined' && (typeof __TAURI__ !== 'undefined' || window.__TAURI__ !== undefined || navigator.userAgent.includes('Tauri'));
+
+// Hide "New Page" and "Download" buttons for desktop app
+document.addEventListener('DOMContentLoaded', () => {
+  if (isDesktopApp) {
+    console.log('🖥️ Running as Tauri Desktop App');
+    const newPageBtn = document.getElementById('newPageBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    if (newPageBtn) {
+      newPageBtn.style.display = 'none';
+      newPageBtn.disabled = true;
+    }
+    if (downloadBtn) {
+      downloadBtn.style.display = 'none';
+      downloadBtn.disabled = true;
+    }
+  } else {
+    console.log('🌐 Running as Web Browser App');
+  }
+});
+
+/* ═══════════════════════════════════════════
    PHOTO SIZES (in mm)
 ═══════════════════════════════════════════ */
 const SIZES = {
