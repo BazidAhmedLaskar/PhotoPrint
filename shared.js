@@ -62,11 +62,37 @@ document.addEventListener('DOMContentLoaded', () => {
   registerServiceWorker();
 });
 
+let swRefreshing = false;
+
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service worker registered:', reg.scope))
+      .then(reg => {
+        console.log('Service worker registered:', reg.scope);
+
+        if (reg.waiting) {
+          showToast('New version available. Reloading now...', 'success');
+          window.location.reload();
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('Website update installed. Reloading now...', 'success');
+            }
+          });
+        });
+      })
       .catch(err => console.warn('Service worker registration failed:', err));
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (swRefreshing) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
   }
 }
 
