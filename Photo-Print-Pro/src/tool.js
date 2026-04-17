@@ -1747,7 +1747,7 @@ function doPrint() {
   const a4W = Math.round(A4.w * MM2PX);
   const a4H = Math.round(A4.h * MM2PX);
   const margin = Math.round(5 * MM2PX);
-  const gap = Math.round(2 * MM2PX); // 2mm gap between images
+  const gap = Math.round(2 * MM2PX);
 
   const printCanvas = document.createElement('canvas');
   printCanvas.width = a4W;
@@ -1756,9 +1756,8 @@ function doPrint() {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, a4W, a4H);
 
-  // Layout images on A4
-  let currentX = margin; // Start from left with margin
-  let currentY = margin; // Start from top with margin
+  let currentX = margin;
+  let currentY = margin;
   let rowHeight = 0;
   let totalCount = 0;
 
@@ -1768,90 +1767,52 @@ function doPrint() {
     const photoW = Math.round(size.w * MM2PX);
     const photoH = Math.round(size.h * MM2PX);
 
-    // Draw copies of this image
     for (let copy = 0; copy < imgObj.copies; copy++) {
       if (currentX + photoW > a4W - margin) {
-        // Move to next row
         currentX = margin;
         currentY += rowHeight + gap;
         rowHeight = 0;
       }
 
       if (currentY + photoH > a4H - margin) {
-        // Out of space on A4
         break;
       }
 
       const srcCanvas = getImageCanvas(imgObj);
       ctx.drawImage(srcCanvas, currentX, currentY, photoW, photoH);
       
-      // Draw border if any - scale thickness for 300 DPI print vs 96 DPI preview
       if (toolState.borderThickness > 0) {
         const scaledThickness = Math.max(1, Math.round(toolState.borderThickness * (300 / 96)));
         drawBorder(ctx, currentX, currentY, photoW, photoH, scaledThickness, toolState.borderColor);
       }
       
       totalCount++;
-
       currentX += photoW + gap;
       rowHeight = Math.max(rowHeight, photoH);
     }
   }
 
   const dataURL = printCanvas.toDataURL('image/jpeg', 0.95);
-  
-  // For desktop app (Tauri), use window.print() directly
-  // For web, open in new window first
-  if (isDesktopApp) {
-    // Desktop app - print directly
-    const printHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>PhotoPrint Output - Print</title>
-        <style>
-          * { margin: 0; padding: 0; }
-          @page { margin: 0; size: A4 portrait; }
-          body { margin: 0; padding: 0; }
-          img { width: 210mm; height: 297mm; display: block; }
-        </style>
-      </head>
-      <body>
-        <img src="${dataURL}" alt="PhotoPrint Output">
-        <script>
-          window.print();
-        </script>
-      </body>
-      </html>
-    `;
-    
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    showToast('✓ Print dialog opening...', 'success');
-  } else {
-    // Web app - open in new window with auto-close
-    const printWin = window.open('', '_blank', 'width=900,height=1000');
-    printWin.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>PhotoPrint Output - Print</title>
-        <style>
-          * { margin: 0; padding: 0; }
-          @page { margin: 0; size: A4 portrait; }
-          body { margin: 0; padding: 0; }
-          img { width: 210mm; height: 297mm; display: block; }
-        </style>
-      </head>
-      <body>
-        <img src="${dataURL}" alt="PhotoPrint Output" onload="window.print();setTimeout(()=>window.close(),500)">
-      </body>
-      </html>
-    `);
-    printWin.document.close();
-    showToast('✓ Print dialog opening...', 'success');
-  }
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>PhotoPrint Output - Print</title>
+      <style>
+        * { margin: 0; padding: 0; }
+        @page { margin: 0; size: A4 portrait; }
+        body { margin: 0; padding: 0; }
+        img { width: 210mm; height: 297mm; display: block; }
+      </style>
+    </head>
+    <body>
+      <img src="${dataURL}" alt="PhotoPrint Output" onload="window.print();setTimeout(()=>window.close(),500)">
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+  showToast('✓ Print dialog opening...', 'success');
 }
 
 function openNewPage() {
