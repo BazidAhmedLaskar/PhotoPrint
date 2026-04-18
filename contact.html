@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.json">
 </head>
 <body>
 
@@ -26,6 +27,9 @@
     <a href="updates.html" class="nav-link nav-link-hide" data-page="updates">Updates</a>
     <a href="download.html" class="nav-link nav-link-hide" data-page="download">Download</a>
     <a href="contact.html" class="nav-link active nav-link-hide" data-page="contact">Contact</a>
+    <button id="installButton" class="nav-link nav-link-install" onclick="handleInstallClick()" style="display:none;">
+      <span>📲 Install App</span>
+    </button>
   </div>
 
 </nav>

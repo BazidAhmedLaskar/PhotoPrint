@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let swRefreshing = false;
+let deferredPrompt = null;
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -98,6 +99,50 @@ function registerServiceWorker() {
       window.location.reload();
     });
   }
+}
+
+/* ═══════════════════════════════════════════
+   INSTALL BUTTON (PWA SUPPORT)
+═══════════════════════════════════════════ */
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton();
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('App installed successfully');
+  deferredPrompt = null;
+  hideInstallButton();
+});
+
+function showInstallButton() {
+  const button = document.getElementById('installButton');
+  if (button) {
+    button.style.display = 'flex';
+  }
+}
+
+function hideInstallButton() {
+  const button = document.getElementById('installButton');
+  if (button) {
+    button.style.display = 'none';
+  }
+}
+
+async function handleInstallClick() {
+  if (!deferredPrompt) return;
+  
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  
+  if (outcome === 'accepted') {
+    showToast('App installed successfully!', 'success');
+  }
+  
+  deferredPrompt = null;
+  hideInstallButton();
 }
 
 window.addEventListener('online', () => showToast('Online: background removal is available.', 'success'));

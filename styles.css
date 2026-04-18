@@ -116,6 +116,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88)
 .nav-link.active{color:var(--text);background:var(--card)}
 .nav-cta{background:var(--blue);color:#fff!important;padding:7px 18px!important;border-radius:6px!important;font-weight:600!important;transition:.2s!important;border:none!important}
 .nav-cta:hover{background:var(--blue-dim)!important}
+.nav-link-install{background:var(--orange);color:#fff!important;padding:7px 18px!important;border-radius:6px!important;font-weight:600!important;transition:.2s!important;border:none!important;display:flex!important;align-items:center;gap:6px}
+.nav-link-install:hover{background:#e85a00!important;transform:scale(1.05)}
+.nav-link-install span{display:flex;align-items:center;gap:6px}
 
 .nav-menu-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;padding:6px 12px;align-items:center;justify-content:center}
 .nav-menu-toggle:active{transform:scale(.95)}
@@ -135,6 +138,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88)
   .nav-links.active .nav-link:nth-child(5){animation-delay:.25s}
   .nav-link:hover{background:rgba(43,115,255,.1)}
   .nav-links.active .nav-link-hide{display:block}
+  .nav-link-install{width:100%;justify-content:center;border-radius:0;background:var(--orange)!important;padding:16px 24px!important;border-bottom:1px solid var(--border)}
+  .nav-link-install:hover{background:var(--orange)!important;transform:none}
   .nav-cta{border-bottom:none!important}
 }
 
