@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="128x128.png" type="image/png">
+  <link rel="shortcut icon" href="128x128.png" type="image/png">
+  <link rel="apple-touch-icon" href="256x256.png">
 </head>
 <body>
 
@@ -54,11 +57,11 @@
           <li style="margin-bottom: 0.8rem;"><span style="font-size: 1.2rem;">🖨️</span> Ready to Print</li>
         </ul>
         <div style="margin-top: 2rem;">
-          <a href="tool.html" class="btn btn-orange btn-lg" style="background: white; color: #ff6b00; border: none; display: inline-block; padding: 12px 32px; border-radius: 8px; font-weight: 600; text-decoration: none; cursor: pointer;">⬇️ Download App Now</a>
+          <button id="installAppBtn" class="btn btn-orange btn-lg" style="background: white; color: #ff6b00; border: none; display: inline-block; padding: 12px 32px; border-radius: 8px; font-weight: 600; cursor: pointer;">⬇️ Download App Now</button>
         </div>
       </div>
       <div style="text-align: center;">
-        <img src="GooglePlayStore.png" alt="PhotoPrintPro" style="width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 3px solid white;">
+        <img src="Screenshot (5).png" alt="PhotoPrintPro Tool Demo" style="width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 3px solid white;">
       </div>
     </div>
 
@@ -85,6 +88,30 @@
   </div>
 </footer>
 
+<script>
+/* PWA Install Handler */
+let deferredPrompt;
+const installBtn = document.getElementById('installAppBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'inline-block';
+});
+
+installBtn.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response: ${outcome}`);
+    deferredPrompt = null;
+    installBtn.textContent = '✅ App Installed!';
+    setTimeout(() => {
+      installBtn.textContent = '⬇️ Download App Now';
+    }, 3000);
+  }
+});
+</script>
 <script src="shared.js"></script>
 </body>
 </html>
