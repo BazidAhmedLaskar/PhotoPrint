@@ -80,8 +80,7 @@ function registerServiceWorker() {
         console.log('Service worker registered:', reg.scope);
 
         if (reg.waiting) {
-          showToast('New version available. Reloading now...', 'success');
-          window.location.reload();
+          showToast('✨ App update ready! Refresh to see changes.', 'success');
         }
 
         reg.addEventListener('updatefound', () => {
@@ -90,12 +89,19 @@ function registerServiceWorker() {
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showToast('Website update installed. Reloading now...', 'success');
+              showToast('✨ App update available. Refresh to get it!', 'success');
             }
           });
         });
       })
       .catch(err => console.warn('Service worker registration failed:', err));
+
+    // Listen for messages from service worker
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data.type === 'CACHE_UPDATED') {
+        console.log('Cache updated:', event.data.message);
+      }
+    });
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (swRefreshing) return;

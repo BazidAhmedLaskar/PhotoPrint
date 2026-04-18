@@ -1,8 +1,10 @@
 /* ════════════════════════════════════════════
-   SERVICE WORKER - Offline Support
+   SERVICE WORKER - Offline Support with Auto-Update
 ════════════════════════════════════════════ */
 
-const CACHE_NAME = 'photoprintpro-v1';
+// VERSION: Bump this number when you want to force update all cached pages
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `photoprintpro-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',
   '/index.html',
@@ -37,7 +39,7 @@ self.addEventListener('install', (event) => {
 });
 
 /* ════════════════════════════════════════════
-   ACTIVATE EVENT - Clean old caches
+   ACTIVATE EVENT - Clean old caches and notify clients
 ════════════════════════════════════════════ */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -45,6 +47,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -52,23 +55,32 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+  // Notify all clients that new version is available
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'CACHE_UPDATED',
+        message: 'New version available! Refresh the page to get updates.'
+      });
+    });
+  });
 });
 
 /* ════════════════════════════════════════════
-   FETCH EVENT - Serve from cache when offline
+   FETCH EVENT - Network-first for HTML, Cache-first for assets
 ════════════════════════════════════════════ */
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests and API calls
+  // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
-  // Network-first for API endpoints
-  if (event.request.url.includes('/api/') || event.request.method !== 'GET') {
+  // Non-GET requests - always try network
+  if (event.request.method !== 'GET') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (!response || response.status !== 200 || response.type === 'error') {
+          if (!response || response.status !== 200) {
             return response;
           }
           const responseToCache = response.clone();
@@ -77,14 +89,44 @@ self.addEventListener('fetch', (event) => {
           });
           return response;
         })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // NETWORK-FIRST for HTML pages (always get fresh content when online)
+  const isHtmlRequest = event.request.url.endsWith('.html') || 
+                        event.request.url.endsWith('/') ||
+                        event.request.url.endsWith('/index.html') ||
+                        event.request.url.endsWith('/tool.html') ||
+                        event.request.url.endsWith('/download.html') ||
+                        event.request.url.endsWith('/contact.html') ||
+                        event.request.url.endsWith('/updates.html');
+
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (!response || response.status !== 200) {
+            return response;
+          }
+          // Update cache with new version
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
         .catch(() => {
-          return caches.match(event.request);
+          // Fall back to cached version if offline
+          return caches.match(event.request) || 
+                 caches.match('/index.html');
         })
     );
     return;
   }
 
-  // Cache-first for static assets (CSS, JS, images, HTML)
+  // CACHE-FIRST for static assets (CSS, JS, images, manifest)
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -105,7 +147,6 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Fall back to cached version if available
           return caches.match(event.request);
         });
     })
