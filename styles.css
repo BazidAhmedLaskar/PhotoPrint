@@ -6,8 +6,8 @@
   --surface:  #0D1526;
   --card:     #131D36;
   --border:   #1E2B4A;
-  --blue:     #2B73FF;
-  --blue-dim: #1A4DB3;
+  --blue:     #87CEEB;
+  --blue-dim: #5BA7D4;
   --orange:   #FF5B1F;
   --orange-dim:#C43D0E;
   --green:    #00C98B;
@@ -104,8 +104,9 @@ img{max-width:100%}
 /* ═══════════════════════════════════════════
    NAV
 ═══════════════════════════════════════════ */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);height:60px;display:flex;align-items:center;padding:0 24px;gap:0}
-.nav-logo{font-family:var(--font-h);font-weight:800;font-size:1.15rem;color:var(--text);margin-right:auto;display:flex;align-items:center;gap:8px;cursor:pointer}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);height:70px;display:flex;align-items:center;padding:0 24px;gap:0}
+.nav-logo{font-family:var(--font-h);font-weight:800;font-size:1.4rem;color:var(--text);margin-right:auto;display:flex;align-items:center;gap:12px;cursor:pointer}
+.nav-logo img{height:48px;width:48px;border-radius:8px}
 .nav-logo span{color:var(--blue)}
 .nav-badge{background:var(--orange);color:#fff;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase}
 .nav-links{display:flex;align-items:center;gap:4px}
