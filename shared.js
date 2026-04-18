@@ -63,6 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Check if offline on initial load
+  if (!navigator.onLine) {
+    showToast('📵 You are offline - using cached content', 'warning');
+  }
+
   registerServiceWorker();
 });
 
