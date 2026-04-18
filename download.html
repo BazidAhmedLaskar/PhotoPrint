@@ -14,6 +14,217 @@
   <link rel="icon" href="128x128.png" type="image/png">
   <link rel="shortcut icon" href="128x128.png" type="image/png">
   <link rel="apple-touch-icon" href="256x256.png">
+  
+  <style>
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    .section-heading {
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .app-overview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      margin: 3rem 0;
+      padding: 2rem;
+      background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+      border-radius: 16px;
+      color: white;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .app-overview-text {
+      animation: slideInLeft 0.8s ease-out 0.3s both;
+    }
+
+    .app-overview-image {
+      animation: slideInRight 0.8s ease-out 0.3s both;
+    }
+
+    .app-overview-image img {
+      transition: transform 0.3s ease;
+    }
+
+    .app-overview-image img:hover {
+      transform: scale(1.03);
+    }
+
+    .feature-grid {
+      animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .feature-card {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: fadeInUp 0.6s ease-out backwards;
+    }
+
+    .feature-card:nth-child(1) {
+      animation-delay: 0.5s;
+    }
+
+    .feature-card:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .feature-card:nth-child(3) {
+      animation-delay: 0.7s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(255, 107, 0, 0.2);
+    }
+
+    #installAppBtn {
+      animation: pulse 2s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+
+    #installAppBtn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #installAppBtn:active {
+      transform: scale(0.98);
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1024px) {
+      .app-overview {
+        gap: 2rem;
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-overview {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 1.5rem;
+      }
+
+      .app-overview-text h2 {
+        font-size: 1.4rem !important;
+      }
+
+      .app-overview-text p {
+        font-size: 0.95rem !important;
+      }
+
+      .app-overview-image {
+        text-align: center;
+        order: -1; /* Show image first on mobile */
+      }
+
+      .app-overview-image img {
+        max-width: 300px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-overview {
+        padding: 1rem;
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+      }
+
+      .app-overview-text h2 {
+        font-size: 1.2rem !important;
+      }
+
+      .app-overview-text h3 {
+        font-size: 1rem !important;
+        margin-bottom: 0.8rem !important;
+      }
+
+      .app-overview-text ul li {
+        font-size: 0.85rem !important;
+      }
+
+      .app-overview-text p {
+        font-size: 0.9rem !important;
+        margin-bottom: 1.5rem !important;
+        line-height: 1.5 !important;
+      }
+
+      #installAppBtn {
+        padding: 10px 24px !important;
+        font-size: 0.9rem !important;
+      }
+
+      .app-overview-image img {
+        max-width: 250px;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -43,8 +254,8 @@
     </div>
 
     <!-- App Overview Section -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; margin: 3rem 0; padding: 2rem; background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%); border-radius: 16px; color: white;">
-      <div>
+    <div class="app-overview">
+      <div class="app-overview-text">
         <h2 style="color: white; font-size: 1.8rem; margin-bottom: 1.5rem;">✨ What is PhotoPrintPro?</h2>
         <p style="color: rgba(255,255,255,0.95); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.6;">PhotoPrintPro is your all-in-one passport photo creation tool. Upload any photo, remove the background, resize it perfectly to passport specifications, arrange multiple copies on an A4 sheet, and print professional-quality passport photos instantly.</p>
         
@@ -60,7 +271,7 @@
           <button id="installAppBtn" class="btn btn-orange btn-lg" style="background: white; color: #ff6b00; border: none; display: inline-block; padding: 12px 32px; border-radius: 8px; font-weight: 600; cursor: pointer;">⬇️ Download App Now</button>
         </div>
       </div>
-      <div style="text-align: center;">
+      <div class="app-overview-image" style="text-align: center;">
         <img src="Screenshot (5).png" alt="PhotoPrintPro Tool Demo" style="width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 3px solid white;">
       </div>
     </div>
