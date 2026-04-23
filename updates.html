@@ -31,13 +31,17 @@
   <meta property="og:description" content="Latest updates and new features for PhotoPrint Wala passport photo maker.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://photoprintwala.netlify.app/updates.html">
-  <meta property="og:image" content="https://photoprintwala.netlify.app/Screenshot%20(5).png">
+  <meta property="og:image" content="https://photoprintwala.netlify.app/share-image.png">
+  <meta property="og:image:secure_url" content="https://photoprintwala.netlify.app/share-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <!-- TWITTER -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PhotoPrint Wala — Latest Updates">
   <meta name="twitter:description" content="Stay updated with PhotoPrint Wala new features and improvements.">
-  <meta name="twitter:image" content="https://photoprintwala.netlify.app/Screenshot%20(5).png">
+  <meta name="twitter:image" content="https://photoprintwala.netlify.app/share-image.png">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
@@ -340,6 +344,18 @@
 <script>
 // Updates database
 const updates = [
+  {    date: new Date(2026, 3, 23, 11, 30), // April 23 11:30 AM
+    title: "🔗 Link Update",
+    description: "Changed the link from https://photoprintpro.netlify.app/ to https://photoprintwala.netlify.app/.",
+    type: "improvement",
+    tags: ["Domain", "Links", "SEO"]
+  },
+  {    date: new Date(2026, 3, 23, 12, 20), // April 23 12:20 PM
+    title: "🔄 Cache Version Updated to v2",
+    description: "Updated the service worker cache version to v2 and cleared the old cache so returning users receive the latest site files immediately.",
+    type: "bugfix",
+    tags: ["PWA", "Cache", "Service Worker"]
+  },
   {
     date: new Date(2026, 3, 18, 10, 0), // April 18 10:00 AM
     title: "🚀 Web App Installation - EXE Removed",

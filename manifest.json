@@ -43,13 +43,13 @@
   ],
   "screenshots": [
     {
-      "src": "Screenshot (5).png",
+      "src": "share-image.png",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "Screenshot (5).png",
+      "src": "share-image.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
