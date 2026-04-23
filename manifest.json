@@ -1,6 +1,6 @@
 {
-  "name": "PhotoPrint Pro - Passport Photo Maker",
-  "short_name": "PhotoPrint Pro",
+  "name": "PhotoPrint Wala - Passport Photo Maker",
+  "short_name": "PhotoPrint Wala",
   "description": "Free passport photo maker with auto background removal. Create, edit, and print passport photos instantly.",
   "start_url": "/tool.html",
   "scope": "/",

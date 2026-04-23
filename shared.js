@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════ */
 const CONFIG = {
   whatsapp: '918471960713',
-  shopName: 'PhotoPrint Pro',
+  shopName: 'PhotoPrint Wala',
   starterPrintLimit: 10,
 };
 

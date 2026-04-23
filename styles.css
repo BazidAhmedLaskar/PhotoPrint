@@ -125,6 +125,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,23,.88)
 .nav-menu-toggle:active{transform:scale(.95)}
 
 @media(max-width:900px){
+  nav{gap:8px}
+  .nav-logo{max-width:calc(100% - 60px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
   .nav-menu-toggle{display:flex;transition:.3s ease;animation: none;}
   .nav-menu-toggle.active{animation: hamburgerRotate .4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards}
   .nav-menu-toggle:hover{color:var(--blue)}

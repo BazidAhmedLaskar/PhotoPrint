@@ -1,4 +1,4 @@
-# PhotoPrint Pro
+# PhotoPrint Wala
 
 A fast passport photo tool for Indian photo shops. Create, edit, and print passport photos in seconds.
 
