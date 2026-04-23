@@ -295,7 +295,7 @@
   <button id="navMenuToggle" class="nav-menu-toggle" onclick="toggleNavMenu()">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="index.html" class="nav-link" data-page="home">Home</a>
-    <a href="tool.html" class="nav-link" data-page="tool">Tool</a>
+    <a href="tools.html" class="nav-link" data-page="tools">Tools</a>
     <a href="updates.html" class="nav-link active" data-page="updates">Updates</a>
     <a href="download.html" class="nav-link" data-page="download">Download</a>
     <a href="contact.html" class="nav-link" data-page="contact">Contact</a>
@@ -344,6 +344,13 @@
 <script>
 // Updates database
 const updates = [
+  {
+    date: new Date(2026, 3, 23, 13, 0), // April 23 1:00 PM
+    title: "🛠️ Tool Expansion Plan",
+    description: "Planning to add more tools like image resizer. Will create a main tools page to list all available tools, with dedicated single tool pages for each. The main passport photo tool page will remain unchanged.",
+    type: "feature",
+    tags: ["Tools", "Features", "Roadmap"]
+  },
   {    date: new Date(2026, 3, 23, 11, 30), // April 23 11:30 AM
     title: "🔗 Link Update",
     description: "Changed the link from https://photoprintpro.netlify.app/ to https://photoprintwala.netlify.app/.",
