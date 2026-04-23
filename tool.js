@@ -48,6 +48,34 @@ function isOnline() {
   return navigator.onLine;
 }
 
+let toastProgressInterval = null;
+function startProgressToast(baseMessage) {
+  stopProgressToast();
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  let dots = 0;
+  const updateToast = () => {
+    dots = (dots + 1) % 4;
+    const suffix = '.'.repeat(dots);
+    toast.textContent = `${baseMessage}${suffix}`;
+  };
+  toast.style.display = 'block';
+  toast.className = 'toast info show';
+  updateToast();
+  clearTimeout(toastTimer);
+  toastProgressInterval = setInterval(updateToast, 500);
+}
+function stopProgressToast() {
+  const toast = document.getElementById('toast');
+  if (toastProgressInterval) {
+    clearInterval(toastProgressInterval);
+    toastProgressInterval = null;
+  }
+  if (toast) {
+    toast.classList.remove('show');
+  }
+}
+
 async function removeBg(imageBlob) {
   if (!isOnline()) {
     alert('No internet. Background removal not available.');
@@ -801,6 +829,8 @@ function removeBackground() {
   btn.textContent = '⏳ Processing...';
   btn.disabled = true;
   restoreBtn.disabled = true;
+  showToast('⏳ Processing...', 'info');
+  startProgressToast('⏳ Processing');
 
   let processed = 0;
   let failed = 0;
@@ -813,6 +843,7 @@ function removeBackground() {
       document.getElementById('previewInfo').textContent = `⏳ Processing ${processed}/${toolState.images.length}...`;
       
       if (processed === toolState.images.length) {
+        stopProgressToast();
         btn.textContent = '✂️ Remove Background';
         btn.disabled = false;
         
@@ -2636,7 +2667,24 @@ function showApiKeyRequiredModal() {
           </ol>
         </div>
 
-        <div class="tutorial-section" id="tempApiTutorialSection"></div>
+        <div class="tutorial-section" id="tempApiTutorialSection">
+          <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
+            <div style="font-weight:600;margin-bottom:8px">📘 Quick Tutorial</div>
+            <div style="font-size:.85rem;color:var(--muted);line-height:1.5">
+              1. Visit <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);text-decoration:underline">remove.bg/api</a> and sign up for a free account.<br>
+              2. Open your account settings and copy the API key.<br>
+              3. Paste the API key here and click Save & Continue.<br>
+              4. Each key gives 50 free removals/month.
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,.05);border:1px solid rgba(0,0,0,.08);border-radius:var(--r);padding:12px;">
+            <div style="font-weight:600;margin-bottom:8px">📹 Watch the Video Tutorial</div>
+            <div style="text-align:center">
+              <a href="https://www.youtube.com/watch?v=xKuHtvUFxqI" target="_blank" style="color:var(--blue);text-decoration:underline;font-size:.9rem">Click here to watch the tutorial video →</a>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Opens in new tab</div>
+            </div>
+          </div>
+        </div>
 
         <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)">Your API Key:</label>
         <input type="password" id="tempApiKeyInput" class="form-input" placeholder="Paste your remove.bg API key here" style="width:100%;margin-bottom:12px;font-family:monospace;font-size:.8rem">

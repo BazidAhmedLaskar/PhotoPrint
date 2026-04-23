@@ -76,6 +76,8 @@
     .image-slot{aspect-ratio:1;border:2px dashed var(--border);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--surface);transition:.2s;position:relative;overflow:hidden}
     .image-slot:hover{border-color:var(--blue);background:rgba(43,115,255,.05)}
     .image-slot img{width:100%;height:100%;object-fit:cover;border-radius:calc(var(--r) - 2px)}
+    .image-slot.selected{background:rgba(43,115,255,.15);border-color:var(--blue)}
+    .image-slot.selected img{border:2px solid var(--blue)}
     .image-slot-remove{position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;cursor:pointer;opacity:.7;transition:.2s;z-index:10}
     .image-slot:hover .image-slot-remove{opacity:1;transform:scale(1.1)}
     .preset-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px}
@@ -83,7 +85,7 @@
     .preset-btn:hover{background:var(--border);color:var(--text)}
     .preset-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
     .resize-preview{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin:12px 0;overflow:hidden;min-height:300px}
-    .resize-preview img{max-width:100%;max-height:100%;object-fit:contain}
+    .resize-preview img{max-width:100%;max-height:90%;object-fit:contain}
     .resize-info{background:rgba(43,115,255,.05);padding:12px;border-radius:var(--r);border:1px solid rgba(43,115,255,.2);font-size:.8rem;color:var(--text)}
   </style>
 </head>
@@ -116,7 +118,7 @@
       <!-- STEP 1: ADD IMAGES -->
       <div class="panel-section">
         <div class="panel-label">📸 Step 1: Add Images</div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="document.getElementById('imageInput').click()">➕ Add Images</button>
+        <label for="imageInput" class="btn btn-primary" style="width:100%;margin-bottom:8px;cursor:pointer;display:block;text-align:center">➕ Add Images</label>
         <input type="file" id="imageInput" accept="image/*" multiple style="display:none" onchange="handleImageUpload(event)">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;border:1px solid var(--border);border-radius:var(--r);padding:12px;max-height:250px;overflow-y:auto" id="imagesList"></div>
         <div id="imageCount" style="font-size:.75rem;color:var(--muted);margin-top:8px">0 images added</div>
@@ -130,20 +132,30 @@
         <div style="margin-bottom:12px">
           <div style="font-size:.85rem;color:var(--muted);margin-bottom:6px">Popular Sizes</div>
           <div class="preset-buttons">
-            <button class="preset-btn" onclick="applyPreset('instagram')">Instagram</button>
-            <button class="preset-btn" onclick="applyPreset('facebook')">Facebook</button>
-            <button class="preset-btn" onclick="applyPreset('twitter')">Twitter</button>
-            <button class="preset-btn" onclick="applyPreset('linkedin')">LinkedIn</button>
-            <button class="preset-btn" onclick="applyPreset('thumbnail')">Thumbnail</button>
-            <button class="preset-btn" onclick="applyPreset('web')">Web</button>
-            <button class="preset-btn" onclick="applyPreset('hd')">HD</button>
-            <button class="preset-btn" onclick="applyPreset('mobile')">Mobile</button>
+            <button class="preset-btn" onclick="applyPreset('instagram', this)">Instagram</button>
+            <button class="preset-btn" onclick="applyPreset('facebook', this)">Facebook</button>
+            <button class="preset-btn" onclick="applyPreset('twitter', this)">Twitter</button>
+            <button class="preset-btn" onclick="applyPreset('linkedin', this)">LinkedIn</button>
+            <button class="preset-btn" onclick="applyPreset('thumbnail', this)">Thumbnail</button>
+            <button class="preset-btn" onclick="applyPreset('web', this)">Web</button>
+            <button class="preset-btn" onclick="applyPreset('hd', this)">HD</button>
+            <button class="preset-btn" onclick="applyPreset('mobile', this)">Mobile</button>
+          </div>
+        </div>
+
+        <!-- File Size Reducer -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:.85rem;color:var(--muted);margin-bottom:6px">📦 Reduce to Size</div>
+          <div class="preset-buttons">
+            <button class="preset-btn" onclick="reduceToSize(10240)">10KB</button>
+            <button class="preset-btn" onclick="reduceToSize(102400)">100KB</button>
+            <button class="preset-btn" onclick="reduceToSize(1048576)">1MB</button>
           </div>
         </div>
 
         <!-- Custom Dimensions -->
         <div style="margin-bottom:12px;padding:12px;background:rgba(43,115,255,.05);border-radius:var(--r);border:1px solid rgba(43,115,255,.2)">
-          <div style="font-size:.85rem;color:var(--muted);margin-bottom:8px">Custom Size</div>
+          <div style="font-size:.85rem;color:var(--muted);margin-bottom:8px">Dimensions</div>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
             <input type="number" id="customWidth" min="1" max="5000" value="800" class="form-input" style="flex:1;font-size:.8rem" placeholder="Width">
             <span style="color:var(--muted)">×</span>
@@ -153,6 +165,16 @@
             <input type="checkbox" id="maintainRatio" checked>
             Keep aspect ratio
           </label>
+
+          <div style="font-size:.85rem;color:var(--muted);margin:12px 0 8px 0">Target Size</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="customSizeValue" min="1" max="2000" value="500" class="form-input" style="flex:1;font-size:.8rem" placeholder="Size">
+            <select id="customSizeUnit" class="form-input" style="flex:0.8;font-size:.8rem;padding:4px">
+              <option value="kb">KB</option>
+              <option value="mb">MB</option>
+            </select>
+            <button class="preset-btn" style="flex:0.6;padding:4px 6px" onclick="applyCustomSize()">Apply</button>
+          </div>
         </div>
 
         <!-- Output Format -->
@@ -200,24 +222,57 @@
           </div>
           <img id="previewImage" style="display:none" alt="Preview">
         </div>
+        <div id="resizeInfo" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+          <div class="resize-info">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Original Size</div>
+            <div id="originalSize" style="font-weight:600;color:var(--blue)">-</div>
+          </div>
+          <div class="resize-info">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">New Size</div>
+            <div id="newSize" style="font-weight:600;color:var(--blue)">-</div>
+          </div>
+          <div class="resize-info">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Format</div>
+            <div id="formatLabel" style="font-weight:600;color:var(--orange)">-</div>
+          </div>
+          <div class="resize-info">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Quality</div>
+            <div id="qualityInfo" style="font-weight:600;color:var(--orange)">-</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Toast Container -->
+<div class="toast" id="toast"></div>
+
+<style>
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 20px;font-size:.875rem;font-weight:500;z-index:9999;transition:.3s;white-space:nowrap;box-shadow:var(--shadow)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:#FF5050;color:#FF5050}
+.toast.warning{border-color:#ff9800;color:#ff9800}
+.toast.info{border-color:#2196F3;color:#2196F3}
+</style>
+
 <script src="shared.js"></script>
 <script>
 let images=[],selectedId=null;const PRESETS={instagram:{w:1080,h:1080},facebook:{w:1200,h:628},twitter:{w:1024,h:512},linkedin:{w:1200,h:627},thumbnail:{w:320,h:240},web:{w:800,h:600},hd:{w:1920,h:1080},mobile:{w:540,h:960}};
-function handleImageUpload(e){for(let file of e.target.files){if(!file.type.startsWith('image/'))continue;const r=new FileReader();r.onload=evt=>{const img=new Image();img.onload=()=>{const id=Date.now()+Math.random();images.push({id,name:file.name,src:evt.target.result,w:img.width,h:img.height});renderList()};img.src=evt.target.result};r.readAsDataURL(file)}e.target.value=''}
-function renderList(){const l=document.getElementById('imagesList');l.innerHTML=images.map(img=>`<div class="image-slot" onclick="selectImage('${img.id}')"><img src="${img.src}"><div class="image-slot-remove" onclick="event.stopPropagation();removeImage('${img.id}')">✕</div></div>`).join('');document.getElementById('imageCount').textContent=`${images.length} image${images.length!==1?'s':''}`}
+function formatFileSize(bytes){if(bytes<1024)return bytes+'B';if(bytes<1024*1024)return(bytes/1024).toFixed(1)+'KB';return(bytes/(1024*1024)).toFixed(1)+'MB'}
+function handleImageUpload(e){let validFiles=0;for(let file of e.target.files){if(!file.type.startsWith('image/'))continue;validFiles++;const r=new FileReader();r.onload=evt=>{const img=new Image();img.onload=()=>{const id=Date.now()+Math.random();images.push({id,name:file.name,src:evt.target.result,w:img.width,h:img.height,size:file.size});renderList();if(!selectedId&&images.length>0){selectImage(images[0].id)}if(images.length===validFiles){showToast(`Added ${validFiles} image${validFiles>1?'s':''}`,'success');}};img.onerror=()=>{showToast('Failed to load image: '+file.name,'error');};img.src=evt.target.result};r.onerror=()=>{showToast('Failed to read file: '+file.name,'error');};r.readAsDataURL(file)}e.target.value=''}
+function renderList(){const l=document.getElementById('imagesList');l.innerHTML=images.map(img=>`<div class="image-slot${selectedId==img.id?' selected':''}" onclick="selectImage('${img.id}')"><img src="${img.src}"><div class="image-slot-remove" onclick="event.stopPropagation();removeImage('${img.id}')">✕</div></div>`).join('');const counts=document.querySelectorAll('#imageCount');counts.forEach(el=>el.textContent=`${images.length} image${images.length!==1?'s':''}`)};
 function removeImage(id){images=images.filter(img=>img.id!=id);if(selectedId==id){selectedId=null;clearPreview()}renderList()}
-function selectImage(id){selectedId=id;updatePreview()}
-function updatePreview(){if(!selectedId){clearPreview();return}const img=images.find(i=>i.id==selectedId);if(!img)return;const w=parseInt(document.getElementById('customWidth').value);const h=parseInt(document.getElementById('customHeight').value);const fmt=document.querySelector('input[name="format"]:checked').value;const qual=document.getElementById('quality').value;document.getElementById('previewImage').src=img.src;document.getElementById('previewImage').style.display='block';document.getElementById('previewPlaceholder').style.display='none';document.getElementById('resizeInfo').style.display='grid';document.getElementById('originalSize').textContent=`${img.w}×${img.h}`;document.getElementById('newSize').textContent=`${w}×${h}`;document.getElementById('formatLabel').textContent=fmt==='image/jpeg'?'JPG':fmt==='image/png'?'PNG':'WebP';document.getElementById('qualityInfo').textContent=Math.round(qual*100)+'%'}
+function selectImage(id){selectedId=id;renderList();updatePreview()}
+function updatePreview(){if(!selectedId){clearPreview();return}const img=images.find(i=>i.id==selectedId);if(!img)return;const w=parseInt(document.getElementById('customWidth').value);const h=parseInt(document.getElementById('customHeight').value);const fmt=document.querySelector('input[name="format"]:checked').value;const qual=document.getElementById('quality').value;document.getElementById('previewImage').src=img.src;document.getElementById('previewImage').style.display='block';document.getElementById('previewPlaceholder').style.display='none';document.getElementById('resizeInfo').style.display='grid';document.getElementById('originalSize').textContent=`${img.w}×${img.h} (${formatFileSize(img.size)})`;document.getElementById('newSize').textContent=`${w}×${h}`;document.getElementById('formatLabel').textContent=fmt==='image/jpeg'?'JPG':fmt==='image/png'?'PNG':'WebP';document.getElementById('qualityInfo').textContent=Math.round(qual*100)+'%'}
 function clearPreview(){document.getElementById('previewImage').style.display='none';document.getElementById('previewPlaceholder').style.display='block';document.getElementById('resizeInfo').style.display='none'}
-function applyPreset(key){const p=PRESETS[key];document.getElementById('customWidth').value=p.w;document.getElementById('customHeight').value=p.h;document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');updatePreview()}
-document.getElementById('quality').oninput=()=>{document.getElementById('qualityLabel').textContent=Math.round(document.getElementById('quality').value*100)+'%';updatePreview()};
-function resizeAndDownloadAll(){if(!images.length){alert('Add images first');return}const w=parseInt(document.getElementById('customWidth').value);const h=parseInt(document.getElementById('customHeight').value);const fmt=document.querySelector('input[name="format"]:checked').value;const qual=parseFloat(document.getElementById('quality').value);images.forEach((img,i)=>{setTimeout(()=>{const c=document.createElement('canvas');const ctx=c.getContext('2d');const bi=new Image();bi.onload=()=>{c.width=w;c.height=h;ctx.drawImage(bi,0,0,w,h);c.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const ext=fmt==='image/jpeg'?'jpg':fmt==='image/png'?'png':'webp';a.download=`${img.name.split('.')[0]}_${w}x${h}.${ext}`;a.click();URL.revokeObjectURL(url)},fmt,qual)};bi.src=img.src},i*300)})}
-document.addEventListener('DOMContentLoaded',()=>{const bc=document.querySelector('.breadcrumb');if(bc){document.body.classList.add('breadcrumb-visible');setTimeout(()=>{bc.classList.add('hidden');document.body.classList.remove('breadcrumb-visible')},5000)}});
+function applyPreset(key, button){const p=PRESETS[key];document.getElementById('customWidth').value=p.w;document.getElementById('customHeight').value=p.h;document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));button.classList.add('active');updatePreview();showToast('Applied '+key.charAt(0).toUpperCase()+key.slice(1)+' preset','success')}
+function handleDimensionChange(which){const w=parseInt(document.getElementById('customWidth').value);const h=parseInt(document.getElementById('customHeight').value);if(!selectedId)return;const img=images.find(i=>i.id==selectedId);if(!img||!document.getElementById('maintainRatio').checked)return;const ratio=img.w/img.h;if(which==='width'){document.getElementById('customHeight').value=Math.round(w/ratio)}else{document.getElementById('customWidth').value=Math.round(h*ratio)}}
+function reduceToSize(targetBytes){if(!selectedId){showToast('Select an image first','warning');return}const img=images.find(i=>i.id==selectedId);if(!img)return;showToast('Calculating optimal size...','info');const fmt=document.querySelector('input[name="format"]:checked').value;const qual=parseFloat(document.getElementById('quality').value);const bi=new Image();bi.onload=()=>{let w=400,h=Math.round(400*img.h/img.w);let attempts=0,currentSize=0;const testCompress=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.drawImage(bi,0,0,w,h);c.toBlob(blob=>{currentSize=blob.size;const ratio=currentSize/(w*h);const scaleFactor=Math.sqrt(targetBytes/(img.w*img.h*ratio));let newW=Math.round(img.w*scaleFactor);let newH=Math.round(img.h*scaleFactor);newW=Math.max(50,newW);newH=Math.max(50,newH);if(attempts<1){w=newW;h=newH;attempts++;testCompress()}else{document.getElementById('customWidth').value=newW;document.getElementById('customHeight').value=newH;const unit=newW*newH*ratio>(1024*1024)?'mb':'kb';const sizeVal=unit==='mb'?Math.round((newW*newH*ratio)/(1024*1024)*10)/10:Math.round((newW*newH*ratio)/1024);document.getElementById('customSizeValue').value=sizeVal;document.getElementById('customSizeUnit').value=unit;updatePreview();showToast('✅ Size reduced to ~'+sizeVal+unit.toUpperCase(),'success')}},fmt,qual)};testCompress()};bi.src=img.src}
+function applyCustomSize(){if(!selectedId){showToast('Select an image first','warning');return}const value=parseFloat(document.getElementById('customSizeValue').value);const unit=document.getElementById('customSizeUnit').value;let targetBytes=value*(unit==='kb'?1024:1024*1024);reduceToSize(targetBytes)}
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('quality').oninput=()=>{document.getElementById('qualityLabel').textContent=Math.round(document.getElementById('quality').value*100)+'%';updatePreview()};document.getElementById('customWidth').oninput=()=>{handleDimensionChange('width');updatePreview()};document.getElementById('customHeight').oninput=()=>{handleDimensionChange('height');updatePreview()};document.getElementById('customSizeValue').oninput=()=>{if(document.getElementById('customSizeValue').value)applyCustomSize()};document.getElementById('customSizeUnit').onchange=()=>{if(document.getElementById('customSizeValue').value)applyCustomSize()};document.querySelectorAll('input[name=\"format\"]').forEach(r=>r.oninput=updatePreview);const bc=document.querySelector('.breadcrumb');if(bc){document.body.classList.add('breadcrumb-visible');setTimeout(()=>{bc.classList.add('hidden');document.body.classList.remove('breadcrumb-visible')},5000)}});
+function resizeAndDownloadAll(){if(!images.length){showToast('Add images first','warning');return}const w=parseInt(document.getElementById('customWidth').value)||800;const h=parseInt(document.getElementById('customHeight').value)||600;const fmt=document.querySelector('input[name="format"]:checked').value||'image/jpeg';const qual=parseFloat(document.getElementById('quality').value)||0.9;if(w<1||h<1){showToast('Invalid dimensions','error');return}showToast('Starting download of '+images.length+' image'+(images.length!==1?'s':''),'info');let downloaded=0;images.forEach((img,i)=>{setTimeout(()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);const bi=new Image();bi.crossOrigin='anonymous';bi.onload=()=>{const imgRatio=bi.width/bi.height;const canvasRatio=w/h;let drawW,drawH,drawX=0,drawY=0;if(imgRatio>canvasRatio){drawW=w;drawH=w/imgRatio}else{drawH=h;drawW=h*imgRatio}drawX=(w-drawW)/2;drawY=(h-drawH)/2;ctx.drawImage(bi,drawX,drawY,drawW,drawH);c.toBlob(blob=>{if(!blob){showToast('Failed to process '+img.name,'error');return}const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;const ext=fmt==='image/jpeg'?'jpg':fmt==='image/png'?'png':'webp';a.download=`${img.name.split('.')[0]}_${w}x${h}.${ext}`;a.click();URL.revokeObjectURL(url);downloaded++;if(downloaded===images.length){showToast('✓ All '+images.length+' images downloaded!','success')}},fmt,qual)};bi.onerror=()=>{showToast('Failed to load '+img.name,'error');downloaded++};bi.src=img.src}catch(e){console.error(e);showToast('Error: '+e.message,'error');downloaded++}},(i*400)+100)})}
 </script>
 
 </body>
