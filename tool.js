@@ -2668,20 +2668,19 @@ function showApiKeyRequiredModal() {
         </div>
 
         <div class="tutorial-section" id="tempApiTutorialSection">
-          <div style="background:rgba(43,115,255,.08);border:1px solid rgba(43,115,255,.2);border-radius:var(--r);padding:12px;margin-bottom:16px;font-size:.85rem;color:var(--text)">
-            <div style="font-weight:600;margin-bottom:8px">📘 Quick Tutorial</div>
-            <div style="font-size:.85rem;color:var(--muted);line-height:1.5">
-              1. Visit <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);text-decoration:underline">remove.bg/api</a> and sign up for a free account.<br>
-              2. Open your account settings and copy the API key.<br>
-              3. Paste the API key here and click Save & Continue.<br>
-              4. Each key gives 50 free removals/month.
+          <div style="background:linear-gradient(135deg, rgba(43,115,255,.15) 0%, rgba(43,115,255,.08) 100%);border:2px solid rgba(43,115,255,.4);border-radius:var(--r);padding:16px;margin-bottom:16px;font-size:.9rem;color:var(--text);box-shadow:0 4px 12px rgba(43,115,255,.1)">
+            <div style="font-weight:700;margin-bottom:12px;font-size:1rem;color:#2B73FF;display:flex;align-items:center;gap:6px">📘 Quick Tutorial</div>
+            <div style="font-size:.9rem;color:var(--text);line-height:1.8;font-weight:500">
+              <div style="margin-bottom:8px">1. Visit <a href="https://www.remove.bg/api" target="_blank" style="color:var(--blue);text-decoration:underline;font-weight:600">remove.bg/api</a> and sign up for a free account.</div>
+              <div style="margin-bottom:8px">2. Open your account settings and copy the API key.</div>
+              <div style="margin-bottom:8px">3. Paste the API key here and click <strong>Save & Continue</strong>.</div>
+              <div>4. Each key gives <strong>50 free removals/month</strong>.</div>
             </div>
           </div>
           <div style="background:rgba(255,255,255,.05);border:1px solid rgba(0,0,0,.08);border-radius:var(--r);padding:12px;">
             <div style="font-weight:600;margin-bottom:8px">📹 Watch the Video Tutorial</div>
-            <div style="text-align:center">
-              <a href="https://www.youtube.com/watch?v=xKuHtvUFxqI" target="_blank" style="color:var(--blue);text-decoration:underline;font-size:.9rem">Click here to watch the tutorial video →</a>
-              <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Opens in new tab</div>
+            <div style="text-align:center;width:100%;overflow:hidden">
+              <iframe width="100%" height="250" src="https://www.youtube.com/embed/xKuHtvUFxqI" title="Tutorial to add  api key in photoprintpro#website" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="border-radius:var(--r)"></iframe>
             </div>
           </div>
         </div>
