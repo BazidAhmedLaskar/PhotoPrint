@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoPrint - Advanced Photo Editor</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="1024x1024.png" type="image/png">
+  <link rel="apple-touch-icon" href="1024x1024.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* EDITOR-SPECIFIC STYLES */
+    #page-editor { padding-top: 70px; min-height: 100vh; background: var(--bg); }
+    .editor-container { display: grid; grid-template-columns: 320px 1fr; min-height: calc(100vh - 70px); }
+    .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--blue); }
+    .sidebar-header h1 { font-family: var(--font-h); font-size: 1.3rem; font-weight: 800; }
+    .theme-toggle { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 0; }
+    .theme-toggle:hover { transform: scale(1.1); }
+    .tool-section { margin-bottom: 20px; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r); }
+    .tool-section h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; letter-spacing: 0.5px; }
+    .control-group { margin-bottom: 12px; }
+    .control-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; color: var(--muted); }
+    .control-group input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: var(--border); outline: none; }
+    .control-group input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--blue); cursor: pointer; }
+    .control-group input[type="number"], .control-group input[type="text"], .control-group select, .control-group input[type="color"] { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: var(--r); background: var(--card); color: var(--text); font-size: 0.875rem; }
+    .value-display { float: right; font-size: 0.75rem; font-weight: 600; color: var(--blue); }
+    .upload-area { border: 2px dashed var(--blue); border-radius: var(--r); padding: 20px; text-align: center; cursor: pointer; background: rgba(43, 115, 255, 0.05); transition: 0.3s; }
+    .upload-area:hover { background: rgba(43, 115, 255, 0.1); border-color: var(--orange); }
+    .upload-area.drag-over { background: rgba(43, 115, 255, 0.15); border-color: var(--orange); transform: scale(1.02); }
+    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-area p { font-size: 0.875rem; color: var(--muted); }
+    .action-btn { width: 100%; padding: 10px 12px; margin: 5px 0; background: var(--blue); color: white; border: none; border-radius: var(--r); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .action-btn:hover { background: var(--blue-dim); transform: translateY(-2px); }
+    .button-group { display: flex; gap: 8px; margin-bottom: 8px; }
+    .button-group button { flex: 1; padding: 10px; background: var(--blue); color: white; border: none; border-radius: var(--r); font-size: 0.85rem; cursor: pointer; }
+    .button-group button:hover { background: var(--blue-dim); }
+    .filter-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .filter-btn { padding: 8px 6px; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: var(--r); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .filter-btn:hover { background: var(--blue); color: white; }
+    .filter-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
+    .editor-main { background: var(--bg); display: flex; justify-content: center; align-items: center; padding: 10px; overflow: auto; }
+    .canvas-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: var(--surface); border-radius: var(--r); position: relative; border: 1px solid var(--border); }
+    #mainCanvas { max-width: 100%; max-height: 100%; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); }
+    .modal-content { background: var(--card); color: var(--text); margin: 10% auto; padding: 25px; border-radius: var(--r); width: 90%; max-width: 400px; border: 1px solid var(--border); }
+    .modal-content h3 { margin-bottom: 15px; color: var(--blue); font-size: 1.1rem; }
+    .modal-content label { display: block; margin: 10px 0; font-size: 0.875rem; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .modal-buttons button { flex: 1; padding: 10px; border: none; border-radius: var(--r); font-weight: 600; cursor: pointer; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--blue); color: white; padding: 15px 20px; border-radius: var(--r); opacity: 0; transition: 0.3s; z-index: 2000; font-size: 0.875rem; font-weight: 600; }
+    .toast.show { opacity: 1; }
+    .comparison-container { position: relative; width: 100%; height: 100%; display: flex; }
+    .comparison-img-1, .comparison-img-2 { position: absolute; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .comparison-img-2 { clip-path: inset(0 50% 0 0); }
+    .comparison-slider-handle { position: absolute; width: 4px; height: 100%; background: var(--blue); left: 50%; z-index: 10; cursor: ew-resize; }
+    @media (max-width: 900px) { .editor-container { grid-template-columns: 1fr; min-height: auto; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; overflow-y: auto; } }
+    @media (max-width: 480px) { .filter-buttons { grid-template-columns: 1fr; } .modal-content { width: 95%; margin: 40% auto; } }
+  </style>
+</head>
+<body id="page-editor">
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav>
+  <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+    <img src="1024x1024.png" alt="PhotoPrint Wala Logo" />
+    Photo<span>Print</span> Wala
+  </div>
+  <button id="navMenuToggle" class="nav-menu-toggle" onclick="toggleNavMenu()">☰</button>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html" class="nav-link" data-page="home">Home</a>
+    <a href="tools.html" class="nav-link" data-page="tools">Tools</a>
+    <a href="editor.html" class="nav-link active" data-page="editor">Editor</a>
+    <a href="contact.html" class="nav-link" data-page="contact">Contact</a>
+  </div>
+</nav>
+
+  <div class="editor-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>📸 PhotoPrint</h1>
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode">🌙</button>
+      </div>
+
+      <!-- Upload Section -->
+      <section class="tool-section">
+        <h3>Upload Image</h3>
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📤</div>
+          <p>Drag & drop or click</p>
+          <input type="file" id="imageInput" accept="image/*" hidden>
+        </div>
+      </section>
+
+      <!-- Main Editing Tools -->
+      <section class="tool-section">
+        <h3>Basic Adjustments</h3>
+        <div class="control-group">
+          <label for="brightness">Brightness</label>
+          <input type="range" id="brightness" min="0" max="200" value="100">
+          <span class="value-display" id="brightnessValue">100%</span>
+        </div>
+        <div class="control-group">
+          <label for="contrast">Contrast</label>
+          <input type="range" id="contrast" min="0" max="200" value="100">
+          <span class="value-display" id="contrastValue">100%</span>
+        </div>
+        <div class="control-group">
+          <label for="saturation">Saturation</label>
+          <input type="range" id="saturation" min="0" max="200" value="100">
+          <span class="value-display" id="saturationValue">100%</span>
+        </div>
+        <div class="control-group">
+          <label for="exposure">Exposure</label>
+          <input type="range" id="exposure" min="-100" max="100" value="0">
+          <span class="value-display" id="exposureValue">0</span>
+        </div>
+        <div class="control-group">
+          <label for="sharpness">Sharpness</label>
+          <input type="range" id="sharpness" min="0" max="100" value="0">
+          <span class="value-display" id="sharpnessValue">0%</span>
+        </div>
+        <div class="control-group">
+          <label for="warmth">Warmth</label>
+          <input type="range" id="warmth" min="-50" max="50" value="0">
+          <span class="value-display" id="warmthValue">0</span>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="tool-section">
+        <h3>Filters</h3>
+        <div class="filter-buttons">
+          <button class="filter-btn" data-filter="original">Original</button>
+          <button class="filter-btn" data-filter="grayscale">B&W</button>
+          <button class="filter-btn" data-filter="sepia">Sepia</button>
+          <button class="filter-btn" data-filter="vintage">Vintage</button>
+          <button class="filter-btn" data-filter="cool">Cool</button>
+          <button class="filter-btn" data-filter="warm">Warm</button>
+          <button class="filter-btn" data-filter="highcontrast">High Contrast</button>
+          <button class="filter-btn" data-filter="invert">Invert</button>
+        </div>
+      </section>
+
+      <!-- Transform Tools -->
+      <section class="tool-section">
+        <h3>Transform</h3>
+        <div class="button-group">
+          <button id="rotateLeft" class="action-btn">↺ Left</button>
+          <button id="rotateRight" class="action-btn">↻ Right</button>
+        </div>
+        <div class="button-group">
+          <button id="flipH" class="action-btn">⇄ Flip H</button>
+          <button id="flipV" class="action-btn">⇅ Flip V</button>
+        </div>
+      </section>
+
+      <!-- Crop Tool -->
+      <section class="tool-section">
+        <h3>Crop & Resize</h3>
+        <div class="control-group">
+          <label for="cropRatio">Aspect Ratio</label>
+          <select id="cropRatio">
+            <option value="free">Free</option>
+            <option value="1:1">1:1 (Square)</option>
+            <option value="4:3">4:3</option>
+            <option value="16:9">16:9</option>
+            <option value="3:2">3:2</option>
+          </select>
+        </div>
+        <button id="enableCrop" class="action-btn">✂️ Enable Crop</button>
+
+        <div class="control-group" style="margin-top: 10px;">
+          <label for="resizeWidth">Width (px)</label>
+          <input type="number" id="resizeWidth" min="1" placeholder="Width">
+        </div>
+        <div class="control-group">
+          <label for="resizeHeight">Height (px)</label>
+          <input type="number" id="resizeHeight" min="1" placeholder="Height">
+        </div>
+        <button id="applyResize" class="action-btn">📏 Apply Resize</button>
+      </section>
+
+      <!-- Student Features -->
+      <section class="tool-section">
+        <h3>Student Features</h3>
+        <button id="passportMaker" class="action-btn">📷 Passport Photo</button>
+        <button id="compressImage" class="action-btn">📦 Compress</button>
+        <button id="resizeForForms" class="action-btn">📋 Resize 4 Forms</button>
+      </section>
+
+      <!-- Before/After -->
+      <section class="tool-section">
+        <button id="beforeAfter" class="action-btn" style="width: 100%;">🔀 Before/After</button>
+      </section>
+
+      <!-- Export & Download -->
+      <section class="tool-section">
+        <h3>Export</h3>
+        <div class="control-group">
+          <label for="quality">Quality</label>
+          <select id="quality">
+            <option value="0.5">Low (50%)</option>
+            <option value="0.75">Medium (75%)</option>
+            <option value="1" selected>High (100%)</option>
+          </select>
+        </div>
+        <div class="button-group">
+          <button id="downloadJPG" class="action-btn">⬇️ Download JPG</button>
+          <button id="downloadPNG" class="action-btn">⬇️ Download PNG</button>
+        </div>
+      </section>
+
+      <!-- Undo/Reset -->
+      <section class="tool-section">
+        <div class="button-group">
+          <button id="undoBtn" class="action-btn">↶ Undo</button>
+          <button id="redoBtn" class="action-btn">↷ Redo</button>
+        </div>
+        <button id="resetBtn" class="action-btn" style="width: 100%; margin-top: 5px; background: var(--orange);">🔄 Reset All</button>
+      </section>
+    </aside>
+
+    <!-- Main Canvas Area -->
+    <main class="editor-main">
+      <div class="canvas-wrapper">
+        <canvas id="mainCanvas"></canvas>
+        <div id="cropOverlay" class="crop-overlay" style="display: none;"></div>
+      </div>
+
+      <!-- Comparison Slider (Hidden by default) -->
+      <div id="comparisonContainer" class="comparison-container" style="display: none;">
+        <div class="comparison-img-1">
+          <canvas id="beforeCanvas"></canvas>
+        </div>
+        <div class="comparison-slider-handle"></div>
+        <div class="comparison-img-2">
+          <canvas id="afterCanvas"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Text Watermark Modal -->
+  <div id="textModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Add Text/Watermark</h3>
+      <input type="text" id="watermarkText" placeholder="Enter text">
+      <select id="textPosition">
+        <option value="top-left">Top Left</option>
+        <option value="top-center">Top Center</option>
+        <option value="top-right">Top Right</option>
+        <option value="center">Center</option>
+        <option value="bottom-left">Bottom Left</option>
+        <option value="bottom-center">Bottom Center</option>
+        <option value="bottom-right">Bottom Right</option>
+      </select>
+      <input type="color" id="textColor" value="#ffffff">
+      <input type="range" id="textOpacity" min="0" max="100" value="50">
+      <div class="modal-buttons">
+        <button id="applyText" class="action-btn">Apply</button>
+        <button id="closeTextModal" class="action-btn" style="background: var(--border);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Passport Photo Modal -->
+  <div id="passportModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Passport Photo Maker</h3>
+      <p>This will create a 35x45mm passport photo layout on A4</p>
+      <div class="passport-options">
+        <label>
+          <input type="radio" name="passportLayout" value="4" checked> 4x6 Layout
+        </label>
+        <label>
+          <input type="radio" name="passportLayout" value="6"> 6x8 Layout
+        </label>
+        <label>
+          <input type="radio" name="passportLayout" value="8"> 8x12 Layout
+        </label>
+      </div>
+      <div class="modal-buttons">
+        <button id="applyPassport" class="action-btn">Generate</button>
+        <button id="closePassportModal" class="action-btn" style="background: var(--border);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compress Modal -->
+  <div id="compressModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Compress Image</h3>
+      <div class="control-group">
+        <label for="targetSize">Target Size (KB)</label>
+        <input type="number" id="targetSize" min="10" max="1000" value="200" placeholder="Enter target size in KB">
+      </div>
+      <div class="modal-buttons">
+        <button id="applyCompress" class="action-btn">Compress</button>
+        <button id="closeCompressModal" class="action-btn" style="background: var(--border);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resize for Forms Modal -->
+  <div id="resizeFormsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Resize for Forms</h3>
+      <div class="form-size-presets">
+        <button class="size-preset-btn" data-size="50">50 KB</button>
+        <button class="size-preset-btn" data-size="100">100 KB</button>
+        <button class="size-preset-btn" data-size="200">200 KB</button>
+        <button class="size-preset-btn" data-size="500">500 KB</button>
+      </div>
+      <div class="modal-buttons">
+        <button id="closeResizeFormsModal" class="action-btn" style="background: var(--border);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Footer -->
+  <footer style="text-align:center;padding:40px 20px;color:var(--muted);border-top:1px solid var(--border);margin-top:60px">
+    <p>© 2026 PhotoPrint Wala — <a href="index.html">Home</a> &nbsp;|&nbsp; <a href="tools.html">Tools</a> &nbsp;|&nbsp; <a href="contact.html">Contact</a></p>
+    <p style="font-size:0.9rem;margin-top:8px">Advanced Photo Editor | Made with ❤️ for photo printing</p>
+  </footer>
+
+  <script src="shared.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
