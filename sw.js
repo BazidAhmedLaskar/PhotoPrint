@@ -3,7 +3,7 @@
 ════════════════════════════════════════════ */
 
 // VERSION: Bump this number when you want to force update all cached pages
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v1.1.0';
 const CACHE_NAME = `photoprintwala-${CACHE_VERSION}`;
 const urlsToCache = [
   '/',

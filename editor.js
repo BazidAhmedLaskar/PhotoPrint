@@ -198,11 +198,6 @@ class PhotoEditor {
       this.showResizeFormsModal();
     });
 
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      this.toggleTheme();
-    });
-
     // Modal handlers
     document.getElementById('applyPassport').addEventListener('click', () => {
       this.generatePassportPhotos();
@@ -267,11 +262,11 @@ class PhotoEditor {
   fitCanvasToImage() {
     if (!this.currentImage) return;
     const img = this.currentImage;
-    this.canvas.width = img.width;
-    this.canvas.height = img.height;
     
-    // Adjust canvas display size
+    // Adjust canvas display size (NOT the actual canvas dimensions to avoid clearing the canvas)
     const canvasWrapper = document.querySelector('.canvas-wrapper');
+    if (!canvasWrapper) return;
+    
     const maxWidth = canvasWrapper.clientWidth;
     const maxHeight = canvasWrapper.clientHeight;
     
@@ -881,29 +876,32 @@ class PhotoEditor {
   }
 
   showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
-    toast.classList.add('show');
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
+    // Use shared.js showToast function for consistency with other pages
+    const toastStyle = type === 'error' ? 'error' : (type === 'warning' ? 'warning' : 'success');
+    
+    // Map to shared function if available, otherwise use local implementation
+    if (typeof showToast === 'function') {
+      showToast(message, toastStyle);
+    } else {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.textContent = message;
+        toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+    }
   }
 
   toggleTheme() {
     document.body.classList.toggle('dark-theme');
     localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-    
-    const toggle = document.getElementById('themeToggle');
-    toggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
   }
 
   loadTheme() {
     const saved = localStorage.getItem('theme');
     if (saved === 'dark') {
       document.body.classList.add('dark-theme');
-      document.getElementById('themeToggle').textContent = '☀️';
     }
   }
 }
