@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khazana — Government Link Directory | PhotoPrint Wala</title>
+  <meta name="description" content="Khazana is a curated directory of genuine government and utility service links for Indian shopkeepers. Aadhaar, PAN, voter ID, exams, schemes and more.">
+  <meta name="author" content="PhotoPrint Wala">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://photoprintwala.netlify.app/khazana.html">
+  <meta name="theme-color" content="#070B17">
+  <link rel="icon" href="1024x1024.png" type="image/png">
+  <link rel="shortcut icon" href="1024x1024.png" type="image/png">
+  <link rel="apple-touch-icon" href="1024x1024.png">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070B17;
+      --surface: #0D1526;
+      --card: #131D36;
+      --border: #1E2B4A;
+      --blue: #2b73ff;
+      --blue-dim: #5BA7D4;
+      --orange: #FF5B1F;
+      --green: #00C98B;
+      --text: #EEF1FF;
+      --muted: #6B7A99;
+      --white: #FFFFFF;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 28px rgba(0,0,0,0.35);
+      --shadow-hover: 0 10px 25px rgba(43,115,255,0.18);
+      --font-h: 'Syne', sans-serif;
+      --font-b: 'DM Sans', sans-serif;
+      --gray: #9AA6C1;
+      --text-muted: #9AA6C1;
+      --gray-border: rgba(255,255,255,0.12);
+      --blue-light: rgba(43,115,255,0.12);
+    }
+    *,*::before,*::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-b);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    input { font: inherit; }
+    img { display: block; max-width: 100%; }
+    /* Use global nav styles from styles.css for consistency */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .hero {
+      padding: 78px 0 32px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(43,115,255,0.14);
+      color: var(--blue);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+    .hero-title {
+      margin: 0;
+      font-family: var(--font-h);
+      font-size: clamp(2.4rem, 4vw, 3.6rem);
+      line-height: 1.02;
+      max-width: 780px;
+      color: var(--text);
+    }
+    .hero-title em {
+      font-style: normal;
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .hero-copy {
+      max-width: 720px;
+      margin: 20px 0 30px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px;
+      border-radius: 999px;
+      background: rgba(43,115,255,0.12);
+      color: var(--blue);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .search-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+    }
+    .search-input {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+    }
+    .search-input input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 1rem;
+      color: var(--text);
+      background: transparent;
+    }
+    .search-input span,
+    .search-input button {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+    .search-input button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+    .search-input button:hover { opacity: 1; }
+    .hint-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .hint-tag {
+      display: inline-flex;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .hint-tag:hover { transform: translateY(-1px); border-color: var(--blue); }
+    .filter-bar {
+      position: static; /* not sticky — follow normal flow */
+      margin: 0 -24px 16px;
+      padding: 12px 24px 10px;
+      background: rgba(7,11,23,0.94);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(30,43,74,0.95);
+    }
+    .filter-bar { display:flex; align-items:center; gap:12px; }
+    .filter-all { flex: 0 0 auto; }
+    .filter-scroll-wrap { flex: 1 1 auto; overflow: hidden; }
+    .filter-list {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x;
+      cursor: grab;
+      user-select: none;
+    }
+    .filter-list:active { cursor: grabbing; }
+    .filter-list::-webkit-scrollbar { display: none; }
+    .filter-button {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .filter-button.active {
+      background: var(--blue);
+      color: white;
+      border-color: transparent;
+    }
+    .badge-count {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      font-size: 0.8rem;
+    }
+    .results-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin: 22px 0 14px;
+      font-size: 0.95rem;
+      color: var(--gray);
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: #c7d7ff;
+    }
+    .card-head {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .card-emoji {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: var(--blue-light);
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+    }
+    .card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .card-scope {
+      margin: 6px 0 0;
+      color: var(--gray);
+      font-size: 0.88rem;
+    }
+    .card-desc {
+      margin: 0 0 16px;
+      color: var(--muted);
+      min-height: 3em;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .badge-pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .badge-central { background: #dbeafe; color: #1e40af; }
+    .badge-state { background: #f0fdf4; color: #15803d; }
+    .badge-semi { background: #f5f3ff; color: #7c3aed; }
+    .badge-free { background: #dcfce7; color: #16a34a; }
+    .badge-paid { background: #fef3c7; color: #92400e; }
+    .info-panel {
+      border-top: 1px solid var(--gray-border);
+      padding-top: 16px;
+      margin-top: 12px;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-8px);
+      color: var(--text-muted);
+      font-size: 0.94rem;
+      gap: 12px;
+      display: grid;
+      transition: max-height 0.28s ease, opacity 0.28s ease, transform 0.28s ease;
+    }
+    .info-panel.open {
+      max-height: 900px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .info-section { display: grid; gap: 8px; }
+    .info-section strong { font-weight: 700; color: var(--text); }
+    .info-list { padding-left: 18px; margin: 0; }
+    .info-list li { margin-bottom: 6px; }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 700;
+      transition: background 0.2s ease, transform 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-blue { background: var(--blue); color: white; }
+    .btn-muted { background: #f3f4f6; color: var(--text); }
+    .btn:hover { transform: translateY(-1px); }
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--gray);
+    }
+    .empty-state h2 {
+      margin: 18px 0 8px;
+      font-size: 1.7rem;
+      color: var(--text);
+    }
+    .request-card {
+      background: linear-gradient(135deg, #2b73ff, #1762d6);
+      border-radius: var(--radius);
+      padding: 28px;
+      color: white;
+      margin: 42px 0 32px;
+      box-shadow: 0 20px 60px rgba(43,115,255,0.22);
+    }
+    .request-card p { margin: 12px 0 0; color: rgba(255,255,255,0.88); }
+    .request-card .btn { background: rgba(255,255,255,0.12); color: white; }
+    .site-footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(30,43,74,0.95);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+    .site-footer a { color: var(--blue); }
+    .back-top {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: var(--blue);
+      color: white;
+      font-size: 1.2rem;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(26,86,219,0.18);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 40;
+    }
+    .back-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    @media (max-width: 980px) {
+      .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .hero-copy { font-size: 0.98rem; }
+      .stats-row { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+      .search-row { grid-template-columns: 1fr; }
+      .card-footer { flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: flex; position: fixed; top:70px; left:0; right:0; background:var(--surface); flex-direction:column; gap:0; max-height:0; overflow:hidden; opacity:0; transition: max-height .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease; z-index:999; }
+      .nav-links.active { max-height:580px; opacity:1; }
+      .nav-menu-toggle { display: block; }
+      .filter-bar { margin: 0; padding: 12px 16px 10px; }
+      .container { width: min(100%, calc(100% - 24px)); }
+      .hero { padding-top: 30px; }
+      .hint-tags { gap: 8px; }
+      .filter-list { padding: 0; }
+      .filter-button { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer">
+      <img src="1024x1024.png" alt="PhotoPrint Wala Logo" />
+      Photo<span>Print</span> Wala
+    </div>
+    <button id="navMenuToggle" class="nav-menu-toggle" onclick="toggleNavMenu()">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="nav-link" data-page="home">Home</a>
+      <a href="tools.html" class="nav-link" data-page="tools">Tools</a>
+      <a href="khazana.html" class="nav-link active" data-page="khazana">Khazana</a>
+      <a href="updates.html" class="nav-link" data-page="updates">Updates</a>
+      <a href="download.html" class="nav-link" data-page="download">Download</a>
+      <a href="contact.html" class="nav-link" data-page="contact">Contact</a>
+      <a href="tool.html" class="nav-link nav-cta">Start Tool →</a>
+    </div>
+  </nav>
+  <main>
+    <section class="hero container">
+      <span class="hero-badge">🏦 Khazana — All-in-One Link Directory</span>
+      <h1 class="hero-title">Every Link a Shopkeeper Needs — <em>Right Here</em></h1>
+      <p class="hero-copy">Genuine government & utility links for Aadhaar, PAN, Ration Card, Exams, Schemes and more. No searching. No confusion. Just open and serve your customer.</p>
+      <div class="stats-row">
+        <span class="stat-pill">51+ Verified Links</span>
+        <span class="stat-pill">17 Categories</span>
+        <span class="stat-pill">100% Free</span>
+        <span class="stat-pill">🇮🇳 Made for India</span>
+      </div>
+      <div class="search-panel">
+        <div class="search-row">
+          <div class="search-input">
+            <span>🔍</span>
+            <input id="searchInput" type="search" placeholder="Search: aadhar mobile update, pan card, voter id correction..." aria-label="Search links">
+            <button id="clearSearch" aria-label="Clear search" style="display:none;">✕</button>
+          </div>
+        </div>
+        <div class="hint-tags" id="hintTags"></div>
+      </div>
+    </section>
+    <section class="filter-bar">
+      <div class="filter-all" id="filterAll"></div>
+      <div class="filter-scroll-wrap">
+        <div class="filter-list" id="categoryFilters"></div>
+      </div>
+    </section>
+    <section class="container">
+      <div class="results-row" id="resultsRow"></div>
+      <div class="card-grid" id="cardGrid"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div style="font-size: 3rem;">🔎</div>
+        <h2>No links found</h2>
+        <p>Try a different keyword, or search in Hindi / Hinglish like "पैन कार्ड" or "aadhar update".</p>
+      </div>
+      <div class="request-card">
+        <h2>🙋 Missing a link?</h2>
+        <p>Tell us on WhatsApp. We add new links every week.</p>
+        <a class="btn" href="https://wa.me/918471960713?text=Hello%2C%20I%20need%20a%20link%20added%20to%20Khazana%3A%20" target="_blank" rel="noopener noreferrer">📱 Request a Link on WhatsApp</a>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>© 2026 PhotoPrint Wala — Made for Indian Photo Shops | <a href="index.html">Home</a> | <a href="tool.html">Tool</a> | <a href="contact.html">Contact</a></p>
+  </footer>
+  <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+  <script src="shared.js"></script>
+  <script>
+    const links = [
+      {id: 1, emoji: '🪪', category: 'Aadhaar', title: 'Aadhaar Mobile Number Update', scope: 'All India • Central Govt', desc: 'Open the UIDAI appointment portal to update Aadhaar mobile number online.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar number', 'Registered mobile number', 'OTP received'], steps: ['Open UIDAI appointment portal.', 'Select mobile update service.', 'Follow OTP verification and submit.'], url: 'https://appointments.uidai.gov.in/', keywords: 'aadhaar mobile update aadhar phone number change aadhar me number kaise badle आधार मोबाइल नंबर बदलें adhar number update'},
+      {id: 2, emoji: '🪪', category: 'Aadhaar', title: 'Aadhaar Address Update Online', scope: 'All India • Central Govt', desc: 'Use the official UIDAI portal to update your Aadhaar address without visiting a centre.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar number', 'Address proof', 'Selfie for verification'], steps: ['Open UIDAI address update portal.', 'Enter Aadhaar and OTP.', 'Upload proof and submit request.'], url: 'https://myaadhaar.uidai.gov.in/', keywords: 'aadhaar address update aadhar address change आधार पता बदलें address correction aadhar mein address kaise badle'},
+      {id: 3, emoji: '🪪', category: 'Aadhaar', title: 'Download e-Aadhaar', scope: 'All India • Central Govt', desc: 'Download the official e-Aadhaar PDF from the UIDAI portal instantly.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar number or VID', 'Registered mobile number', 'OTP'], steps: ['Open UIDAI e-Aadhaar portal.', 'Enter Aadhaar/VID and OTP.', 'Download the e-Aadhaar PDF.'], url: 'https://myaadhaar.uidai.gov.in/', keywords: 'download aadhaar e-aadhaar pdf aadhaar card download aadhar download karna आधार डाउनलोड adhar nikalna'},
+      {id: 4, emoji: '🪪', category: 'Aadhaar', title: 'Order Aadhaar PVC Card', scope: 'All India • Central Govt', desc: 'Order the PVC version of Aadhaar online with doorstep delivery.', type: 'central', fee: '₹50', feeLabel: '₹50', docs: ['Aadhaar number', 'Registered mobile number'], steps: ['Open UIDAI PVC card order page.', 'Enter Aadhaar and verify OTP.', 'Pay and submit address details.'], url: 'https://myaadhaar.uidai.gov.in/genricPVC', keywords: 'pvc aadhaar card plastic aadhaar aadhar pvc card kaise banaye आधार PVC कार्ड plastic card ATM jaise aadhaar'},
+      {id: 5, emoji: '🪪', category: 'Aadhaar', title: 'Lock / Unlock Aadhaar Biometrics', scope: 'All India • Central Govt', desc: 'Secure Aadhaar by locking biometrics and unlock when needed through UIDAI.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar number', 'Registered mobile number', 'OTP'], steps: ['Open UIDAI bio-lock service.', 'Enter Aadhaar and verify OTP.', 'Choose lock or unlock and confirm.'], url: 'https://resident.uidai.gov.in/bio-lock', keywords: 'aadhaar biometric lock unlock fingerprint lock aadhar security आधार बायोमेट्रिक लॉक'},
+      {id: 6, emoji: '🪪', category: 'Aadhaar', title: 'Find Nearest Aadhaar Seva Kendra', scope: 'All India • Central Govt', desc: 'Search for the nearest Aadhaar Seva Kendra location and appointment slots.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Pin code or district'], steps: ['Open UIDAI centre search.', 'Enter state and district.', 'Find nearest Aadhaar centre details.'], url: 'https://appointments.uidai.gov.in/easearch.aspx', keywords: 'aadhaar centre near me aadhaar seva kendra location aadhaar office find आधार केंद्र kahan hai enrolment centre'},
+      {id: 7, emoji: '🪪', category: 'Aadhaar', title: 'Aadhaar Name / DOB Correction', scope: 'All India • Central Govt', desc: 'Apply for Aadhaar name or date of birth correction through the UIDAI portal.', type: 'central', fee: 'FREE / ₹50', feeLabel: 'FREE', docs: ['Aadhaar number', 'Proof of name/DOB change', 'OTP'], steps: ['Open UIDAI correction portal.', 'Select name or DOB correction.', 'Upload supporting documents and submit.'], url: 'https://myaadhaar.uidai.gov.in/', keywords: 'aadhaar name correction DOB correction aadhar mein naam sudhaarna आधार नाम सुधार date of birth correction aadhaar'},
+      {id: 8, emoji: '🟠', category: 'PAN Card', title: 'Apply New PAN Card (NSDL/Protean)', scope: 'All India • Central Govt', desc: 'Apply for a new PAN card online using the NSDL / Protean portal.', type: 'central', fee: '₹107', feeLabel: '₹107', docs: ['Identity proof', 'Address proof', 'Photograph'], steps: ['Open NSDL PAN application.', 'Fill personal details and upload documents.', 'Submit and pay fee.'], url: 'https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html', keywords: 'pan card apply new pan card kaise banaye nsdl pan form पैन कार्ड आवेदन pan card online apply'},
+      {id: 9, emoji: '🟠', category: 'PAN Card', title: 'Instant e-PAN Free via Aadhaar', scope: 'All India • Central Govt', desc: 'Get an instant e-PAN for free using Aadhaar details on the Income Tax portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar number', 'Registered mobile number', 'OTP'], steps: ['Open Income Tax instant e-PAN page.', 'Enter Aadhaar and OTP.', 'Download issued e-PAN.'], url: 'https://eportal.incometax.gov.in/iec/foservices/#/pre-login/instant-e-pan', keywords: 'instant pan free e-pan aadhaar se pan banaye तुरंत पैन free pan card instant pan kaise milega'},
+      {id: 10, emoji: '🟠', category: 'PAN Card', title: 'PAN Card Correction / Reprint', scope: 'All India • Central Govt', desc: 'Use the NSDL portal to correct PAN details or reprint an existing PAN card.', type: 'central', fee: '₹107', feeLabel: '₹107', docs: ['PAN number', 'Proof of correction', 'Photograph'], steps: ['Open PAN reprint/correction page.', 'Enter PAN and details.', 'Upload documents and pay fee.'], url: 'https://www.onlineservices.nsdl.com/paam/ReprintEPan.html', keywords: 'pan card correction name change reprint pan pan card dobara बनवाना पैन सुधार pan correction online'},
+      {id: 11, emoji: '🟠', category: 'PAN Card', title: 'Link PAN with Aadhaar', scope: 'All India • Central Govt', desc: 'Link PAN to Aadhaar online to avoid penalties and keep tax records updated.', type: 'central', fee: '₹1000', feeLabel: '₹1000', docs: ['PAN number', 'Aadhaar number'], steps: ['Open Income Tax Aadhaar link page.', 'Enter PAN and Aadhaar.', 'Verify and submit.'], url: 'https://eportal.incometax.gov.in/iec/foservices/#/pre-login/link-aadhaar', keywords: 'pan aadhaar link pan card aadhaar se link karna income tax पैन आधार लिंक pan link aadhaar status'},
+      {id: 12, emoji: '🗳️', category: 'Voter ID', title: 'Apply New Voter ID Card (Form 6)', scope: 'All India • Central Govt', desc: 'Register a new voter ID online with the Election Commission of India portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Identity proof', 'Address proof', 'Photograph'], steps: ['Open ECI voter registration.', 'Fill Form 6 and upload documents.', 'Submit for verification.'], url: 'https://voters.eci.gov.in/', keywords: 'voter id apply new voter card banwana election card EPIC नया वोटर आईडी voter registration apply online'},
+      {id: 13, emoji: '🗳️', category: 'Voter ID', title: 'Download e-EPIC Digital Voter ID', scope: 'All India • Central Govt', desc: 'Download the digital version of your voter ID using the ECI portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Voter ID details or EPIC number'], steps: ['Open ECI e-EPIC portal.', 'Enter details and verify.', 'Download digital voter ID.'], url: 'https://voters.eci.gov.in/', keywords: 'download voter id e-epic voter id pdf digital voter वोटर आईडी डाउनलोड e-epic download'},
+      {id: 14, emoji: '🗳️', category: 'Voter ID', title: 'Search Name in Voter List', scope: 'All India • Central Govt', desc: 'Check if a name appears in the voter list and locate polling station details.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Name and state details'], steps: ['Open ECI voter list search.', 'Enter name and district.', 'View voter list status and polling booth.'], url: 'https://electoralsearch.eci.gov.in/', keywords: 'voter list check name in voter list polling booth find मतदाता सूची mera naam voter list mein search'},
+      {id: 15, emoji: '🚗', category: 'Driving Licence', title: 'Apply / Renew Driving Licence (Sarathi)', scope: 'All India • Central Govt', desc: 'Apply for a new DL or renew an existing licence on the Sarathi Parivahan portal.', type: 'central', fee: '₹200–₹500', feeLabel: '₹200–₹500', docs: ['Age proof', 'Address proof', 'Medical certificate'], steps: ['Open Sarathi portal.', 'Choose apply or renewal.', 'Upload documents and pay fee.'], url: 'https://sarathi.parivahan.gov.in/', keywords: 'driving licence apply DL apply online renewal sarathi parivahan ड्राइविंग लाइसेंस DL kaise banaye'},
+      {id: 16, emoji: '🚗', category: 'Driving Licence', title: 'Check Vehicle RC & Pay Traffic Challan (Vahan)', scope: 'All India • Central Govt', desc: 'Use the Vahan portal to view RC details and pay traffic challans online.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Vehicle registration number', 'Challan details'], steps: ['Open Vahan portal.', 'Enter vehicle number.', 'View RC details and pay challan if any.'], url: 'https://vahan.parivahan.gov.in/', keywords: 'rc check vehicle details vahan challan traffic challan payment gaadi ki jankari वाहन चालान RC status'},
+      {id: 17, emoji: '✈️', category: 'Passport', title: 'Apply / Renew Passport (Passport Seva)', scope: 'All India • Central Govt', desc: 'Start or renew a passport application through the Passport Seva portal.', type: 'central', fee: '₹1500–₹3500', feeLabel: '₹1500–₹3500', docs: ['Proof of identity', 'Proof of address', 'Photograph'], steps: ['Open Passport Seva portal.', 'Fill application and book PSK slot.', 'Submit documents and attend verification.'], url: 'https://passportindia.gov.in/', keywords: 'passport apply renewal tatkaal passport kaise banaye नया पासपोर्ट PSK booking passport application'},
+      {id: 18, emoji: '✈️', category: 'Passport', title: 'Track Passport Application Status', scope: 'All India • Central Govt', desc: 'Check the status of a passport application on the official portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Application number', 'Date of birth'], steps: ['Open Passport Seva status page.', 'Enter application details.', 'Track current application status.'], url: 'https://passportindia.gov.in/', keywords: 'passport status track passport application police verification status पासपोर्ट स्टेटस kahan tak pahuncha'},
+      {id: 19, emoji: '🌾', category: 'Ration Card', title: 'Apply New Ration Card (NFSA)', scope: 'State-wise • State Govt', desc: 'Start a new ration card application via NFSA recommendations and state portals.', type: 'state', fee: 'FREE', feeLabel: 'FREE', docs: ['Identity proof', 'Address proof', 'Family details'], steps: ['Open NFSA portal.', 'Choose state and application.', 'Submit documents to apply.'], url: 'https://nfsa.gov.in/', keywords: 'ration card apply new ration card kaise banaye BPL APL card राशन कार्ड बनाना nfsa ration card online'},
+      {id: 20, emoji: '🌾', category: 'Ration Card', title: 'One Nation One Ration Card (ONORC)', scope: 'All India • Central Govt', desc: 'Use the ONORC portal for ration card portability across states.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Ration card details', 'Aadhaar'], steps: ['Open ONORC portal.', 'Enter ration card details.', 'Submit portability request.'], url: 'https://nfsa.gov.in/portal/onorc_act', keywords: 'ONORC one nation one ration card portability mera ration app राशन कार्ड पोर्टेबिलिटी any state ration'},
+      {id: 21, emoji: '🌾', category: 'Ration Card', title: 'Find Nearest Ration Shop (FPS Locator)', scope: 'All India • Central Govt', desc: 'Locate the nearest fair price shop using the NFSA FPS locator online tool.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Pin code or district'], steps: ['Open FPS locator.', 'Enter location.', 'Find nearby ration shop details.'], url: 'https://nfsa.gov.in/portal/fps-locator', keywords: 'ration shop near me FPS locator fair price shop dukan नजदीकी राशन की दुकान ration shop location'},
+      {id: 22, emoji: '🏛️', category: 'Home loan / PMAY', title: 'PM Awas Yojana Apply (PMAY Housing Scheme)', scope: 'All India • Central Govt', desc: 'Check PMAY eligibility and apply for affordable housing under the government scheme.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Address proof', 'Income details'], steps: ['Open PMAY portal.', 'Check eligibility.', 'Register and submit application.'], url: 'https://pmaymis.gov.in/', keywords: 'PM awas yojana housing apply PMAY ghar milega scheme प्रधानमंत्री आवास योजना free house scheme status check'},
+      {id: 23, emoji: '🏛️', category: 'Govt Schemes', title: 'PM Kisan Samman Nidhi Status & Registration', scope: 'All India • Central Govt', desc: 'Check PM Kisan payment status and register farmers for the scheme.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Land details', 'Bank account'], steps: ['Open PM Kisan portal.', 'Enter Aadhaar and farm details.', 'Check status or register.'], url: 'https://pmkisan.gov.in/', keywords: 'PM kisan status payment check 2000 rupees kisan samman किसान सम्मान निधि pm kisan beneficiary registration'},
+      {id: 24, emoji: '🏛️', category: 'Health schemes', title: 'Ayushman Bharat Health Card Apply (PM-JAY)', scope: 'All India • Central Govt', desc: 'Apply for the Ayushman Bharat health card for cashless treatment at hospitals.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Income proof'], steps: ['Open NHA beneficiary portal.', 'Check eligibility.', 'Register and download health card.'], url: 'https://beneficiary.nha.gov.in/', keywords: 'ayushman card apply 5 lakh health scheme golden card PM JAY eligibility आयुष्मान भारत free hospital treatment'},
+      {id: 25, emoji: '🏛️', category: 'Govt Schemes', title: 'E-Shram Card Registration', scope: 'All India • Central Govt', desc: 'Register unorganised workers for the E-Shram card through the official portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Bank details', 'Work details'], steps: ['Open E-Shram portal.', 'Fill worker details.', 'Submit and download card.'], url: 'https://eshram.gov.in/', keywords: 'e shram card eshram registration majdoor card labor श्रमिक कार्ड e-shram yojana unorganised worker register'},
+      {id: 26, emoji: '🏛️', category: 'Govt Schemes', title: 'PM Mudra Loan Yojana', scope: 'All India • Central Govt', desc: 'Apply for Mudra business loans for small enterprises and micro businesses.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Business details', 'Bank account'], steps: ['Open Mudra portal.', 'Select loan category.', 'Register and submit application.'], url: 'https://www.mudra.org.in/', keywords: 'mudra loan PM mudra business loan 10 lakh without guarantee मुद्रा लोन Shishu Kishore Tarun loan apply'},
+      {id: 27, emoji: '🏛️', category: 'Govt Schemes', title: 'National Scholarship Portal (NSP)', scope: 'All India • Central Govt', desc: 'Find and apply for government scholarships for students across categories.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'School details', 'Income proof'], steps: ['Open NSP portal.', 'Search scholarship.', 'Register and submit application.'], url: 'https://scholarships.gov.in/', keywords: 'scholarship apply NSP national scholarship portal छात्रवृत्ति SC ST OBC minority scholarship student'},
+      {id: 28, emoji: '🏛️', category: 'Govt Schemes', title: 'Check DBT / Govt Payment Status (PFMS)', scope: 'All India • Central Govt', desc: 'Verify government direct benefit transfer payments using the PFMS portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Bank account details', 'Aadhaar'], steps: ['Open PFMS portal.', 'Search payment status.', 'Confirm DBT or welfare transfer.'], url: 'https://pfms.nic.in/', keywords: 'DBT payment status government money check PFMS सरकारी पैसा bank mein aaya kya DBT status payment'},
+      {id: 29, emoji: '📝', category: 'Exam Forms', title: 'UPSC Exam Apply (IAS / IPS / CDS / NDA)', scope: 'All India • Central Govt', desc: 'Apply for UPSC recruitment exams and civil service applications online.', type: 'central', fee: '₹100–₹200', feeLabel: '₹100–₹200', docs: ['Aadhaar', 'Educational certificates', 'Photograph'], steps: ['Open UPSC online application.', 'Select exam and fill form.', 'Upload documents and pay fee.'], url: 'https://upsconline.nic.in/', keywords: 'UPSC apply IAS form civil services CDS NDA apply यूपीएससी फॉर्म upsc online application government exam'},
+      {id: 30, emoji: '📝', category: 'Exam Forms', title: 'SSC Exam Apply (CGL / CHSL / MTS / GD)', scope: 'All India • Central Govt', desc: 'Submit SSC applications for CGL, CHSL, MTS, GD and other recruitments.', type: 'central', fee: '₹100', feeLabel: '₹100', docs: ['Aadhaar', 'Education proof', 'Photograph'], steps: ['Open SSC portal.', 'Choose exam and complete registration.', 'Pay application fee.'], url: 'https://ssc.gov.in/', keywords: 'SSC apply CGL CHSL MTS GD constable ssc online एसएससी फॉर्म government job form ssc registration'},
+      {id: 31, emoji: '📝', category: 'Exam Forms', title: 'Railway Exam Apply (RRB NTPC / Group D)', scope: 'All India • Central Govt', desc: 'Apply for RRB recruitment exams like NTPC, Group D and technician posts.', type: 'central', fee: '₹250–₹500', feeLabel: '₹250–₹500', docs: ['Aadhaar', 'Education proof', 'Photograph'], steps: ['Open RRB recruitment portal.', 'Select exam.', 'Fill form and pay fee.'], url: 'https://www.rrbcdg.gov.in/', keywords: 'railway job RRB NTPC group D apply railway recruitment रेलवे भर्ती फॉर्म railway form rrb apply online'},
+      {id: 32, emoji: '📝', category: 'Exam Forms', title: 'IBPS Bank Exam Apply (PO / Clerk / SO)', scope: 'All India • Semi-Govt', desc: 'Register for IBPS bank recruitment exams for PO, Clerk, and specialist officer roles.', type: 'semi', fee: '₹175–₹850', feeLabel: '₹175–₹850', docs: ['Aadhaar', 'Education proof', 'Photograph'], steps: ['Open IBPS portal.', 'Choose exam category.', 'Fill details and pay fee.'], url: 'https://www.ibps.in/', keywords: 'IBPS apply bank job PO clerk form bank exam बैंक नौकरी फॉर्म ibps online application banking exam'},
+      {id: 33, emoji: '📝', category: 'Exam Forms', title: 'NEET / JEE / CUET Apply (NTA)', scope: 'All India • Central Govt', desc: 'Apply for NTA exams like NEET, JEE Main and CUET through the official portal.', type: 'central', fee: '₹800–₹1600', feeLabel: '₹800–₹1600', docs: ['Aadhaar', 'Educational certificates', 'Photograph'], steps: ['Open NTA application portal.', 'Select exam and fill form.', 'Upload documents and pay fee.'], url: 'https://nta.ac.in/', keywords: 'NEET apply JEE main CUET application medical engineering form नीट फॉर्म जेईई NTA exam registration'},
+      {id: 34, emoji: '📝', category: 'Exam Forms', title: 'CTET Exam Apply (Teacher Job)', scope: 'All India • Central Govt', desc: 'Apply for the CTET exam online to become a certified teacher.', type: 'central', fee: '₹1000–₹1200', feeLabel: '₹1000–₹1200', docs: ['Aadhaar', 'Education proof', 'Photograph'], steps: ['Open CTET portal.', 'Fill registration form.', 'Upload documents and pay fee.'], url: 'https://ctet.nic.in/', keywords: 'CTET apply teacher job form TET apply सीटेट फॉर्म teacher eligibility test shikshak bharti CTET registration'},
+      {id: 35, emoji: '📵', category: 'Lost Phone', title: 'Block Stolen / Lost Phone (CEIR / Sanchar Saathi)', scope: 'All India • Central Govt', desc: 'Block a stolen or lost mobile phone using the CEIR IMEI block service.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Phone IMEI', 'Mobile number', 'Proof of ownership'], steps: ['Open CEIR portal.', 'Enter IMEI and details.', 'Submit request to block phone.'], url: 'https://ceir.gov.in/', keywords: 'lost phone block stolen phone CEIR IMEI block चोरी हुआ मोबाइल ब्लॉक phone kho gaya Sanchar Saathi'},
+      {id: 36, emoji: '📵', category: 'Lost Phone', title: 'Check IMEI / Find Stolen Phone (Sanchar Saathi)', scope: 'All India • Central Govt', desc: 'Verify phone IMEI and check if a device is reported stolen or lost.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Phone IMEI number'], steps: ['Open Sanchar Saathi site.', 'Enter IMEI number.', 'View stolen phone status.'], url: 'https://sancharsaathi.gov.in/', keywords: 'IMEI check stolen phone verify Sanchar Saathi आईएमईआई चेक mobile IMEI number check genuine phone'},
+      {id: 37, emoji: '📵', category: 'Lost Phone', title: 'File Cybercrime Complaint Online', scope: 'All India • Central Govt', desc: 'Register an online cybercrime complaint for fraud, UPI scams, and phishing.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Incident details', 'Evidence screenshots'], steps: ['Open cybercrime.gov.in.', 'Fill complaint form.', 'Submit incident details and attachments.'], url: 'https://cybercrime.gov.in/', keywords: 'cybercrime complaint UPI fraud online thagi fake call साइबर क्राइम शिकायत online fraud report cybercrime.gov.in'},
+      {id: 38, emoji: '💳', category: 'Banking & EPF', title: 'Check EPF / PF Balance (UAN Portal EPFO)', scope: 'All India • Central Govt', desc: 'View EPF balance and passbook details on the EPFO unified portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['UAN number', 'Password'], steps: ['Open EPF portal.', 'Login with UAN.', 'Check balance and passbook.'], url: 'https://unifiedportal-mem.epfindia.gov.in/', keywords: 'EPF PF balance check UAN login passbook pf withdrawal पीएफ बैलेंस EPFO UAN portal pf kitna hai'},
+      {id: 39, emoji: '💳', category: 'Banking & EPF', title: 'Jan Dhan Account (PMJDY)', scope: 'All India • Central Govt', desc: 'Open or learn about PM Jan Dhan bank accounts and zero balance savings.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Identity proof', 'Address proof'], steps: ['Open PMJDY portal.', 'Review account benefits.', 'Find nearest bank branch or apply online.'], url: 'https://pmjdy.gov.in/', keywords: 'jan dhan account open zero balance PMJDY bank account जन धन खाता zero balance account open karna'},
+      {id: 40, emoji: '💳', category: 'Banking & EPF', title: 'Post Office Savings Schemes (PPF / NSC / SSY)', scope: 'All India • Central Govt', desc: 'Explore Post Office savings schemes like PPF, NSC and Sukanya Samriddhi Yojana.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Address proof', 'Photograph'], steps: ['Open India Post portal.', 'Choose scheme.', 'Apply or enquire at post office.'], url: 'https://www.indiapost.gov.in/', keywords: 'post office scheme PPF NSC sukanya samriddhi yojana डाकघर बचत योजना SSY PPF account post office savings'},
+      {id: 41, emoji: '📁', category: 'Certificates', title: 'DigiLocker — Store & Share Documents', scope: 'All India • Central Govt', desc: 'Store and share government documents digitally using DigiLocker.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Mobile number'], steps: ['Open DigiLocker portal.', 'Create or login account.', 'Upload and share documents.'], url: 'https://www.digilocker.gov.in/', keywords: 'digilocker document store digital locker government document डिजिलॉकर account create documents digitally safe'},
+      {id: 42, emoji: '📁', category: 'Certificates', title: 'Birth / Death Certificate (CRSORGI)', scope: 'All India • Central Govt', desc: 'Apply for or download birth and death certificates through CRS Online.', type: 'central', fee: '₹0–₹50', feeLabel: '₹0–₹50', docs: ['Aadhaar', 'Hospital certificate', 'Address proof'], steps: ['Open CRSORGI portal.', 'Select birth or death certificate.', 'Fill form and submit documents.'], url: 'https://crsorgi.gov.in/', keywords: 'birth certificate death certificate online CRSORGI janm praman patra mrityu जन्म प्रमाण पत्र मृत्यु'},
+      {id: 43, emoji: '📁', category: 'Certificates', title: 'UDID Disability Card Apply', scope: 'All India • Central Govt', desc: 'Apply for the UDID disability card to receive support and benefits.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Disability certificate', 'Photograph'], steps: ['Open UDID portal.', 'Register with Aadhaar.', 'Upload certificate and apply.'], url: 'https://www.swavlambancard.gov.in/', keywords: 'UDID disability card handicap certificate divyang card दिव्यांग कार्ड विकलांगता प्रमाण पत्र UDID apply'},
+      {id: 44, emoji: '🗺️', category: 'Land Records', title: 'UP Land Record (Bhulekh UP)', scope: 'Uttar Pradesh • State Govt', desc: 'Access Uttar Pradesh land records and khasra details from Bhulekh UP.', type: 'state', fee: 'FREE', feeLabel: 'FREE', docs: ['Land details', 'Plot number'], steps: ['Open UP Bhulekh portal.', 'Enter district and plot details.', 'View land record information.'], url: 'https://upbhulekh.gov.in/', keywords: 'UP bhulekh land record khatauni khasra UP property यूपी भूलेख जमाबंदी zameen ki jankari UP'},
+      {id: 45, emoji: '🗺️', category: 'Land Records', title: 'Bihar Land Record (Bhumi Bihar)', scope: 'Bihar • State Govt', desc: 'Search Bihar land records and plot details on the Bhumi Bihar portal.', type: 'state', fee: 'FREE', feeLabel: 'FREE', docs: ['Plot number', 'District details'], steps: ['Open Bhumi Bihar portal.', 'Enter plot and district.', 'View land record details.'], url: 'https://biharbhumi.bihar.gov.in/', keywords: 'Bihar land record bhumi jamabandi khasra बिहार भूमि भूलेख Bihar property LRC Bihar land'},
+      {id: 46, emoji: '🗺️', category: 'Land Records', title: 'Assam Land Record (Dharitree)', scope: 'Assam • State Govt', desc: 'Find Assam land record details using the Dharitree online system.', type: 'state', fee: 'FREE', feeLabel: 'FREE', docs: ['Land plot details', 'District'], steps: ['Open Dharitree portal.', 'Enter plot or khatian number.', 'View Assam land record.'], url: 'https://revenueassam.nic.in/ILRMS/', keywords: 'Assam land record Dharitree patta daag number असम जमाबंदी Assam bhumi record zameen'},
+      {id: 47, emoji: '💡', category: 'Utility Bills', title: 'Pay Electricity Bill Online (BBPS)', scope: 'All India • Semi-Govt', desc: 'Pay electricity bills online through the BBPS billdesk gateway.', type: 'semi', fee: 'FREE', feeLabel: 'FREE', docs: ['Consumer number', 'Bill amount'], steps: ['Open BBPS billdesk.', 'Select electricity bill.', 'Enter details and pay online.'], url: 'https://www.billdesk.com/bbps/', keywords: 'electricity bill pay bijli bill online BBPS discom UPCL BESCOM MSEDCL BSPHCL बिजली बिल भुगतान bill payment'},
+      {id: 48, emoji: '💡', category: 'Utility Bills', title: 'Book LPG Gas Cylinder Online', scope: 'All India • Semi-Govt', desc: 'Book your LPG gas cylinder refill using the eBharatGas portal.', type: 'semi', fee: 'FREE', feeLabel: 'FREE', docs: ['Consumer number', 'Registered mobile number'], steps: ['Open eBharatGas portal.', 'Login with LPG details.', 'Book a cylinder refill.'], url: 'https://www.ebharatgas.com/', keywords: 'gas cylinder book online LPG Indane HP gas bharat gas गैस सिलेंडर बुकिंग gas booking kaise kare cylinder'},
+      {id: 49, emoji: '🏢', category: 'Business & GST', title: 'GST Registration Online', scope: 'All India • Central Govt', desc: 'Register for GST online and get your GSTIN for business compliance.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'PAN', 'Business address proof'], steps: ['Open GST portal.', 'Register business details.', 'Submit documents and receive GSTIN.'], url: 'https://www.gst.gov.in/', keywords: 'GST registration apply GSTIN number kaise le GST जीएसटी नंबर बनाना new gst apply small shop business'},
+      {id: 50, emoji: '🏢', category: 'Business & GST', title: 'MSME / Udyam Registration', scope: 'All India • Central Govt', desc: 'Register your small business under Udyam for MSME support and benefits.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Business details', 'Bank account'], steps: ['Open Udyam registration portal.', 'Fill business details.', 'Submit and download registration certificate.'], url: 'https://udyamregistration.gov.in/', keywords: 'MSME Udyam registration small business certificate उद्यम पंजीकरण MSME certificate udyam kaise kare'},
+      {id: 51, emoji: '💼', category: 'Employment', title: 'National Career Service Portal (Job Search)', scope: 'All India • Central Govt', desc: 'Find government and private job openings through the NCS employment portal.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Resume details', 'Aadhaar'], steps: ['Open NCS portal.', 'Search jobs.', 'Register and apply for listings.'], url: 'https://www.ncs.gov.in/', keywords: 'NCS job portal government job search employment exchange rojgar kendra नौकरी ढूंढना job dhundhna NCS'},
+      {id: 52, emoji: '💼', category: 'Employment', title: 'Skill India / PMKVY Free Training', scope: 'All India • Central Govt', desc: 'Find free training courses and skill development programs under PMKVY.', type: 'central', fee: 'FREE', feeLabel: 'FREE', docs: ['Aadhaar', 'Educational details'], steps: ['Open Skill India portal.', 'Search training course.', 'Register for free training.'], url: 'https://www.skillindia.gov.in/', keywords: 'skill india PMKVY training free course training centre near me कौशल विकास Pradhan Mantri Kaushal Vikas Yojana'}
+    ];
+    const categories = [
+      {key: 'All', label: 'All ⭐'},
+      {key: 'Aadhaar', label: 'Aadhaar 🪪'},
+      {key: 'PAN Card', label: 'PAN Card 🟠'},
+      {key: 'Voter ID', label: 'Voter ID 🗳️'},
+      {key: 'Driving Licence', label: 'Driving Licence 🚗'},
+      {key: 'Passport', label: 'Passport ✈️'},
+      {key: 'Ration Card', label: 'Ration Card 🌾'},
+      {key: 'Home loan / PMAY', label: 'Home loan / PMAY 🏠'},
+      {key: 'Health schemes', label: 'Health schemes 🏥'},
+      {key: 'Govt Schemes', label: 'Govt Schemes 🏛️'},
+      {key: 'Exam Forms', label: 'Exam Forms 📝'},
+      {key: 'Lost Phone', label: 'Lost Phone 📵'},
+      {key: 'Banking & EPF', label: 'Banking & EPF 💳'},
+      {key: 'Certificates', label: 'Certificates 📁'},
+      {key: 'Land Records', label: 'Land Records 🗺️'},
+      {key: 'Utility Bills', label: 'Utility Bills 💡'},
+      {key: 'Business & GST', label: 'Business & GST 🏢'},
+      {key: 'Employment', label: 'Employment 💼'}
+    ];
+    const hintTerms = ['aadhaar update', 'pan card', 'voter id', 'ration card', 'passport', 'exam form', 'lost phone', 'home loan'];
+    const state = { query: '', category: 'All', openInfo: new Set() };
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const hintTags = document.getElementById('hintTags');
+    const categoryFilters = document.getElementById('categoryFilters');
+    const cardGrid = document.getElementById('cardGrid');
+    const resultsRow = document.getElementById('resultsRow');
+    const emptyState = document.getElementById('emptyState');
+    const backTop = document.getElementById('backTop');
+    const navLinks = document.getElementById('navLinks');
+    const navToggle = document.getElementById('navToggle');
+    const pageNav = document.getElementById('pageNav');
+    function normalize(text) {
+      return text.toString().toLowerCase();
+    }
+    function matches(link, query) {
+      if (!query) return true;
+      const q = normalize(query);
+      const fields = [link.title, link.desc, link.category, link.scope, link.fee, link.feeLabel, link.keywords, ...(link.docs || []), ...(link.steps || [])];
+      return fields.some(field => normalize(field).includes(q));
+    }
+    function getFilteredLinks() {
+      return links.filter(link => {
+        const categoryMatch = state.category === 'All' || link.category === state.category;
+        return categoryMatch && matches(link, state.query);
+      });
+    }
+    function renderHintTags() {
+      hintTags.innerHTML = hintTerms.map(term => `<button type="button" class="hint-tag" data-term="${term}">${term}</button>`).join('');
+      hintTags.querySelectorAll('.hint-tag').forEach(button => {
+        button.addEventListener('click', () => {
+          state.query = button.dataset.term;
+          searchInput.value = state.query;
+          updateSearch();
+        });
+      });
+    }
+    function renderCategoryFilters() {
+      const query = state.query;
+      // Render fixed All button
+      const allCount = links.filter(link => matches(link, query)).length;
+      const allActive = state.category === 'All' ? 'active' : '';
+      const filterAll = document.getElementById('filterAll');
+      if (filterAll) {
+        filterAll.innerHTML = `<button type="button" class="filter-button ${allActive}" data-key="All">All ⭐ <span class="badge-count">${allCount}</span></button>`;
+        const btn = filterAll.querySelector('.filter-button');
+        btn.addEventListener('click', () => {
+          state.category = 'All';
+          updateSearch();
+          if (window.innerWidth <= 640) window.scrollTo({top:160, behavior:'smooth'});
+        });
+      }
+
+      // Render other categories inside the horizontal scroller
+      const others = categories.filter(c => c.key !== 'All');
+      categoryFilters.innerHTML = others.map(cat => {
+        const count = links.filter(link => link.category === cat.key && matches(link, query)).length;
+        return `<button type="button" class="filter-button ${state.category === cat.key ? 'active' : ''}" data-key="${cat.key}">${cat.label} <span class="badge-count">${count}</span></button>`;
+      }).join('');
+
+      categoryFilters.querySelectorAll('.filter-button').forEach(button => {
+        button.addEventListener('click', () => {
+          state.category = button.dataset.key;
+          updateSearch();
+          if (window.innerWidth <= 640) {
+            window.scrollTo({top: 160, behavior: 'smooth'});
+          }
+        });
+      });
+    }
+    function renderCards() {
+      const filtered = getFilteredLinks();
+      cardGrid.innerHTML = filtered.map(link => {
+        const openClass = state.openInfo.has(link.id) ? 'open' : '';
+        const typeBadge = link.type === 'central' ? 'badge-central' : link.type === 'state' ? 'badge-state' : link.type === 'semi' ? 'badge-semi' : 'badge-muted';
+        const feeBadge = link.feeLabel === 'FREE' ? 'badge-free' : 'badge-paid';
+        return `
+          <article class="card">
+            <div class="card-head">
+              <div class="card-emoji">${link.emoji}</div>
+              <div>
+                <h3 class="card-title">${link.title}</h3>
+                <p class="card-scope">${link.scope}</p>
+              </div>
+            </div>
+            <p class="card-desc">${link.desc}</p>
+            <div class="badges">
+              <span class="badge-pill ${typeBadge}">${link.type === 'central' ? 'Central Govt' : link.type === 'state' ? 'State Govt' : link.type === 'semi' ? 'Semi-Govt' : 'Private'}</span>
+              <span class="badge-pill ${feeBadge}">${link.feeLabel}</span>
+            </div>
+            <div class="info-panel ${openClass}" id="info-${link.id}">
+              <div class="info-section">
+                <strong>Documents Required</strong>
+                <ul class="info-list">${link.docs.map(doc => `<li>${doc}</li>`).join('')}</ul>
+              </div>
+              <div class="info-section">
+                <strong>Steps for shopkeeper</strong>
+                <ul class="info-list">${link.steps.map(step => `<li>${step}</li>`).join('')}</ul>
+              </div>
+            </div>
+            <div class="card-footer">
+              <a class="btn btn-blue" href="${link.url}" target="_blank" rel="noopener noreferrer">Open Link →</a>
+              <button type="button" class="btn btn-muted" data-toggle="${link.id}">ℹ️ Info</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+      cardGrid.querySelectorAll('[data-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = Number(button.dataset.toggle);
+          if (state.openInfo.has(id)) {
+            state.openInfo.delete(id);
+          } else {
+            state.openInfo.add(id);
+          }
+          renderCards();
+        });
+      });
+    }
+    function updateResults() {
+      const filtered = getFilteredLinks();
+      const count = filtered.length;
+      const queryText = state.query.trim();
+      resultsRow.innerHTML = `<div>${count} link${count === 1 ? '' : 's'}${queryText ? ` for "${queryText}"` : ''}</div>`;
+      emptyState.style.display = count === 0 ? 'block' : 'none';
+    }
+    function updateClearButton() {
+      clearSearch.style.display = searchInput.value.trim() ? 'block' : 'none';
+    }
+    function updateSearch() {
+      state.query = searchInput.value.trim();
+      if (state.query && state.category !== 'All') {
+        state.category = 'All';
+      }
+      updateClearButton();
+      renderCategoryFilters();
+      renderCards();
+      updateResults();
+    }
+    ['input', 'change', 'keyup', 'search'].forEach(eventName => {
+      searchInput.addEventListener(eventName, updateSearch);
+    });
+    clearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      updateSearch();
+      searchInput.focus();
+    });
+    // Navigation: handled by shared.js (toggleNavMenu, active state)
+    window.addEventListener('scroll', () => {
+      document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 10);
+      backTop.classList.toggle('visible', window.scrollY > 400);
+    });
+    backTop.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+    renderHintTags();
+    renderCategoryFilters();
+    renderCards();
+    updateResults();
+    updateClearButton();
+    // Marquee: auto-scroll category pills on large screens (pauses on hover/touch)
+    let marqueeInterval = null;
+    let marqueePaused = false;
+    let resumeTimer = null;
+    let isFilterDragging = false;
+    let justDragged = false;
+    let filterDragStartX = null;
+    let filterDragStartScroll = 0;
+    const dragThreshold = 8;
+
+    function stopMarquee() {
+      marqueePaused = true;
+      clearInterval(marqueeInterval);
+      marqueeInterval = null;
+      clearTimeout(resumeTimer);
+    }
+    function startMarquee() {
+      if (marqueePaused) marqueePaused = false;
+      clearInterval(marqueeInterval);
+      clearTimeout(resumeTimer);
+      const el = categoryFilters;
+      if (!el) return;
+      if (window.innerWidth <= 900 || el.scrollWidth <= el.clientWidth) return;
+      marqueeInterval = setInterval(() => {
+        try {
+          if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+            el.scrollLeft = 0;
+          } else {
+            el.scrollLeft += 1;
+          }
+        } catch (e) { /* ignore */ }
+      }, 24);
+    }
+    function scheduleMarqueeResume() {
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        if (!marqueePaused) return;
+        marqueePaused = false;
+        startMarquee();
+      }, 450);
+    }
+    let marqueeListenersBound = false;
+    function onFilterPointerDown(event) {
+      if (event.button !== 0) return;
+      isFilterDragging = false;
+      justDragged = false;
+      filterDragStartX = event.clientX;
+      filterDragStartScroll = categoryFilters.scrollLeft;
+      categoryFilters.setPointerCapture(event.pointerId);
+      stopMarquee();
+    }
+    function onFilterPointerMove(event) {
+      if (filterDragStartX === null) return;
+      const deltaX = event.clientX - filterDragStartX;
+      if (Math.abs(deltaX) > dragThreshold) {
+        isFilterDragging = true;
+        justDragged = true;
+        categoryFilters.scrollLeft = filterDragStartScroll - deltaX;
+      }
+    }
+    function onFilterPointerUp() {
+      if (filterDragStartX === null) return;
+      filterDragStartX = null;
+      if (isFilterDragging) {
+        setTimeout(() => { isFilterDragging = false; }, 0);
+      }
+      scheduleMarqueeResume();
+    }
+    function setupMarquee() {
+      const el = categoryFilters;
+      if (!el) return;
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mq.matches) return;
+      stopMarquee();
+      startMarquee();
+      if (!marqueeListenersBound) {
+        marqueeListenersBound = true;
+        el.addEventListener('mouseenter', () => stopMarquee());
+        el.addEventListener('mouseleave', () => {
+          marqueePaused = true;
+          scheduleMarqueeResume();
+        });
+        el.addEventListener('pointerdown', onFilterPointerDown, {passive:true});
+        el.addEventListener('pointermove', onFilterPointerMove, {passive:true});
+        el.addEventListener('pointerup', onFilterPointerUp, {passive:true});
+        el.addEventListener('pointercancel', onFilterPointerUp, {passive:true});
+        el.addEventListener('click', event => {
+          if (justDragged) {
+            event.preventDefault();
+            event.stopPropagation();
+            justDragged = false;
+          }
+        });
+        window.addEventListener('resize', () => {
+          stopMarquee();
+          setupMarquee();
+        });
+      }
+    }
+    // initialize marquee after initial render
+    setTimeout(setupMarquee, 300);
+  </script>
+  <script>
+    // mark Khazana active in the global nav
+    setActiveNav && setActiveNav('khazana');
+  </script>
+</body>
+</html>
